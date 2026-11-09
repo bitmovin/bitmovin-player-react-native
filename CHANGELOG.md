@@ -20,6 +20,8 @@
 
 ### Changed
 
+- Default `Player.config` to an empty configuration when omitted; native SDK defaults continue to apply
+
 - Forward repeated Player and OfflineContentManager destruction and pending Source loads to native instead of suppressing them using TypeScript lifecycle flags
 
 - **Breaking change:** Make `isInitialized` a read-only getter derived from the resolved native object on Player, Source, and OfflineContentManager

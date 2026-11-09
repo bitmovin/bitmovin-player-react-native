@@ -29,7 +29,11 @@ import { getNativeOwner } from './nativeOwner';
  * Can be attached to {@link PlayerView} component in order to use Bitmovin's Player Web UI.
  * @see PlayerView
  */
-export class Player extends NativeInstance<PlayerConfig | undefined> {
+export class Player extends NativeInstance<PlayerConfig> {
+  constructor(config: PlayerConfig = {}) {
+    super(config);
+  }
+
   /** @internal */
   readonly native = this.retainNative(
     legacyPlayerRegistry.getOrCreate(this.nativeId, () =>
@@ -50,7 +54,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    *
    * `undefined` if the player was created without analytics support.
    */
-  analytics?: AnalyticsApi = this.config?.analyticsConfig
+  analytics?: AnalyticsApi = this.config.analyticsConfig
     ? new AnalyticsApi(this.native)
     : undefined;
   /**
@@ -73,7 +77,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
 
   private async createNativePlayer() {
     const beforeInitialization =
-      this.config?.advertisingConfig?.ima?.beforeInitialization;
+      this.config.advertisingConfig?.ima?.beforeInitialization;
     if (beforeInitialization && !PlayerModule.isGoogleImaEnabled) {
       console.warn(
         'advertisingConfig.ima.beforeInitialization is ignored because Google IMA is disabled. ' +
@@ -86,7 +90,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
       (callback) =>
         PlayerModule.create(
           callbacks.serialize(this.config, { capture: 'advertisingConfig' }),
-          callbacks.serialize(this.config?.analyticsConfig),
+          callbacks.serialize(this.config.analyticsConfig),
           callback
         ),
       callbacks.callback

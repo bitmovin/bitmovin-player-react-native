@@ -20,7 +20,7 @@ export interface NativeInstanceConfig {
 }
 
 export default abstract class NativeInstance<
-  Config extends NativeInstanceConfig | undefined,
+  Config extends NativeInstanceConfig,
 > {
   /**
    * Optionally user-defined string `id` for the native instance, or UUIDv4.
@@ -35,11 +35,9 @@ export default abstract class NativeInstance<
   /**
    * Generate UUID in case the user-defined `nativeId` is empty.
    */
-  constructor(
-    ...[config]: undefined extends Config ? [config?: Config] : [config: Config]
-  ) {
-    this.config = config as Config;
-    this.nativeId = config?.nativeId ?? Crypto.randomUUID();
+  constructor(config: Config) {
+    this.config = config;
+    this.nativeId = config.nativeId ?? Crypto.randomUUID();
   }
 
   /** Retain one eager creation attempt; callers still observe its original rejection. */

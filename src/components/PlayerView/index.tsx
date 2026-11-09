@@ -77,10 +77,10 @@ export function PlayerView({
 
   const nativePlayerViewConfig: NativePlayerViewConfig = {
     enableBackgroundPlayback:
-      player.config?.playbackConfig?.isBackgroundPlaybackEnabled,
+      player.config.playbackConfig?.isBackgroundPlaybackEnabled,
     isPictureInPictureEnabledOnPlayer:
-      player.config?.playbackConfig?.isPictureInPictureEnabled,
-    userInterfaceTypeName: player.config?.styleConfig?.userInterfaceType,
+      player.config.playbackConfig?.isPictureInPictureEnabled,
+    userInterfaceTypeName: player.config.styleConfig?.userInterfaceType,
     playerViewConfig: config,
   };
 
