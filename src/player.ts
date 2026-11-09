@@ -62,7 +62,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * @platform Android
    */
-  playlist: PlaylistApi = new PlaylistApi(this.nativeId);
+  playlist: PlaylistApi = new PlaylistApi(this);
 
   private network?: Network;
 
@@ -126,14 +126,14 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Destroys the native `Player` and releases all of its allocated resources.
    *
    * Also destroys the {@link Source}s it owns: every source loaded into it, including ones it is still loading and
-   * ones it no longer plays, e.g. after {@link Player.unload} or a later load, unless another player loaded it since
-   * or it was removed via {@link PlaylistApi.remove} or {@link PlaylistApi.removeAt}.
+   * ones it no longer plays, e.g. after {@link Player.unload} or a later load, unless another player loaded it or
+   * added it to its playlist since, or it was removed via {@link PlaylistApi.remove} or {@link PlaylistApi.removeAt}.
    */
   destroy = () => {
     if (!this.isDestroyed) {
       // Remove the listeners only after the native destroy, so they still receive the `destroy` event.
       void PlayerModule.destroy(this.nativeId)
-        .then(() => SourceRegistry.destroyOwned(this.nativeId))
+        .then(() => SourceRegistry.destroyOwned(this))
         .finally(() => {
           this.eventListeners.removeAll();
         });
@@ -210,12 +210,9 @@ export class Player extends NativeInstance<PlayerConfig> {
     if (source.isDestroyed) {
       throw new Error(`Source ${source.nativeId} was destroyed`);
     }
-    SourceRegistry.own(this.nativeId, [source]);
+    SourceRegistry.own(this, [source]);
     void source.initialize().then(
-      () =>
-        this.isDestroyed
-          ? source.destroy()
-          : PlayerModule.loadSource(this.nativeId, source.nativeId),
+      () => PlayerModule.loadSource(this.nativeId, source.nativeId),
       (error) => ignoreIfDestroyed(error, [source])
     );
   };
@@ -246,18 +243,16 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   loadPlaylist = (playlistConfig: PlaylistConfig) => {
     validatePlaylistConfig(playlistConfig);
-    SourceRegistry.own(this.nativeId, playlistConfig.sources);
+    SourceRegistry.own(this, playlistConfig.sources);
     void Promise.all(
       playlistConfig.sources.map((source) => source.initialize())
     ).then(
       () =>
-        this.isDestroyed
-          ? playlistConfig.sources.forEach((source) => source.destroy())
-          : PlayerModule.loadPlaylist(
-              this.nativeId,
-              playlistConfig.sources.map((source) => source.nativeId),
-              playlistConfig.options
-            ),
+        PlayerModule.loadPlaylist(
+          this.nativeId,
+          playlistConfig.sources.map((source) => source.nativeId),
+          playlistConfig.options
+        ),
       (error) => ignoreIfDestroyed(error, playlistConfig.sources)
     );
   };

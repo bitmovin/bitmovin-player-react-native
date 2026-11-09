@@ -1,3 +1,4 @@
+import type { Player } from '../player';
 import type { Source } from '../source';
 
 /**
@@ -7,10 +8,11 @@ import type { Source } from '../source';
  */
 const sources = new Map<string, Source>();
 /**
- * The {@link Player.nativeId} of the player that owns a source and destroys it with itself.
- * Set when a source is loaded, before it is registered, so it is weak to not keep sources that are never registered.
+ * The player that owns a source and destroys it with itself, including sources that are still initializing, and
+ * the number of the {@link SourceRegistry.own} call that made it the owner.
  */
-const owners = new WeakMap<Source, string>();
+const owners = new Map<Source, { player: Player; ownership: number }>();
+let ownerships = 0;
 
 export const SourceRegistry = {
   /**
@@ -28,12 +30,13 @@ export const SourceRegistry = {
   },
 
   /**
-   * Unregisters `source`, unless another source with the same `nativeId` is registered.
+   * Forgets the destroyed `source`.
    */
   unregister(source: Source) {
     if (sources.get(source.nativeId) === source) {
       sources.delete(source.nativeId);
     }
+    owners.delete(source);
   },
 
   get(nativeId: string): Source | undefined {
@@ -41,27 +44,46 @@ export const SourceRegistry = {
   },
 
   /**
-   * Makes the player that loads `loadedSources` their owner, also if another player owned them before.
+   * Makes `player` the owner of the sources it loads, also if another player owned them before.
+   * A destroyed player takes no sources.
    */
-  own(playerNativeId: string, loadedSources: Source[]) {
-    loadedSources.forEach((source) => owners.set(source, playerNativeId));
+  own(player: Player, loadedSources: Source[]) {
+    if (player.isDestroyed) {
+      return;
+    }
+    ownerships += 1;
+    loadedSources.forEach((source) =>
+      owners.set(source, { player, ownership: ownerships })
+    );
   },
 
   /**
-   * Hands `source` back to the app once its player removed it, so the player no longer destroys it.
+   * Hands the source that `removal` resolves to back to the app, so `player` no longer destroys it, unless
+   * `player` loaded it again since the removal started.
    */
-  disown(playerNativeId: string, source: Source) {
-    if (owners.get(source) === playerNativeId) {
+  async release(
+    player: Player,
+    removal: Promise<Source | undefined>
+  ): Promise<Source | undefined> {
+    const ownershipsBeforeRemoval = ownerships;
+    const source = await removal;
+    const owner = source && owners.get(source);
+    if (
+      source &&
+      owner?.player === player &&
+      owner.ownership <= ownershipsBeforeRemoval
+    ) {
       owners.delete(source);
     }
+    return source;
   },
 
   /**
-   * Destroys the sources the player owns, once it is destroyed.
+   * Destroys the sources `player` owns, once it is destroyed.
    */
-  destroyOwned(playerNativeId: string) {
-    [...sources.values()]
-      .filter((source) => owners.get(source) === playerNativeId)
-      .forEach((source) => source.destroy());
+  destroyOwned(player: Player) {
+    [...owners]
+      .filter(([, owner]) => owner.player === player)
+      .forEach(([source]) => source.destroy());
   },
 };

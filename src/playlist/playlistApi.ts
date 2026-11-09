@@ -1,4 +1,5 @@
 import PlaylistModule from '../modules/PlaylistModule';
+import type { Player } from '../player';
 import type { Source } from '../source';
 import { SourceRegistry } from '../utils/sourceRegistry';
 
@@ -19,8 +20,11 @@ export class PlaylistApi {
    */
   readonly nativeId: string;
 
-  constructor(playerId: string) {
-    this.nativeId = playerId;
+  private readonly player: Player;
+
+  constructor(player: Player) {
+    this.player = player;
+    this.nativeId = player.nativeId;
   }
 
   /**
@@ -47,7 +51,7 @@ export class PlaylistApi {
    * @returns a promise that rejects if the `source` is already attached to a player or was destroyed.
    */
   add = async (source: Source, index?: number): Promise<void> => {
-    SourceRegistry.own(this.nativeId, [source]);
+    SourceRegistry.own(this.player, [source]);
     await source.initialize();
     return PlaylistModule?.add(this.nativeId, source.nativeId, index);
   };
@@ -61,9 +65,13 @@ export class PlaylistApi {
    * if there is no active playback session or if the `source` is the active source.
    */
   remove = async (source: Source): Promise<void> => {
-    if (await PlaylistModule?.remove(this.nativeId, source.nativeId)) {
-      SourceRegistry.disown(this.nativeId, source);
-    }
+    const removal = PlaylistModule?.remove(this.nativeId, source.nativeId);
+    await SourceRegistry.release(
+      this.player,
+      Promise.resolve(removal).then((isRemoved) =>
+        isRemoved ? source : undefined
+      )
+    );
   };
 
   /**
@@ -76,12 +84,13 @@ export class PlaylistApi {
    * {@link Source} instance (e.g. offline content).
    */
   removeAt = async (index: number): Promise<Source | undefined> => {
-    const nativeId = await PlaylistModule?.removeAt(this.nativeId, index);
-    const source = nativeId ? SourceRegistry.get(nativeId) : undefined;
-    if (source) {
-      SourceRegistry.disown(this.nativeId, source);
-    }
-    return source;
+    const removal = PlaylistModule?.removeAt(this.nativeId, index);
+    return SourceRegistry.release(
+      this.player,
+      Promise.resolve(removal).then((nativeId) =>
+        nativeId ? SourceRegistry.get(nativeId) : undefined
+      )
+    );
   };
 
   /**
