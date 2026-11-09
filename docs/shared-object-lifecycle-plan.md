@@ -1,10 +1,11 @@
 # SharedObject compatibility decisions
 
-- Player and OfflineContentManager `nativeId` aliases remain a TS compatibility
-  contract, so multiple public wrappers can reference one SDK object. Alias flags
+- The Player and OfflineContentManager registries exist only for backward
+  compatibility with `nativeId`-based construction: wrappers created with the same
+  ID share one SDK object. Methods and views use that object directly. Alias flags
   and configuration remain
   independent. Reusing an ID redirects compatibility lookup to its current
-  registration; an existing SharedObject never changes its SDK object. The generic
+  registration; an existing SharedObject never changes its SDK object. Each
   registry holds ready objects weakly, so keep an owning TS wrapper reachable
   while using its ID. Pending creation remains strongly retained until settlement.
 - Player, Source, and OfflineContentManager constructors start one native creation

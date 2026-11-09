@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import PlayerModule, { retainLoadedSource } from './modules/PlayerModule';
 import NativeInstance from './nativeInstance';
-import { getOrCreateAsync, remove } from './nativeInstanceRegistry';
+import { playerRegistry } from './nativeInstanceRegistry';
 import type { SourceConfig } from './source';
 import { Source } from './source';
 import type { AudioTrack } from './audioTrack';
@@ -32,7 +32,7 @@ import { getNativeOwner } from './nativeOwner';
 export class Player extends NativeInstance<PlayerConfig | undefined> {
   /** @internal */
   readonly native = this.retainNative(
-    getOrCreateAsync('player', this.nativeId, () => this.createNativePlayer())
+    playerRegistry.getOrCreate(this.nativeId, () => this.createNativePlayer())
   );
 
   /**
@@ -96,7 +96,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    */
   destroy = async (): Promise<void> => {
     this.isDestroyed = true;
-    remove('player', this.nativeId, getNativeOwner(this) ?? this.native);
+    playerRegistry.remove(this.nativeId, getNativeOwner(this) ?? this.native);
     let native;
     try {
       native = await this.native;
@@ -104,7 +104,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
       // A failed constructor has no native player to destroy.
       return;
     }
-    remove('player', this.nativeId, native);
+    playerRegistry.remove(this.nativeId, native);
     await retainLoadedSource(native, undefined, native.destroy());
   };
 

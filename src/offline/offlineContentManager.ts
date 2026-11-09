@@ -13,7 +13,7 @@ import OfflineModule, {
   type NativeOfflineBackend,
   type NativeOfflineEvents,
 } from './offlineModule';
-import { getOrCreateAsync, remove } from '../nativeInstanceRegistry';
+import { offlineRegistry } from '../nativeInstanceRegistry';
 import { getNativeOwner } from '../nativeOwner';
 import {
   createConfigurationCallbacks,
@@ -65,7 +65,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
 
   /** @internal */
   readonly native = this.retainNative(
-    getOrCreateAsync('offline', this.nativeId, () =>
+    offlineRegistry.getOrCreate(this.nativeId, () =>
       this.createNativeOffline()
     ),
     (native) => this.observeEvents(native.events)
@@ -138,7 +138,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
     this.isDestroyed = true;
     this.eventSubscription?.remove();
     this.listeners.clear();
-    remove('offline', this.nativeId, getNativeOwner(this) ?? this.native);
+    offlineRegistry.remove(this.nativeId, getNativeOwner(this) ?? this.native);
     let native;
     try {
       native = await this.native;
@@ -148,7 +148,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
     }
     // Creation can subscribe after destroy() starts; detach it before cleanup completes.
     this.eventSubscription?.remove();
-    remove('offline', this.nativeId, native);
+    offlineRegistry.remove(this.nativeId, native);
     await native.destroy();
   };
 
