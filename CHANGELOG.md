@@ -38,6 +38,8 @@
 
 ### Fixed
 
+- Android: Apply initial fullscreen requests to custom handlers even when they already report the requested state
+
 - Keep PlayerView unmounted when Player creation fails without producing additional unhandled Promise rejections
 - iOS: Keep FairPlay license renewal available on Source handles returned by player and playlist queries
 - Deliver `PlayerView` playback and source callbacks through the attached Player's public event API

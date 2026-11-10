@@ -9,10 +9,10 @@ internal final class SourceFairplayRequests: NSObject, SourceListener {
     static func attached(to source: Source) -> SourceFairplayRequests {
         objc_sync_enter(source)
         defer { objc_sync_exit(source) }
-        if let existing = objc_getAssociatedObject(source, &associationKey) as? SourceFairplayRequests {
+        if let existing = objc_getAssociatedObject(source, &associationKey) as? Self {
             return existing
         }
-        let store = SourceFairplayRequests()
+        let store = Self()
         objc_setAssociatedObject(source, &associationKey, store, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         source.add(listener: store)
         return store

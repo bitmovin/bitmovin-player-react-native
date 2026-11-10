@@ -221,9 +221,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             playerView.scalingMode = it
         }
         fullscreenHandler?.let { playerView.setFullscreenHandler(it) }
-        requestedFullscreenValue?.let {
-            setFullscreen(it)
-        }
+        applyPendingFullscreenRequest(playerView)
         requestedPictureInPictureValue?.let {
             setPictureInPicture(it)
         }
@@ -516,7 +514,19 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
     fun attachFullscreenHandler(handler: SharedFullscreen?) {
         fullscreenHandler = handler
-        handler?.let { playerView?.setFullscreenHandler(it) }
+        if (handler != null) {
+            playerView?.let { view ->
+                view.setFullscreenHandler(handler)
+                applyPendingFullscreenRequest(view)
+            }
+        }
+    }
+
+    // Initial requests also notify a custom handler that already reports the requested state.
+    private fun applyPendingFullscreenRequest(view: PlayerView) {
+        requestedFullscreenValue?.let { requested ->
+            if (requested) view.enterFullscreen() else view.exitFullscreen()
+        }
     }
 
     fun attachCustomMessageHandler(handler: SharedCustomMessage?) {
