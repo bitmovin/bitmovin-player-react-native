@@ -228,7 +228,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * On iOS and tvOS, only HLS, progressive and `movpkg` sources can be part of a playlist.
    *
-   * @throws if `sources` is empty or contains a source more than once, `options.replayMode` is unknown, or (on
+   * Throws if `sources` is empty or contains a source more than once, `options.replayMode` is unknown, or (on
    * iOS and tvOS) a source has an unsupported type.
    */
   loadPlaylist = (playlistConfig: PlaylistConfig) => {
