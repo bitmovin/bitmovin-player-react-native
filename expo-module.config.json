@@ -9,7 +9,6 @@
       "PlayerModule",
       "SourceModule",
       "PlaylistModule",
-      "MediaControlsModule",
       "NetworkModule",
       "CustomMessageHandlerModule",
       "DrmModule",

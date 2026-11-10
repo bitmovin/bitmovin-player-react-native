@@ -56,7 +56,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * @platform iOS, tvOS
    */
-  mediaControls: MediaControlsApi = new MediaControlsApi(this.nativeId);
+  mediaControls: MediaControlsApi = new MediaControlsApi(() => this.native);
   /**
    * The {@link PlaylistApi} for interactions regarding the playlist of the playback session.
    */

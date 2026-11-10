@@ -29,6 +29,12 @@ public class PlayerModule: Module {
             return owner
         }.runOnQueue(.main)
         Class("Player", SharedPlayer.self) {
+            AsyncFunction("isMediaControlsEnabled") { (owner: SharedPlayer) -> Bool? in
+                owner.player.nowPlaying.isEnabled
+            }.runOnQueue(.main)
+            AsyncFunction("setMediaControlsEnabled") { (owner: SharedPlayer, enabled: Bool) in
+                owner.player.nowPlaying.isEnabled = enabled
+            }.runOnQueue(.main)
             AsyncFunction("sendCustomDataEvent") { (owner: SharedPlayer, json: [String: Any]) in
                 guard let analytics = owner.player.analytics,
                       let customData = RCTConvert.analyticsCustomData(json) else { return }

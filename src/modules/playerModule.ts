@@ -38,6 +38,8 @@ export type PlayerModuleEvents = {
 
 /** @internal Shared handle used by migrated Player APIs. */
 export interface NativePlayer extends SharedObject {
+  isMediaControlsEnabled(): Promise<boolean | null>;
+  setMediaControlsEnabled(enabled: boolean): Promise<void>;
   sendCustomDataEvent(customData: Record<string, any>): Promise<void>;
   getAnalyticsUserId(): Promise<string | null>;
   getBufferLevel(type: string): Promise<BufferLevels | null>;

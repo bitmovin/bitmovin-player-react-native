@@ -4,6 +4,8 @@
 
 ### Changed
 
+- Access media controls through `player.mediaControls`. `MediaControlsApi` no longer exposes a binding ID or accepts one in its internal constructor
+
 - Access analytics APIs through `player.analytics`. `AnalyticsApi` no longer exposes a binding ID or accepts one in its internal constructor
 
 - Access buffer APIs through `player.buffer`. `BufferApi` no longer exposes a binding ID or accepts one in its internal constructor
