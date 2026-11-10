@@ -149,15 +149,8 @@ export type PlaybackFinishedEvent = Event;
  *
  * This interface only type hints what should be the shape of a {@link Source} object inside an event's
  * payload during runtime so it has no direct relation with the `Source` class present in `src/source.ts`.
- *
- * Do not mistake it for a `NativeInstance` type.
  */
 export interface EventSource {
-  /**
-   * The {@link Source.nativeId} of this event's source.
-   * Not set for sources that were not created through a {@link Source} instance (e.g. offline content).
-   */
-  nativeId?: string;
   /**
    * Event's source duration in seconds.
    */
@@ -288,56 +281,8 @@ export interface SourceLoadedEvent extends Event {
 export interface SourceUnloadedEvent extends Event {
   /**
    * Source that was unloaded from player.
-   *
-   * Not set on Android for events received via {@link Player.on} or the `PlayerView` event props,
-   * as the native event does not carry the source. Set for events received via {@link Source.on}.
-   */
-  source?: EventSource;
-}
-
-/**
- * Emitted when a {@link Source} was added to an active playback session, either while loading a
- * playlist via {@link Player.loadPlaylist} or via {@link PlaylistApi.add}.
- * When loading, it is emitted for every source of the playlist before {@link PlayerActiveEvent}.
- */
-export interface SourceAddedEvent extends Event {
-  /**
-   * The source that was added.
    */
   source: EventSource;
-  /**
-   * The position in the playlist the source was added to.
-   */
-  index: number;
-}
-
-/**
- * Emitted when a {@link Source} was removed from an active playback session, either via
- * {@link PlaylistApi.remove} / {@link PlaylistApi.removeAt} or while unloading the playback session.
- */
-export interface SourceRemovedEvent extends Event {
-  /**
-   * The source that was removed.
-   */
-  source: EventSource;
-  /**
-   * The position in the playlist the source was removed from.
-   */
-  index: number;
-}
-
-/**
- * Emitted when the player transitions between two sources in a playlist.
- */
-export interface PlaylistTransitionEvent extends Event {
-  /**
-   * The source that was active before the transition.
-   */
-  from: EventSource;
-  /**
-   * The source that is active after the transition.
-   */
-  to: EventSource;
 }
 
 /**
@@ -1146,4 +1091,112 @@ export interface FairplayLicenseAcquiredEvent extends Event {
    * The content key request associated with the acquired license.
    */
   contentKeyRequest: FairplayContentKeyRequest;
+}
+
+/** Events emitted by a Source, and forwarded by its attached Player. */
+export type SourceEvents = {
+  downloadFinished: (event: DownloadFinishedEvent) => void;
+  videoDownloadQualityChanged: (
+    event: VideoDownloadQualityChangedEvent
+  ) => void;
+  metadataParsed: (event: MetadataParsedEvent) => void;
+  sourceError: (event: SourceErrorEvent) => void;
+  sourceLoad: (event: SourceLoadEvent) => void;
+  sourceLoaded: (event: SourceLoadedEvent) => void;
+  sourceUnloaded: (event: SourceUnloadedEvent) => void;
+  sourceWarning: (event: SourceWarningEvent) => void;
+  audioAdded: (event: AudioAddedEvent) => void;
+  audioChanged: (event: AudioChangedEvent) => void;
+  audioRemoved: (event: AudioRemovedEvent) => void;
+  subtitleAdded: (event: SubtitleAddedEvent) => void;
+  subtitleChanged: (event: SubtitleChangedEvent) => void;
+  subtitleRemoved: (event: SubtitleRemovedEvent) => void;
+  fairplayLicenseAcquired: (event: FairplayLicenseAcquiredEvent) => void;
+  event: (event: Event) => void;
+};
+
+/** Events emitted by a Player, including its sources. View UI events belong to PlayerView. */
+export type PlayerEvents = SourceEvents & {
+  /** @platform Android */
+  sourceAdded: (event: SourceAddedEvent) => void;
+  /** @platform Android */
+  sourceRemoved: (event: SourceRemovedEvent) => void;
+  /** @platform iOS/tvOS */
+  sourceAddedEvent: (event: SourceAddedEvent) => void;
+  /** @platform iOS/tvOS */
+  sourceRemovedEvent: (event: SourceRemovedEvent) => void;
+  playlistTransition: (event: PlaylistTransitionEvent) => void;
+  adBreakFinished: (event: AdBreakFinishedEvent) => void;
+  adBreakStarted: (event: AdBreakStartedEvent) => void;
+  adClicked: (event: AdClickedEvent) => void;
+  adError: (event: AdErrorEvent) => void;
+  adFinished: (event: AdFinishedEvent) => void;
+  adManifestLoad: (event: AdManifestLoadEvent) => void;
+  adManifestLoaded: (event: AdManifestLoadedEvent) => void;
+  adQuartile: (event: AdQuartileEvent) => void;
+  adScheduled: (event: AdScheduledEvent) => void;
+  adSkipped: (event: AdSkippedEvent) => void;
+  adStarted: (event: AdStartedEvent) => void;
+  castAvailable: (event: CastAvailableEvent) => void;
+  castPaused: (event: CastPausedEvent) => void;
+  castPlaybackFinished: (event: CastPlaybackFinishedEvent) => void;
+  castPlaying: (event: CastPlayingEvent) => void;
+  castStarted: (event: CastStartedEvent) => void;
+  castStart: (event: CastStartEvent) => void;
+  castStopped: (event: CastStoppedEvent) => void;
+  castTimeUpdated: (event: CastTimeUpdatedEvent) => void;
+  castWaitingForDevice: (event: CastWaitingForDeviceEvent) => void;
+  cueEnter: (event: CueEnterEvent) => void;
+  cueExit: (event: CueExitEvent) => void;
+  destroy: (event: DestroyEvent) => void;
+  metadata: (event: MetadataEvent) => void;
+  muted: (event: MutedEvent) => void;
+  nonLinearAdStarted: (event: NonLinearAdStartedEvent) => void;
+  nonLinearAdSkipped: (event: NonLinearAdSkippedEvent) => void;
+  nonLinearAdFinished: (event: NonLinearAdFinishedEvent) => void;
+  paused: (event: PausedEvent) => void;
+  play: (event: PlayEvent) => void;
+  playbackFinished: (event: PlaybackFinishedEvent) => void;
+  playbackSpeedChanged: (event: PlaybackSpeedChangedEvent) => void;
+  playerActive: (event: PlayerActiveEvent) => void;
+  playerInactive: (event: PlayerInactiveEvent) => void;
+  playerError: (event: PlayerErrorEvent) => void;
+  playerWarning: (event: PlayerWarningEvent) => void;
+  playing: (event: PlayingEvent) => void;
+  ready: (event: ReadyEvent) => void;
+  seek: (event: SeekEvent) => void;
+  seeked: (event: SeekedEvent) => void;
+  timeShift: (event: TimeShiftEvent) => void;
+  timeShifted: (event: TimeShiftedEvent) => void;
+  stallStarted: (event: StallStartedEvent) => void;
+  stallEnded: (event: StallEndedEvent) => void;
+  timeChanged: (event: TimeChangedEvent) => void;
+  videoPlaybackQualityChanged: (
+    event: VideoPlaybackQualityChangedEvent
+  ) => void;
+  unmuted: (event: UnmutedEvent) => void;
+};
+
+/**
+ * Emitted when a source is added to the native playlist.
+ * The native name is `onSourceAddedEvent` on iOS/tvOS and `onSourceAdded` on Android.
+ */
+export interface SourceAddedEvent extends Event {
+  source: EventSource;
+  index: number;
+}
+
+/**
+ * Emitted when a source is removed from the native playlist.
+ * The native name is `onSourceRemovedEvent` on iOS/tvOS and `onSourceRemoved` on Android.
+ */
+export interface SourceRemovedEvent extends Event {
+  source: EventSource;
+  index: number;
+}
+
+/** Emitted when playback transitions between sources. */
+export interface PlaylistTransitionEvent extends Event {
+  from: EventSource;
+  to: EventSource;
 }

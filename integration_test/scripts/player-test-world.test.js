@@ -179,7 +179,6 @@ for (const multiple of [false, true]) {
       const actionError = new Error('subtitle action failed');
       const trigger = asynchronous
         ? async () => {
-            await Promise.resolve();
             throw actionError;
           }
         : () => {

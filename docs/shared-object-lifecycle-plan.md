@@ -1,0 +1,36 @@
+# SharedObject compatibility decisions
+
+- The Player and OfflineContentManager registries exist only for backward
+  compatibility with `nativeId`-based construction: wrappers created with the same
+  ID share one SDK object. Methods and views use that object directly. Alias flags
+  and configuration remain
+  independent. Reusing an ID redirects compatibility lookup to its current
+  registration; an existing SharedObject never changes its SDK object. Each
+  registry holds creation Promises weakly. Keep an owning TS wrapper reachable
+  while using its ID; the registry does not keep pending or ready objects alive.
+- Player, Source, and OfflineContentManager constructors start one native creation
+  attempt. Methods and `initialize()` await the same Promise; a failed attempt
+  requires a new wrapper. Destruction removes the ID registration and waits for
+  that object's creation before releasing it. The registry only resolves aliases;
+  resource cleanup belongs to the owner.
+- Destruction keeps the SDK reference reachable while its TS wrapper is retained.
+  Direct methods inherit SDK behavior after destruction. Source has no destruction
+  API or binding ID; each wrapper owns one native Source directly.
+- Each JS SharedObject owns its configuration dispatcher; native retains only a weak JS
+  forwarding callback. A callback capturing its Source forms a collectible JS
+  cycle. The canonical JS NativePlayer stores its loaded Source list and offline
+  backend directly, including when used by aliases. Replacement, unload, and
+  destruction release those references after native completion.
+- Offline event listeners hold a weak manager reference. UI bridges own their
+  dispatchers in JS and give native only weak forwarders, so abandoned renders
+  do not leave a native-held callback rooting the bridge.
+- Configuration callbacks share their consuming native object's scope. They
+  have no independent SharedObject, lifecycle, or TS dependency list.
+- Offline factories receive an event endpoint subscribed before SDK creation.
+  The backend's JS `events` property keeps that endpoint reachable for aliases
+  and queued events; native retention alone does not retain its JS emitter.
+- Android offline cleanup runs once for explicit destruction and Expo collection:
+  its SDK release is not idempotent. The SDK reference remains immutable.
+- FairPlay renewal accepts plain `skdUri` metadata, while the SDK requires the
+  original native request. Each source therefore retains its own request lookup;
+  this is content state, not a binding identity registry.

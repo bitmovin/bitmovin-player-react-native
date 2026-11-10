@@ -271,6 +271,14 @@ This integration test app is built as an Expo application using:
 
 The integration tests are located in the [`tests`](./tests) directory. Each file in this directory corresponds to a feature or a set of related features being tested. Please refer to the contents of this directory for an up-to-date list of what is covered.
 
+The `shared-object-lifecycle` selector checks playback after remounting the native
+view on Android and iOS. From the root:
+
+```sh
+yarn integration-test test:android --tags shared-object-lifecycle
+yarn integration-test test:ios --tags shared-object-lifecycle
+```
+
 ## Platform Support
 
 Note: The tests are currently only supported on iOS simulators and Android emulators. Running them on real devices is not supported at the moment because the testing framework has hard-coded `localhost` as the server address.

@@ -2,28 +2,64 @@
 
 ## [Unreleased]
 
+### Changed
+
+#### Breaking changes
+
+- Check `source.config.drmConfig` for DRM configuration. `source.drm` is now an always-present, read-only property exposing runtime APIs, including for clear content. Move standalone `Drm.fairplay` usage to `source.drm.fairplay`; `Drm` no longer accepts a Source constructor argument
+- Remove calls to `Source.destroy()` and reads of `Source.isDestroyed`. Source cleanup is automatic, and a Source remains reusable after its Player is destroyed
+- Retain and reuse Source instances directly. `Source.nativeId`, `SourceConfig.nativeId`, and ID-based Source aliasing are no longer supported
+- Keep a Player or OfflineContentManager instance alive while using its compatibility ID. Keeping only its `nativeId` no longer retains the underlying resources; later ID-based construction can create a new instance
+- iOS: Configure alternative casting sources with `PlayerConfig.remoteControlConfig.prepareSource(type, sourceConfig)` instead of `Source.remoteControl` or `SourceRemoteControlConfig`. Return an alternative `SourceConfig`, or `null`/`undefined` to keep the original source
+- Android: Update `Event.name` comparisons from `onActive`/`onInactive` to `onPlayerActive`/`onPlayerInactive`, matching iOS. The PlayerView callback prop names are unchanged
+
+#### Other changes
+
+- Android: Retain loaded content without adding properties to the native SharedRef, allowing source loading and cleanup to complete
+
+- Player commands such as `play()`, `load()`, and `destroy()`, and `Source.setMetadata()` now return `Promise<void>`, allowing callers to await the native call and catch failures. Playback readiness still uses events. Fire-and-forget calls remain supported; strict Promise linting may require an explicit `await` or `void`
+- Player, Source, and OfflineContentManager start creating native resources in their constructors, and methods wait for that creation automatically. Create a new instance to retry failed creation. `new Player()` remains valid and uses native SDK defaults
+- Android: Keep synchronous DRM, decoder-priority, and custom-message callbacks within 250 ms, matching iOS. They previously had up to 5 seconds; callbacks that miss the deadline use the SDK fallback
+- iOS: Bitmovin Advertising Module ad subtitles now follow the subtitle selected for the main content and remain off when main-content subtitles are off, instead of using the ad manifest's default subtitle track
+- Offline download requests accepted by the native SDK are no longer rejected by extra bitrate or download-state checks
+- Android: Source creation and analytics failures now expose the original SDK error instead of a generic binding error
+- Android: Multiple OfflineContentManager wrappers with the same legacy ID now share creation without duplicate-initialization errors
+- iOS: Includes the fixes and behavior changes in native SDK [`3.131.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31310)
+
 ### Added
 
-- Android: `onPlaybackSpeedChanged` event to indicate playback speed changes. The event is already available in iOS
-- `onPlayerInactive` event prop on `PlayerView` to indicate when the active playback session ends and the player becomes inactive
-- Playlist support via `Player.loadPlaylist`, `Player.playlist` and the `onPlaylistTransition`, `onSourceAdded` and `onSourceRemoved` events. On iOS, playlists support HLS, progressive and `movpkg` sources
-- `EventSource.nativeId` to map sources in event payloads to their `Source` instances
-- `Player.on`/`Player.off` and `Source.on`/`Source.off` to receive player and source events independently of a `PlayerView`
+- Add native playlist loading, source queries, mutation, cross-source seeking, replay options, and playlist events
+
+- `Player.on` and `Source.on` for asynchronous subscriptions to native object events, including without a mounted `PlayerView`
+
+- iOS: Play VMAP ad tags with the Bitmovin Advertising Module (`AdSourceType.BITMOVIN`) without enabling Google IMA, matching Android
+- Use `PlayerView.onPlayerInactive` to detect when the active playback session ends
+- Android: Use `onPlaybackSpeedChanged` to observe playback speed changes, matching iOS
 
 ### Fixed
 
-- Android: **Breaking change:** `PlayerActive` and `PlayerInactive` events being named `onActive` and `onInactive` instead of `onPlayerActive` and `onPlayerInactive`, as on iOS. Apps comparing `Event.name`, e.g. in `onEvent`, must use the new names.
-- Android: `Source.loadingState()` returning the state name instead of a `LoadingState` value
-- Android: `onPlayerActive` not being emitted
-- iOS: Data race in `NetworkConfig` HTTP request and response preprocessing now that the native SDK invokes the callbacks on a background thread
+- Keep PlayerView unmounted when Player creation fails without producing additional unhandled Promise rejections
+- iOS: Keep FairPlay license renewal available on Source handles returned by player and playlist queries
+- Deliver `PlayerView` playback and source callbacks through the attached Player's public event API
 
-### Changed
+- iOS: Invalid source, analytics, and offline configuration, or failed offline manager creation, now reject instead of reporting success without a usable instance
+- iOS: Avoid inconsistent HTTP preprocessing results when the native SDK processes requests and responses concurrently
+- Allow abandoned offline managers and custom UI handlers to be collected even when native code retains their callback forwarders
+- iOS: Preserve metadata set before loading a Source and return it from `Source.metadata()`
+- Catch missing Source or OfflineContentManager configuration and missing `SourceConfig.type` during TypeScript checking. These inputs were already invalid at runtime; valid configurations are unchanged
+- Android: `Source.loadingState()` now returns a `LoadingState` value instead of a state name
+- Android: Deliver `PlayerView.onPlayerActive` when a playback session becomes active
+- Report callback-result conversion errors in JavaScript while completing affected HTTP preprocessing with the original request or response
 
-- **Breaking change:** `SourceUnloadedEvent.source` is now optional. Android does not provide it for events received via `Player.on` or the `PlayerView` event props, as the native event does not carry the source. It is provided for events received via `Source.on`.
-- `PlayerView` event props are delivered through the player's event subscriptions on all platforms. The order of fullscreen and picture-in-picture events relative to player events can differ slightly. On Android, events emitted right after loading (e.g. `onPlayerActive`) are no longer lost, and two `PlayerView`s showing the same player now both receive the events. On iOS, `onEvent` now only receives the events of the documented `PlayerView` props, instead of every event of the native player.
-- Update Bitmovin's native iOS SDK version to [`3.130.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31300)
-- **Breaking change:** Replace the `Player.source` property with `Player.getSource()`, which returns the currently active source of the native player
-- **Breaking change:** `Source.destroy()` is no longer part of the public API. `Player.destroy()` no longer destroys its source. As on native, the sources of the current playback session are detached and can be loaded again, e.g. into another player.
+### Deprecated
+
+- Prefer retaining and reusing Player and OfflineContentManager instances over constructing aliases with `nativeId`. The configuration option is deprecated; ID-based construction remains supported
+
+### Internal
+
+- Use Expo SharedObjects for native ownership and callbacks, with weak TypeScript registries only for legacy ID-based construction
+- Configuration wrappers and API helpers no longer need separate initialization, destruction, or binding IDs. Runtime helpers remain available through `player.buffer`, `player.analytics`, `player.mediaControls`, and `source.drm`; their constructors are internal
+- Repeated destruction and calls after destruction now follow native SDK behavior instead of wrapper no-ops or placeholder values
 
 ## [1.30.0] - 2026-10-29
 

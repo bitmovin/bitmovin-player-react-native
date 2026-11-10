@@ -1,6 +1,5 @@
 import {
   Player,
-  PlayerActiveEvent,
   PlayerConfig,
   ReadyEvent,
   SourceConfig,
@@ -94,15 +93,6 @@ export default class PlayerTestWorld {
 
   onReRender: (() => void) | undefined;
 
-  /**
-   * Events received by the `onPlayerActive` prop of the `PlayerView` during the current test.
-   */
-  playerActivePropEvents: PlayerActiveEvent[] = [];
-
-  onPlayerActive = (event: PlayerActiveEvent): void => {
-    this.playerActivePropEvents.push(event);
-  };
-
   onEvent = (event: Event): void => {
     Object.entries(this.eventListeners).forEach(([_, listener]) =>
       listener(event)
@@ -124,12 +114,14 @@ export default class PlayerTestWorld {
     await player.initialize();
     this.player = player;
 
-    await fn().finally(() => {
-      player.destroy();
-      this.isFinished_ = true;
-      this.player = undefined;
-      this.eventListeners = {};
-      this.playerActivePropEvents = [];
+    await fn().finally(async () => {
+      try {
+        await player.destroy();
+      } finally {
+        this.isFinished_ = true;
+        this.player = undefined;
+        this.eventListeners = {};
+      }
     });
   };
 
@@ -184,8 +176,8 @@ export default class PlayerTestWorld {
     timeoutSeconds: number = 10
   ): Promise<ReadyEvent> => {
     return await this.callPlayerAndExpectEvent(
-      (player) => {
-        player.load(sourceConfig);
+      async (player) => {
+        await player.load(sourceConfig);
       },
       EventType.Ready,
       timeoutSeconds
@@ -207,8 +199,8 @@ export default class PlayerTestWorld {
     timeoutSeconds: number
   ): Promise<TimeChangedEvent> => {
     return await this.callPlayerAndExpectEvent<TimeChangedEvent>(
-      (player) => {
-        player.play();
+      async (player) => {
+        await player.play();
       },
       FilteredEvent<TimeChangedEvent>(
         EventType.TimeChanged,
