@@ -5,7 +5,7 @@ import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
 import SourceModule, { type NativeSource } from './modules/SourceModule';
-import { ConfigurationCallbacks } from './nativeCallbacks';
+import { NativeConfigSerializer } from './nativeCallbacks';
 
 /**
  * Types of media that can be handled by the player.
@@ -157,11 +157,11 @@ export class Source {
   }
 
   private async createNative(): Promise<NativeSource> {
-    const callbacks = new ConfigurationCallbacks();
-    const native = await callbacks.dispatcher.create((callback) =>
+    const serializer = new NativeConfigSerializer();
+    const native = await serializer.dispatcher.create((callback) =>
       SourceModule.create(
-        callbacks.serialize(this.config),
-        callbacks.serialize(this.config.analyticsSourceMetadata),
+        serializer.serialize(this.config),
+        serializer.serialize(this.config.analyticsSourceMetadata),
         callback
       )
     );

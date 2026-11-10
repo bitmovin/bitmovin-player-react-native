@@ -13,7 +13,7 @@ import OfflineModule, {
   type NativeOfflineEvents,
 } from './offlineModule';
 import { legacyOfflineRegistry } from '../nativeInstanceRegistry';
-import { ConfigurationCallbacks } from '../nativeCallbacks';
+import { NativeConfigSerializer } from '../nativeCallbacks';
 
 const handleBitmovinNativeOfflineEvent = (
   data: BitmovinNativeOfflineEventData,
@@ -84,14 +84,14 @@ export class OfflineContentManager {
   };
 
   private async createNativeOffline(): Promise<NativeOffline> {
-    const callbacks = new ConfigurationCallbacks();
+    const serializer = new NativeConfigSerializer();
     const events = OfflineModule.createEvents();
     this.observeEvents(events);
     let native: NativeOfflineBackend | undefined;
     try {
-      const config = callbacks.serialize(this.config);
+      const config = serializer.serialize(this.config);
       delete config.nativeId;
-      native = await callbacks.dispatcher.create((callback) =>
+      native = await serializer.dispatcher.create((callback) =>
         OfflineModule.create(config, events, callback)
       );
       const created = Object.defineProperty(native, 'events', {

@@ -65,10 +65,10 @@ function fixture(t, config, rejectAfterCompletion = false) {
   };
   const { HttpRequestType } = require(path.join(directory, 'network'));
   const helpers = require(path.join(directory, 'nativeCallbacks.js'));
-  const callbacks = new helpers.ConfigurationCallbacks();
-  const nativeConfig = callbacks.serialize({ networkConfig: config });
+  const serializer = new helpers.NativeConfigSerializer();
+  const nativeConfig = serializer.serialize({ networkConfig: config });
   const invoke = (kind, type, payload) => {
-    callbacks.dispatcher.callback(
+    serializer.dispatcher.callback(
       nativeConfig.networkConfig?.[`preprocessHttp${kind}`] ?? '-1',
       [type, payload],
       {

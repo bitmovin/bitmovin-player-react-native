@@ -117,7 +117,7 @@ export class NativeCallbacks {
 }
 
 /** @internal */
-export class ConfigurationCallbacks {
+export class NativeConfigSerializer {
   private readonly handlers: ((args: any[]) => any)[] = [];
   readonly dispatcher = new NativeCallbacks((token, args) =>
     this.handlers[Number(token)]?.(args)
