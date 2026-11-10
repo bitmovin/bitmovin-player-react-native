@@ -6,6 +6,11 @@ function testSuite(name, platforms, load) {
 }
 
 const testRegistrations = [
+  testSuite(
+    'source',
+    androidAndIos,
+    () => require('./sourceMetadataTest').default
+  ),
   testSuite('buffer', androidAndIos, () => require('./bufferTest').default),
   testSuite('playlist', androidAndIos, () => require('./playlistTest').default),
   testSuite(
