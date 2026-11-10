@@ -11,11 +11,13 @@ const React = req('react');
 const ts = req('typescript');
 const scheduler = req('scheduler/unstable_mock');
 let committedView;
-const nativePlayers = new Map(
-  ['first', 'replacement', 'obsolete', 'current', 'silent', 'A', 'B'].map(
-    (nativeId, index) => [nativeId, { __expo_shared_object_id__: index + 1 }]
-  )
-);
+let sharedObjectId = 0;
+function nativePlayer() {
+  return { __expo_shared_object_id__: ++sharedObjectId };
+}
+function playerWith(native = Promise.resolve(nativePlayer())) {
+  return { config: {}, native, on: async () => ({ remove() {} }) };
+}
 const viewConfig = {
   uiViewClassName: 'ProbePlayerView',
   validAttributes: { config: true, player: true },
@@ -113,12 +115,6 @@ const playerViewContext = vm.createContext({
     if (name.endsWith('/fullscreenhandlerbridge')) return {};
     if (name.endsWith('/custommessagehandlerbridge')) return {};
     if (name.endsWith('/metadataPlatform')) return {};
-    if (name.endsWith('/fullscreenHandlerModule'))
-      return { getNativeFullscreen: () => undefined };
-    if (name.endsWith('/customMessageHandlerModule'))
-      return { getNativeCustomMessage: () => undefined };
-    if (name.endsWith('/nativeInstanceRegistry'))
-      return { lookup: (kind, nativeId) => nativePlayers.get(nativeId) };
     throw new Error('Unexpected PlayerView dependency: ' + name);
   },
 });
@@ -133,15 +129,7 @@ async function flush() {
   }
 }
 
-async function mockEventSubscription() {
-  return { remove() {} };
-}
-
 function render(props) {
-  // Model the eager native Promise exposed by Player, including controlled creation.
-  props.player.native ??= props.player
-    .initialize()
-    .then(() => nativePlayers.get(props.player.nativeId));
   rendererModule.exports.render(
     React.createElement(PlayerView, props),
     11,
@@ -162,12 +150,7 @@ function acknowledge(view = committedView) {
 test('readiness waits for native listeners and follows the current player', async () => {
   let notifications = 0;
   const viewRef = { current: null };
-  const player = {
-    nativeId: 'first',
-    config: {},
-    on: mockEventSubscription,
-    initialize: async () => {},
-  };
+  const player = playerWith();
   const props = {
     player,
     viewRef,
@@ -179,7 +162,7 @@ test('readiness waits for native listeners and follows the current player', asyn
   render(props);
   await flush();
   assert.ok(committedView, 'initialized player renders a native view');
-  assert.equal(committedView.props.player, nativePlayers.get(player.nativeId));
+  assert.equal(committedView.props.player, await player.native);
   assert.equal(
     notifications,
     0,
@@ -205,15 +188,11 @@ test('readiness waits for native listeners and follows the current player', asyn
 
   const previousView = committedView;
   let finishInitialization;
-  const replacement = {
-    nativeId: 'replacement',
-    config: {},
-    on: mockEventSubscription,
-    initialize: () =>
-      new Promise((resolve) => {
-        finishInitialization = resolve;
-      }),
-  };
+  const replacement = playerWith(
+    new Promise((resolve) => {
+      finishInitialization = () => resolve(nativePlayer());
+    })
+  );
   render({ ...props, player: replacement });
   await flush();
   assert.equal(
@@ -237,24 +216,16 @@ test('readiness waits for native listeners and follows the current player', asyn
   // An obsolete initialization must not mount the next player prematurely.
   let finishObsolete;
   let finishCurrent;
-  const obsolete = {
-    nativeId: 'obsolete',
-    config: {},
-    on: mockEventSubscription,
-    initialize: () =>
-      new Promise((resolve) => {
-        finishObsolete = resolve;
-      }),
-  };
-  const current = {
-    nativeId: 'current',
-    config: {},
-    on: mockEventSubscription,
-    initialize: () =>
-      new Promise((resolve) => {
-        finishCurrent = resolve;
-      }),
-  };
+  const obsolete = playerWith(
+    new Promise((resolve) => {
+      finishObsolete = () => resolve(nativePlayer());
+    })
+  );
+  const current = playerWith(
+    new Promise((resolve) => {
+      finishCurrent = () => resolve(nativePlayer());
+    })
+  );
   render({ ...props, player: obsolete });
   await flush();
   render({ ...props, player: current });
@@ -264,16 +235,11 @@ test('readiness waits for native listeners and follows the current player', asyn
   assert.equal(committedView, undefined, 'obsolete initialization is ignored');
   finishCurrent();
   await flush();
-  assert.equal(committedView.props.player, nativePlayers.get(current.nativeId));
+  assert.equal(committedView.props.player, await current.native);
   acknowledge();
   assert.equal(notifications, 3);
   const retiredView = committedView;
-  const silentPlayer = {
-    nativeId: 'silent',
-    config: {},
-    on: mockEventSubscription,
-    initialize: async () => {},
-  };
+  const silentPlayer = playerWith();
   render({ player: silentPlayer });
   await flush();
   acknowledge(retiredView);
@@ -295,29 +261,19 @@ test('readiness waits for native listeners and follows the current player', asyn
 });
 
 test('switching A to B to A announces each attachment once', async () => {
-  const first = {
-    nativeId: 'A',
-    config: {},
-    on: mockEventSubscription,
-    initialize: async () => {},
-  };
-  const second = {
-    nativeId: 'B',
-    config: {},
-    on: mockEventSubscription,
-    initialize: async () => {},
-  };
+  const first = playerWith();
+  const second = playerWith();
   const notifications = [];
   for (const player of [first, second, first]) {
     render({
       player,
-      onPlayerViewReady: () => notifications.push(player.nativeId),
+      onPlayerViewReady: () => notifications.push(player),
     });
     await flush();
     acknowledge();
     acknowledge();
   }
-  assert.deepEqual(notifications, ['A', 'B', 'A']);
+  assert.deepEqual(notifications, [first, second, first]);
   rendererModule.exports.render(null, 11, null, true, {});
   await flush();
 });

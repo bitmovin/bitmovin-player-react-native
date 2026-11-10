@@ -34,7 +34,6 @@ public class PlayerModule: Module {
             }.runOnQueue(.main)
             AsyncFunction("unload") { (owner: SharedPlayer) in
                 owner.player.unload()
-                owner.source = nil
             }.runOnQueue(.main)
             AsyncFunction("setPlaybackSpeed") { (owner: SharedPlayer, playbackSpeed: Float) in
                 owner.player.playbackSpeed = playbackSpeed
@@ -106,7 +105,6 @@ public class PlayerModule: Module {
                     restrictedToAssetCache: options?["restrictedToAssetCache"] as? Bool ?? true
                 ) else { return false }
                 owner.player.load(sourceConfig: config)
-                owner.source = nil
                 return true
                 #else
                 return false
@@ -173,13 +171,12 @@ public class PlayerModule: Module {
                 try sources.forEach { try ensureSourceAvailable($0.source, player: owner.player) }
                 let config = try playlistConfig(sources: sources, options: options)
                 owner.player.load(playlistConfig: config)
-                owner.source = nil
             }.runOnQueue(.main)
             AsyncFunction("getSource") { (owner: SharedPlayer) -> SharedSource? in
-                owner.player.source.map { SharedSource(source: $0, callback: nil, remote: nil) }
+                owner.player.source.map { SharedSource(source: $0, callback: nil) }
             }.runOnQueue(.main)
             AsyncFunction("getPlaylistSources") { (owner: SharedPlayer) -> [SharedSource] in
-                owner.player.playlist.sources.map { SharedSource(source: $0, callback: nil, remote: nil) }
+                owner.player.playlist.sources.map { SharedSource(source: $0, callback: nil) }
             }.runOnQueue(.main)
             AsyncFunction("playlistAdd") { (owner: SharedPlayer, source: SharedSource, index: Int?) in
                 try ensureSourceAvailable(source.source, player: owner.player)
@@ -201,7 +198,6 @@ public class PlayerModule: Module {
                 owner.player.playlist.seek(source: source.source, time: time)
             }.runOnQueue(.main)
             AsyncFunction("loadSource") { (owner: SharedPlayer, source: SharedSource) in
-                owner.source = source
                 owner.player.load(source: source.source)
             }.runOnQueue(.main)
         }

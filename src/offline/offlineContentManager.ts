@@ -1,5 +1,4 @@
 import type { EventSubscription } from 'expo-modules-core';
-import NativeInstance from '../nativeInstance';
 import type {
   BitmovinNativeOfflineEventData,
   OfflineContentManagerListener,
@@ -13,12 +12,8 @@ import OfflineModule, {
   type NativeOfflineBackend,
   type NativeOfflineEvents,
 } from './offlineModule';
-import { getOrCreateAsync, remove } from '../nativeInstanceRegistry';
-import { getNativeOwner } from '../nativeOwner';
-import {
-  createConfigurationCallbacks,
-  createSharedObjectWithCallback,
-} from '../nativeCallbacks';
+import { legacyOfflineRegistry } from '../nativeInstanceRegistry';
+import { ConfigurationCallbacks } from '../nativeCallbacks';
 
 const handleBitmovinNativeOfflineEvent = (
   data: BitmovinNativeOfflineEventData,
@@ -56,40 +51,48 @@ const handleBitmovinNativeOfflineEvent = (
  *
  * @platform Android, iOS
  */
-export class OfflineContentManager extends NativeInstance<OfflineContentConfig> {
+export class OfflineContentManager {
+  constructor(readonly config: OfflineContentConfig) {
+    const instance = legacyOfflineRegistry.create(config.nativeId, () =>
+      this.createNativeOffline()
+    );
+    this.nativeId = instance.nativeId;
+    this.native = instance.native;
+    void this.initialize().catch(() => {});
+  }
+
+  /** User-defined compatibility ID, or a generated UUIDv4. */
+  readonly nativeId: string;
+
+  /** @internal */
+  readonly native: Promise<NativeOffline>;
+
+  /** Whether the constructor's native creation attempt has completed successfully. */
   isInitialized = false;
+
+  /** Whether `destroy()` has been called on this wrapper. */
   isDestroyed = false;
   private eventSubscription?: EventSubscription;
   private listeners: Set<OfflineContentManagerListener> =
     new Set<OfflineContentManagerListener>();
 
-  /** @internal */
-  readonly native = this.retainNative(
-    getOrCreateAsync('offline', this.nativeId, () =>
-      this.createNativeOffline()
-    ),
-    (native) => this.observeEvents(native.events)
-  );
-
   /** Waits for the native manager creation started by the constructor. */
   initialize = async (): Promise<void> => {
-    await this.native;
+    const native = await this.native;
+    this.isInitialized = true;
+    this.observeEvents(native.events);
   };
 
   private async createNativeOffline(): Promise<NativeOffline> {
-    const callbacks = createConfigurationCallbacks();
+    const callbacks = new ConfigurationCallbacks();
     const events = OfflineModule.createEvents();
     this.observeEvents(events);
     let native: NativeOfflineBackend | undefined;
     try {
-      native = await createSharedObjectWithCallback(
-        (callback) =>
-          OfflineModule.create(
-            callbacks.serialize(this.config),
-            events,
-            callback
-          ),
-        callbacks.callback
+      const config = callbacks.serialize(this.config);
+      delete config.nativeId;
+      native = await callbacks.dispatcher.create((callback) =>
+        OfflineModule.create(config, events, callback)
       );
       const created = Object.defineProperty(native, 'events', {
         value: events,
@@ -104,19 +107,26 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   }
 
   private observeEvents(events: NativeOfflineEvents) {
-    if (this.isDestroyed || this.eventSubscription) return;
+    if (this.eventSubscription) return;
     this.eventSubscription = events.addListener(
       'onBitmovinOfflineEvent',
-      (event) => {
-        handleBitmovinNativeOfflineEvent(
-          {
-            ...event,
-            nativeId: this.nativeId,
-          } as BitmovinNativeOfflineEventData,
-          this.listeners
-        );
-      }
+      OfflineContentManager.weakEventListener(new WeakRef(this))
     );
+  }
+
+  // A separate scope keeps the native-held listener from capturing the manager.
+  private static weakEventListener(reference: WeakRef<OfflineContentManager>) {
+    return (event: Omit<BitmovinNativeOfflineEventData, 'nativeId'>) => {
+      const manager = reference.deref();
+      if (!manager) return;
+      handleBitmovinNativeOfflineEvent(
+        {
+          ...event,
+          nativeId: manager.nativeId,
+        } as BitmovinNativeOfflineEventData,
+        manager.listeners
+      );
+    };
   }
 
   /**
@@ -135,11 +145,10 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * Destroys the native `OfflineManager` and releases all of its allocated resources.
    */
   destroy = async (): Promise<void> => {
-    if (this.isDestroyed) return;
     this.isDestroyed = true;
     this.eventSubscription?.remove();
     this.listeners.clear();
-    remove('offline', this.nativeId, getNativeOwner(this) ?? this.native);
+    legacyOfflineRegistry.remove(this.nativeId, this.native);
     let native;
     try {
       native = await this.native;
@@ -147,7 +156,8 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
       // A failed constructor has no native manager to destroy.
       return;
     }
-    remove('offline', this.nativeId, native);
+    // Creation can subscribe after destroy() starts; detach it before cleanup completes.
+    this.eventSubscription?.remove();
     await native.destroy();
   };
 

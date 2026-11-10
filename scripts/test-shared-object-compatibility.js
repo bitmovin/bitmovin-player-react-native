@@ -14,9 +14,12 @@ after(() => fs.rmSync(root, { recursive: true, force: true }));
 
 before(() => {
   const program = ts.createProgram(
-    ['player.ts', 'source.ts'].map((name) =>
-      path.resolve(__dirname, '../src', name)
-    ),
+    [
+      'player.ts',
+      'source.ts',
+      'ui/fullscreenhandlerbridge.ts',
+      'ui/custommessagehandlerbridge.ts',
+    ].map((name) => path.resolve(__dirname, '../src', name)),
     {
       rootDir: path.resolve(__dirname, '../src'),
       outDir: compiled,
@@ -29,7 +32,7 @@ before(() => {
   assert.equal(program.emit().emitSkipped, false);
 });
 
-// Exercise public TS orchestration. These doubles do not establish native SDK
+// Exercise TS orchestration. These doubles do not establish native SDK
 // cleanup, Expo conversion, garbage collection, or playback behavior.
 function fixture(t) {
   const directory = fs.mkdtempSync(path.join(root, 'case-'));
@@ -71,6 +74,7 @@ function fixture(t) {
       },
       loadSource: async (source) => {
         playlist = [source];
+        calls.push({ native, source });
       },
       loadPlaylist: async (sources, options) => {
         playlist = sources;
@@ -102,6 +106,7 @@ function fixture(t) {
       unload: async () => {
         playlist = [];
       },
+      setIsFullscreenActive: async () => {},
       getVolume: async () => 37,
       getMetadata: async () => ({ title: 'shared source' }),
       drmFairplayRenewExpiringLicense: async (skdUri) => {
@@ -109,7 +114,7 @@ function fixture(t) {
       },
     };
     if (callback) callbacks.set(native, { config, callback });
-    creations.push({ kind, native });
+    creations.push({ kind, native, config });
     return native;
   };
   const modules = {
@@ -118,7 +123,13 @@ function fixture(t) {
       isGoogleImaEnabled: true,
     },
     SourceModule: {
-      create: async (...args) => create('source', args[0], args[3]),
+      create: async (...args) => create('source', args[0], args[2]),
+    },
+    FullscreenHandlerModule: {
+      create: (callback) => create('fullscreen', {}, callback),
+    },
+    CustomMessageHandlerModule: {
+      create: (callback) => create('custom-message', {}, callback),
     },
     NativeCallbacksModule: {},
     OfflineModule: {},
@@ -132,14 +143,20 @@ function fixture(t) {
   };
   const { Player } = require(path.join(directory, 'player.js'));
   const { Source } = require(path.join(directory, 'source.js'));
-  const { lookup } = require(path.join(directory, 'nativeInstanceRegistry.js'));
   return {
     Player,
     Source,
+    FullscreenHandlerBridge: require(
+      path.join(directory, 'ui/fullscreenhandlerbridge.js')
+    ).FullscreenHandlerBridge,
+    CustomMessageHandlerBridge: require(
+      path.join(directory, 'ui/custommessagehandlerbridge.js')
+    ).CustomMessageHandlerBridge,
     modules,
     calls,
     creations,
-    nativeOf: (player) => lookup('player', player.nativeId),
+    dispatch: (native, operation, args = []) =>
+      callbacks.get(native)?.callback(operation, args),
     invoke: (native, field, args, mutating = false) => {
       const entry = callbacks.get(native);
       const token = field
@@ -153,176 +170,154 @@ function fixture(t) {
   };
 }
 
-test('same-ID constructors eagerly share the same player', async (t) => {
+test('Player aliases share eager native creation', async (t) => {
   const { Player, creations } = fixture(t);
-  const first = new Player({ nativeId: 'shared' });
+  const player = new Player({ nativeId: 'shared' });
   const alias = new Player({ nativeId: 'shared' });
+  assert.equal(player.isInitialized, false);
   await new Promise(setImmediate);
-  assert.equal(creations.filter((item) => item.kind === 'player').length, 1);
+  assert.equal(creations.length, 1);
+  assert.equal(Object.hasOwn(creations[0].config, 'nativeId'), false);
+  assert.equal(player.config.nativeId, 'shared');
+  assert.equal(await player.native, await alias.native);
   assert.equal(await alias.getVolume(), 37);
-  await first.destroy();
+  assert.equal(player.isInitialized, true);
+  await player.destroy();
 });
 
-test('each Source eagerly owns a distinct native object without an ID', async (t) => {
-  const { Source, creations } = fixture(t);
-  const config = { url: 'https://test/source', type: 'hls' };
-  const first = new Source(config);
-  const second = new Source(config);
-  await new Promise(setImmediate);
-  assert.equal(creations.filter((item) => item.kind === 'source').length, 2);
-  assert.notEqual(await first.native, await second.native);
-  assert.equal('nativeId' in first, false);
+test('fullscreen callbacks reach the current JS handler', (t) => {
+  const { FullscreenHandlerBridge, dispatch } = fixture(t);
+  const bridge = new FullscreenHandlerBridge();
+  const handler = {
+    isFullscreenActive: false,
+    enterFullscreen() {
+      this.isFullscreenActive = true;
+    },
+    exitFullscreen() {
+      this.isFullscreenActive = false;
+    },
+  };
+  bridge.setFullscreenHandler(handler);
+  assert.equal(dispatch(bridge.native, 'enterFullscreen'), true);
+  assert.equal(dispatch(bridge.native, 'exitFullscreen'), false);
+  bridge.destroy();
 });
 
-test('a failed player creation stays rejected; a new wrapper can retry', async (t) => {
+test('custom messages preserve synchronous replies and async delivery', (t) => {
+  const { CustomMessageHandlerBridge, dispatch } = fixture(t);
+  const bridge = new CustomMessageHandlerBridge();
+  const received = [];
+  bridge.setCustomMessageHandler({
+    receivedSynchronousMessage: (message, data) => `${message}:${data}`,
+    receivedAsynchronousMessage: (...args) => received.push(args),
+  });
+  assert.equal(
+    dispatch(bridge.native, 'synchronousMessage', ['get', 'value']),
+    'get:value'
+  );
+  dispatch(bridge.native, 'asynchronousMessage', ['notify', 'value']);
+  assert.deepEqual(received, [['notify', 'value']]);
+  bridge.destroy();
+});
+
+test('Player creation failures reach callers', async (t) => {
   const { Player, modules } = fixture(t);
-  const create = modules.PlayerModule.create;
   const failure = new Error('Native creation failed');
   modules.PlayerModule.create = async () => {
     throw failure;
   };
-  const first = new Player({ nativeId: 'retry' });
-  const alias = new Player({ nativeId: first.nativeId });
-  await Promise.all([
-    assert.rejects(first.initialize(), (error) => error === failure),
-    assert.rejects(alias.initialize(), (error) => error === failure),
-  ]);
-  modules.PlayerModule.create = create;
-  await assert.rejects(alias.initialize(), (error) => error === failure);
-  const replacement = new Player({ nativeId: first.nativeId });
-  await replacement.initialize();
-  assert.equal(await replacement.getVolume(), 37);
-  replacement.destroy();
+  await assert.rejects(new Player().initialize(), (error) => error === failure);
 });
 
-test('a canceled creation cannot replace a player reusing its ID', async (t) => {
-  const { Player, modules, nativeOf } = fixture(t);
-  const create = modules.PlayerModule.create;
-  let finish;
-  modules.PlayerModule.create = () =>
-    new Promise((resolve) => {
-      finish = resolve;
-    });
-  const old = new Player({ nativeId: 'reuse' });
-  const initialization = old.initialize();
-  await new Promise(setImmediate);
-  old.destroy();
-  modules.PlayerModule.create = create;
-  const replacement = new Player({ nativeId: old.nativeId });
-  await replacement.initialize();
-  const retired = await create();
-  let retiredDestroyed = false;
-  retired.destroy = async () => {
-    retiredDestroyed = true;
-  };
-  finish(retired);
-  await initialization;
-  await new Promise(setImmediate);
-  assert.equal(retiredDestroyed, true);
-  assert.notEqual(nativeOf(replacement), retired);
-  assert.equal(await replacement.getVolume(), 37);
-  replacement.destroy();
-});
-
-test('advertising decisions and IMA settings use their own player configuration', async (t) => {
-  const { Player, nativeOf, invoke } = fixture(t);
-  const make = (decision) =>
-    new Player({
-      advertisingConfig: {
-        shouldLoadAdItem: () => decision,
-        ima: {
-          beforeInitialization: (settings) => {
-            settings.language = 'de';
-            return { playerType: 'custom' };
-          },
+test('advertising callbacks return decisions and update IMA settings', async (t) => {
+  const { Player, invoke } = fixture(t);
+  const player = new Player({
+    advertisingConfig: {
+      shouldLoadAdItem: () => false,
+      ima: {
+        beforeInitialization: (settings) => {
+          settings.language = 'de';
+          return { playerType: 'custom' };
         },
       },
-    });
-  const first = make(false);
-  const second = make(true);
-  await Promise.all([first.initialize(), second.initialize()]);
+    },
+  });
+  const native = await player.native;
   assert.equal(
-    invoke(nativeOf(first), 'advertisingConfig.shouldLoadAdItem', [{}]),
+    invoke(native, 'advertisingConfig.shouldLoadAdItem', [{}]),
     false
-  );
-  assert.equal(
-    invoke(nativeOf(second), 'advertisingConfig.shouldLoadAdItem', [{}]),
-    true
   );
   assert.deepEqual(
     invoke(
-      nativeOf(first),
+      native,
       'advertisingConfig.ima.beforeInitialization',
       [{ language: 'en' }],
       true
     ),
     { language: 'de', playerType: 'custom' }
   );
-  first.destroy();
-  second.destroy();
+  await player.destroy();
 });
 
-test('a new Source can retry failed creation with DRM callbacks', async (t) => {
-  const { Source, modules, invoke } = fixture(t);
+test('a Source can be loaded by another Player and still use its DRM API', async (t) => {
+  const { Player, Source, calls, invoke, creations } = fixture(t);
   const source = new Source({
     url: 'https://test/source',
     type: 'hls',
-    drmConfig: { fairplay: { prepareMessage: (message) => message } },
-  });
-  const create = modules.SourceModule.create;
-  const failure = new Error('SDK Source creation failed');
-  modules.SourceModule.create = async () => {
-    throw failure;
-  };
-  await assert.rejects(source.metadata(), (error) => error === failure);
-  modules.SourceModule.create = create;
-  await assert.rejects(source.initialize(), (error) => error === failure);
-  const replacement = new Source(source.config);
-  await replacement.initialize();
-  assert.equal(
-    invoke(await replacement.native, 'drmConfig.fairplay.prepareMessage', [
-      'message',
-    ]),
-    'message'
-  );
-});
-
-test('a Source retains its DRM callbacks after player destruction and reuse', async (t) => {
-  const { Player, Source, calls, invoke } = fixture(t);
-  const source = new Source({
-    url: 'https://test/source',
-    type: 'hls',
+    metadata: { nativeId: 'customer metadata' },
     drmConfig: { fairplay: { prepareMessage: (message) => message } },
   });
   const first = new Player();
-  await first.initialize();
-  first.loadSource(source);
-  await new Promise(setImmediate);
-  const native = await source.native;
-  first.destroy();
-  await source.drm.fairplay.renewExpiringLicense({ skdUri: 'skd://content' });
+  await first.loadSource(source);
+  assert.equal(source.isInitialized, true);
+  await first.destroy();
+  const second = new Player();
+  await second.loadSource(source);
+  const nativeSource = await source.native;
+  assert.deepEqual(
+    creations.find((entry) => entry.kind === 'source').config.metadata,
+    source.config.metadata
+  );
+  assert.deepEqual(
+    calls.map((call) => call.source),
+    [nativeSource, nativeSource]
+  );
   assert.equal(
-    invoke(native, 'drmConfig.fairplay.prepareMessage', ['message']),
+    invoke(nativeSource, 'drmConfig.fairplay.prepareMessage', ['message']),
     'message'
   );
-  const second = new Player();
-  await second.initialize();
-  second.loadSource(source);
-  await new Promise(setImmediate);
-  assert.equal(await source.native, native);
   await source.drm.fairplay.renewExpiringLicense({ skdUri: 'skd://content' });
-  assert.deepEqual(calls, [
-    { native, skdUri: 'skd://content' },
-    { native, skdUri: 'skd://content' },
-  ]);
-  second.destroy();
+  assert.deepEqual(calls[2], { native: nativeSource, skdUri: 'skd://content' });
+  await second.destroy();
 });
 
-test('Player commands await native completion and propagate errors', async (t) => {
-  const { Player, nativeOf } = fixture(t);
+test('remote playback preparation uses the Player configuration callback', async (t) => {
+  const { Player, invoke } = fixture(t);
+  const local = { url: 'https://test/local.m3u8', type: 'hls' };
+  const remote = { url: 'https://test/cast.mpd', type: 'dash' };
+  const player = new Player({
+    remoteControlConfig: {
+      prepareSource: (type, sourceConfig) => {
+        assert.equal(type, 0);
+        assert.deepEqual(sourceConfig, local);
+        return remote;
+      },
+    },
+  });
+  assert.deepEqual(
+    invoke(await player.native, 'remoteControlConfig.prepareSource', [
+      0,
+      local,
+    ]),
+    remote
+  );
+  await player.destroy();
+});
+
+test('play awaits native completion and propagates failures', async (t) => {
+  const { Player } = fixture(t);
   const player = new Player();
-  await player.initialize();
-  const native = nativeOf(player);
+  const native = await player.native;
   let finish;
   native.play = () =>
     new Promise((resolve) => {
@@ -346,7 +341,7 @@ test('Player commands await native completion and propagate errors', async (t) =
 });
 
 test('awaited object subscriptions use their native owner and can be removed', async (t) => {
-  const { Player, Source, nativeOf } = fixture(t);
+  const { Player, Source } = fixture(t);
   const player = new Player();
   const other = new Player();
   const source = new Source({
@@ -364,20 +359,20 @@ test('awaited object subscriptions use their native owner and can be removed', a
   const removed = await player.on('ready', () => removedCalls++);
   removed.remove();
   await other.initialize();
-  nativeOf(other).emit('ready', { name: 'onReady' });
-  nativeOf(player).emit('ready', { name: 'onReady' });
+  (await other.native).emit('ready', { name: 'onReady' });
+  (await player.native).emit('ready', { name: 'onReady' });
   assert.equal(playerCalls, 1);
   assert.equal(sourceCalls, 0);
   assert.equal(removedCalls, 0);
   playerSubscription.remove();
-  nativeOf(player).emit('ready', { name: 'onReady' });
+  (await player.native).emit('ready', { name: 'onReady' });
   assert.equal(playerCalls, 1);
   (await source.native).emit('sourceLoaded', { name: 'onSourceLoaded' });
   assert.equal(sourceCalls, 1);
   sourceSubscription.remove();
   let destroyed = 0;
   const destroyedSubscription = await player.on('destroy', () => destroyed++);
-  nativeOf(player).emit('destroy', { name: 'onDestroy' });
+  (await player.native).emit('destroy', { name: 'onDestroy' });
   assert.equal(destroyed, 1);
   destroyedSubscription.remove();
 });
@@ -402,12 +397,12 @@ test('registration and destruction await the same native creation promise', asyn
 });
 
 test('playlist mutations delegate without querying or reconciling native sources', async (t) => {
-  const { Player, Source, calls, nativeOf } = fixture(t);
+  const { Player, Source, calls } = fixture(t);
   const player = new Player();
   const first = new Source({ url: 'https://test/first' });
   const second = new Source({ url: 'https://test/second' });
   await player.initialize();
-  const native = nativeOf(player);
+  const native = await player.native;
   native.getPlaylistSources = async () =>
     assert.fail('Mutation queried native sources');
   native.getSource = async () =>
@@ -424,7 +419,7 @@ test('playlist mutations delegate without querying or reconciling native sources
 });
 
 test('playlist queries return fresh handles to current SDK sources without creating SDK sources', async (t) => {
-  const { Player, Source, creations, nativeOf } = fixture(t);
+  const { Player, Source, creations } = fixture(t);
   const player = new Player();
   const first = new Source({ url: 'https://test/first' });
   const second = new Source({ url: 'https://test/second' });
@@ -444,7 +439,7 @@ test('playlist queries return fresh handles to current SDK sources without creat
   await player.playlist.remove(sources[1]);
   assert.equal((await player.playlist.getSources()).length, 1);
   // The SDK double changes state independently of the JS wrapper.
-  await nativeOf(player).playlistRemoveAt(0);
+  await (await player.native).playlistRemoveAt(0);
   assert.deepEqual(await player.playlist.getSources(), []);
   assert.equal(await player.getSource(), undefined);
   assert.equal(creations.filter(({ kind }) => kind === 'source').length, 2);
@@ -452,11 +447,11 @@ test('playlist queries return fresh handles to current SDK sources without creat
 });
 
 test('playlist queries expose native state after a rejected load', async (t) => {
-  const { Player, Source, nativeOf } = fixture(t);
+  const { Player, Source } = fixture(t);
   const player = new Player();
   const source = new Source({ url: 'https://test/first' });
   await player.loadPlaylist({ sources: [source] });
-  nativeOf(player).loadPlaylist = async () => {
+  (await player.native).loadPlaylist = async () => {
     throw new Error('SDK rejected load');
   };
   await assert.rejects(
@@ -482,7 +477,7 @@ test('playlist seekTo reports unsupported iOS use without submitting a native se
 });
 
 test('source event subscriptions register before playlist loading and can be removed', async (t) => {
-  const { Player, Source, nativeOf } = fixture(t);
+  const { Player, Source } = fixture(t);
   const source = new Source({ url: 'https://test/source' });
   const received = [];
   const canceled = await source.on('sourceLoaded', () =>
@@ -508,13 +503,13 @@ test('source event subscriptions register before playlist loading and can be rem
 });
 
 test('native-owned sources are adopted without creating another SDK source', async (t) => {
-  const { Player, modules, nativeOf, creations } = fixture(t);
+  const { Player, modules, creations } = fixture(t);
   const player = new Player();
   await player.initialize();
   const native = await modules.SourceModule.create({
     url: 'https://test/native-source',
   });
-  nativeOf(player).getSource = async () => native;
+  (await player.native).getSource = async () => native;
   const count = creations.length;
   const source = await player.getSource();
   assert.equal(source.isInitialized, true);
@@ -530,4 +525,24 @@ test('native-owned sources are adopted without creating another SDK source', asy
   subscription.remove();
   assert.equal(creations.length, count);
   player.destroy();
+});
+
+test('loaded content can change after Fabric freezes the native player prop', async (t) => {
+  const { Player, Source } = fixture(t);
+  const player = new Player();
+  const alias = new Player({ nativeId: player.nativeId });
+  const native = await player.native;
+  const source = new Source({ url: 'https://test/source', type: 'hls' });
+  // Fabric deep-freezes enumerable view props. The owned mutable holder stays out of that traversal.
+  assert.equal(Object.keys(native).includes('loadedContent'), false);
+  Object.freeze(native);
+  await player.loadSource(source);
+  assert.deepEqual((await alias.native).loadedContent.sources, [
+    await source.native,
+  ]);
+  await alias.unload();
+  assert.deepEqual(native.loadedContent.sources, []);
+  await player.loadSource(source);
+  await alias.destroy();
+  assert.deepEqual(native.loadedContent.sources, []);
 });

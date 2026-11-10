@@ -106,7 +106,7 @@
 - Events flow native → JS via Expo `Events(...)` lists; keep parity with TS props:
   - Android events list: `android/.../RNPlayerViewManager.kt:50-112`; iOS: `ios/RNPlayerViewManager.swift:33-60`.
   - TS event typings live in `src/components/PlayerView/nativeEvents.ts:72-160` (extend as needed).
-- `nativeId` remains on Player, Source, and OfflineContentManager. Buffer, analytics, and media-control helpers take Player objects; FairPlay renewal takes a Source object. Configuration and internal UI adapters have no IDs. Resolve retained labels only at the JS compatibility boundary and pass native SharedObjects to methods/views.
+- `nativeId` remains on Player and OfflineContentManager for compatibility aliases. Source has no binding ID. Buffer, analytics, and media-control helpers take Player objects; FairPlay renewal takes a Source object. Configuration and internal UI adapters have no IDs. Resolve retained labels only at the JS compatibility boundary and pass native SharedObjects to methods/views.
   - Do not introduce native identity lookup maps. Use `src/nativeInstanceRegistry.ts` for aliases and legacy helper constructors.
   - Keep SDK content, track, and quality identifiers distinct from binding compatibility IDs.
   - Keep attachment and PiP state in the native view. The player must not retain or look up views.
