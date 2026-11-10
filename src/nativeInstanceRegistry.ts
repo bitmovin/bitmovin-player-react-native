@@ -25,18 +25,17 @@ export class NativeInstanceRegistry<T extends SharedObject> {
 
   create(nativeId: string | undefined, factory: () => Promise<T>) {
     const id = nativeId ?? Crypto.randomUUID();
-    const native =
-      (nativeId == null ? undefined : this.instances.get(id)?.deref()) ??
-      this.register(id, factory);
+    const cached =
+      nativeId == null ? undefined : this.instances.get(nativeId)?.deref();
+    const native = cached ?? this.register(id, factory());
     return { nativeId: id, native };
   }
 
   /** Register a new ID directly, without looking for an existing alias. */
-  private register(nativeId: string, factory: () => Promise<T>): Promise<T> {
+  private register(nativeId: string, creation: Promise<T>): Promise<T> {
     for (const [id, reference] of this.instances) {
       if (!reference.deref()) this.instances.delete(id);
     }
-    const creation = factory();
     this.instances.set(nativeId, new WeakRef(creation));
     void creation.catch(() => this.remove(nativeId, creation));
     return creation;
@@ -55,4 +54,5 @@ export class NativeInstanceRegistry<T extends SharedObject> {
 /** @internal */
 export const legacyPlayerRegistry = new NativeInstanceRegistry<NativePlayer>();
 /** @internal */
+// prettier-ignore
 export const legacyOfflineRegistry = new NativeInstanceRegistry<NativeOffline>();
