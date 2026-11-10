@@ -468,6 +468,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     fun attachFullscreenHandler(handler: SharedFullscreen?) {
         fullscreenHandler = handler
         handler?.let { playerView?.setFullscreenHandler(it) }
+        requestedFullscreenValue?.let { setFullscreen(it) }
     }
 
     fun attachCustomMessageHandler(handler: SharedCustomMessage?) {
