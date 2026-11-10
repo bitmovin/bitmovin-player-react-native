@@ -6,12 +6,16 @@ import type { NativeCallback } from '../nativeCallbacks';
 import type { NativeOffline } from '../offline/offlineModule';
 import type { NativeSource } from './SourceModule';
 import type { BufferLevels } from '../bufferApi';
-import { setNativeOwner } from '../nativeOwner';
 
 export type PlayerModuleEvents = PlayerEvents;
 
 /** @internal */
 export interface NativePlayer extends SharedObject<PlayerModuleEvents> {
+  // Retain callback-owning JS peers on the shared player, including across aliases.
+  // Native SDK references alone do not keep these JS objects alive.
+  loadedSources?: NativeSource[];
+  loadedOffline?: NativeOffline;
+
   getBufferLevel(type: string): Promise<BufferLevels | null>;
 
   setBufferTargetLevel(type: string, value: number): Promise<void>;
@@ -126,12 +130,3 @@ declare class PlayerModule extends NativeModule {
 }
 
 export default requireNativeModule<PlayerModule>('PlayerModule');
-
-/** @internal */
-export async function retainLoadedSource(
-  player: NativePlayer,
-  source: NativeSource | NativeOffline | undefined,
-  operation: Promise<void | boolean>
-): Promise<void> {
-  if ((await operation) !== false) setNativeOwner(player, source);
-}

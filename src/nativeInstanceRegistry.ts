@@ -1,80 +1,58 @@
+import * as Crypto from 'expo-crypto';
 import type { SharedObject } from 'expo-modules-core/types';
+import type { NativePlayer } from './modules/PlayerModule';
+import type { NativeOffline } from './offline/offlineModule';
 
-/** Legacy IDs live only here; native methods receive SharedObjects. @internal */
-type Entry = WeakRef<SharedObject> | Promise<SharedObject>;
-const instances = new Map<string, Map<string, Entry>>();
-
-function entry(
-  kind: string,
-  nativeId: string
-): SharedObject | Promise<SharedObject> | undefined {
-  const entries = instances.get(kind);
-  const value = entries?.get(nativeId);
-  if (!(value instanceof WeakRef)) return value;
-  const instance = value.deref();
-  if (!instance) {
-    entries!.delete(nativeId);
-    if (entries!.size === 0) instances.delete(kind);
-  }
-  return instance;
+export interface NativeInstanceConfig {
+  /**
+   * Legacy identifier for constructing wrappers that share one native object.
+   *
+   * @deprecated Retain and reuse the Player or OfflineContentManager instance instead of constructing aliases by ID. Kept only for backward compatibility.
+   * @defaultValue A generated UUIDv4.
+   */
+  nativeId?: string;
 }
 
-function store(
-  kind: string,
-  nativeId: string,
-  value: SharedObject | Promise<SharedObject>
-): void {
-  let entries = instances.get(kind);
-  if (!entries) instances.set(kind, (entries = new Map()));
-  // Prune collected labels during registration without timers or finalizers.
-  for (const [id, reference] of entries) {
-    if (reference instanceof WeakRef && !reference.deref()) entries.delete(id);
+/**
+ * Backward compatibility for nativeId-based construction: live wrappers created with
+ * the same ID share one native object. Methods and views use their owned
+ * SharedObjects directly; these registries only resolve constructor aliases.
+ * Each wrapper owns its fixed creation Promise; the registry references it weakly.
+ * @internal
+ */
+export class NativeInstanceRegistry<T extends SharedObject> {
+  private readonly instances = new Map<string, WeakRef<Promise<T>>>();
+
+  create(nativeId: string | undefined, factory: () => Promise<T>) {
+    const id = nativeId ?? Crypto.randomUUID();
+    const cached =
+      nativeId == null ? undefined : this.instances.get(nativeId)?.deref();
+    const native = cached ?? this.register(id, factory());
+    return { nativeId: id, native };
   }
-  entries.set(nativeId, value instanceof Promise ? value : new WeakRef(value));
+
+  /** Register a new ID directly, without looking for an existing alias. */
+  private register(nativeId: string, creation: Promise<T>): Promise<T> {
+    for (const [id, reference] of this.instances) {
+      if (!reference.deref()) this.instances.delete(id);
+    }
+    this.instances.set(nativeId, new WeakRef(creation));
+    void creation.catch(() => this.remove(nativeId, creation));
+    return creation;
+  }
+
+  /**
+   * The caller passes its native creation Promise. After destruction, the ID may
+   * belong to a new wrapper while an old alias still holds the original Promise.
+   */
+  remove(nativeId: string, creation: Promise<T>): boolean {
+    if (this.instances.get(nativeId)?.deref() !== creation) return false;
+    return this.instances.delete(nativeId);
+  }
 }
 
 /** @internal */
-export function lookup<T extends SharedObject>(
-  kind: string,
-  nativeId: string
-): T | undefined {
-  const value = entry(kind, nativeId);
-  return value instanceof Promise ? undefined : (value as T | undefined);
-}
-
+export const legacyPlayerRegistry = new NativeInstanceRegistry<NativePlayer>();
 /** @internal */
-export function getOrCreateAsync<T extends SharedObject>(
-  kind: string,
-  nativeId: string,
-  factory: () => Promise<T>
-): Promise<T> {
-  const existing = entry(kind, nativeId);
-  if (existing) return Promise.resolve(existing as T | Promise<T>);
-  const creation = Promise.resolve()
-    .then(factory)
-    .then(
-      (instance) => {
-        if (entry(kind, nativeId) === creation) store(kind, nativeId, instance);
-        return instance;
-      },
-      (error) => {
-        remove(kind, nativeId, creation);
-        throw error;
-      }
-    );
-  store(kind, nativeId, creation);
-  return creation;
-}
-
-/** A stale alias cannot remove a replacement. @internal */
-export function remove(
-  kind: string,
-  nativeId: string,
-  expected: SharedObject | Promise<SharedObject>
-): boolean {
-  if (entry(kind, nativeId) !== expected) return false;
-  const entries = instances.get(kind)!;
-  entries.delete(nativeId);
-  if (entries.size === 0) instances.delete(kind);
-  return true;
-}
+// prettier-ignore
+export const legacyOfflineRegistry = new NativeInstanceRegistry<NativeOffline>();

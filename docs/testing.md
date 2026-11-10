@@ -72,8 +72,8 @@ completion failures. The fixtures use direct callback functions and per-call
 completion objects. They do not run a native decoder or completion object.
 
 The [SharedObject compatibility](../scripts/test-shared-object-compatibility.js)
-suite checks public TS aliases, creation recovery, and callback ownership against
-controlled native doubles.
+suite checks public TS aliases, Source reuse, callback forwarding, and failure
+propagation against controlled native doubles.
 
 `yarn test:plugin` builds and tests the config plugin. The Python command tests
 repository automation. Neither establishes Player runtime behavior. There is

@@ -5,7 +5,7 @@ import ExpoModulesJSI
 public class SourceModule: Module {
     public func definition() -> ModuleDefinition {
         Name("SourceModule")
-        AsyncFunction("create") { (config: [String: Any]?, remote: [String: Any]?, analytics: [String: Any]?, callback: JavaScriptValue?) -> SharedSource in // swiftlint:disable:this line_length
+        AsyncFunction("create") { (config: [String: Any]?, analytics: [String: Any]?, callback: JavaScriptValue?) -> SharedSource in // swiftlint:disable:this line_length
             let callback = try callback.map { try CallbackScope(callback: $0, context: appContext) }
             guard let sourceConfig = RCTConvert.sourceConfig(config, callback: callback) else {
                 callback?.close()
@@ -17,7 +17,7 @@ public class SourceModule: Module {
             } else {
                 source = SourceFactory.createSource(from: sourceConfig)
             }
-            return SharedSource(source: source, callback: callback, remote: remote)
+            return SharedSource(source: source, callback: callback)
         }.runOnQueue(.main)
         Class("Source", SharedSource.self) {
             AsyncFunction("isAttachedToPlayer") { (owner: SharedSource) -> Bool in

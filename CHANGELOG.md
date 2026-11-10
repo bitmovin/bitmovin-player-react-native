@@ -2,50 +2,56 @@
 
 ## [Unreleased]
 
+### Changed
+
+#### Breaking changes
+
+- Check `source.config.drmConfig` for DRM configuration. `source.drm` is now an always-present, read-only property exposing runtime APIs, including for clear content. Move standalone `Drm.fairplay` usage to `source.drm.fairplay`; `Drm` no longer accepts a Source constructor argument
+- Remove calls to `Source.destroy()` and reads of `Source.isDestroyed`. Source cleanup is automatic, and a Source remains reusable after its Player is destroyed
+- Retain and reuse Source instances directly. `Source.nativeId`, `SourceConfig.nativeId`, and ID-based Source aliasing are no longer supported
+- Keep a Player or OfflineContentManager instance alive while using its compatibility ID. Keeping only its `nativeId` no longer retains the underlying resources; later ID-based construction can create a new instance
+- iOS: Configure alternative casting sources with `PlayerConfig.remoteControlConfig.prepareSource(type, sourceConfig)` instead of `Source.remoteControl` or `SourceRemoteControlConfig`. Return an alternative `SourceConfig`, or `null`/`undefined` to keep the original source
+- Android: Update `Event.name` comparisons from `onActive`/`onInactive` to `onPlayerActive`/`onPlayerInactive`, matching iOS. The PlayerView callback prop names are unchanged
+
+#### Other changes
+
+- Player commands such as `play()`, `load()`, and `destroy()`, and `Source.setMetadata()` now return `Promise<void>`, allowing callers to await the native call and catch failures. Playback readiness still uses events. Fire-and-forget calls remain supported; strict Promise linting may require an explicit `await` or `void`
+- Player, Source, and OfflineContentManager start creating native resources in their constructors, and methods wait for that creation automatically. Create a new instance to retry failed creation. `new Player()` remains valid and uses native SDK defaults
+- Android: Keep synchronous DRM, decoder-priority, and custom-message callbacks within 250 ms, matching iOS. They previously had up to 5 seconds; callbacks that miss the deadline use the SDK fallback
+- iOS: Bitmovin Advertising Module ad subtitles now follow the subtitle selected for the main content and remain off when main-content subtitles are off, instead of using the ad manifest's default subtitle track
+- Offline download requests accepted by the native SDK are no longer rejected by extra bitrate or download-state checks
+- Android: Source creation and analytics failures now expose the original SDK error instead of a generic binding error
+- Android: Multiple OfflineContentManager wrappers with the same legacy ID now share creation without duplicate-initialization errors
+- iOS: Includes the fixes and behavior changes in native SDK [`3.131.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31310)
+
 ### Added
 
 - `Player.on` and `Source.on` for asynchronous subscriptions to native object events, including without a mounted `PlayerView`
-- iOS: Support for VMAP ad tags with the Bitmovin Advertising Module (`AdSourceType.BITMOVIN`), included in native iOS SDK `3.131.0`. VMAP no longer requires Google IMA on iOS, matching Android
-- Android: `onPlaybackSpeedChanged` event to indicate playback speed changes. The event is already available in iOS
-- `onPlayerInactive` event prop on `PlayerView` to indicate when the active playback session ends and the player becomes inactive
+- iOS: Play VMAP ad tags with the Bitmovin Advertising Module (`AdSourceType.BITMOVIN`) without enabling Google IMA, matching Android
+- Use `PlayerView.onPlayerInactive` to detect when the active playback session ends
+- Android: Use `onPlaybackSpeedChanged` to observe playback speed changes, matching iOS
 
 ### Fixed
 
 - Deliver `PlayerView` playback and source callbacks through the attached Player's public event API
-- iOS: Reject invalid source or analytics configuration during initialization instead of exposing an empty native binding
-- iOS: Reject offline initialization when configuration is invalid or the SDK cannot create the content manager
-- iOS: Read and update source metadata before the source is loaded
-- Android: **Breaking change:** `PlayerActive` and `PlayerInactive` events being named `onActive` and `onInactive` instead of `onPlayerActive` and `onPlayerInactive`, as on iOS. Apps comparing `Event.name`, e.g. in `onEvent`, must use the new names.
-- Android: `Source.loadingState()` returning the state name instead of a `LoadingState` value
-- Android: `onPlayerActive` not being emitted
-- iOS: Data race in `NetworkConfig` HTTP request and response preprocessing now that the native SDK invokes the callbacks on a background thread
+- iOS: Invalid source, analytics, and offline configuration, or failed offline manager creation, now reject instead of reporting success without a usable instance
+- iOS: Avoid inconsistent HTTP preprocessing results when the native SDK processes requests and responses concurrently
+- Allow abandoned offline managers and custom UI handlers to be collected even when native code retains their callback forwarders
+- iOS: Preserve metadata set before loading a Source and return it from `Source.metadata()`
+- Catch missing Source or OfflineContentManager configuration and missing `SourceConfig.type` during TypeScript checking. These inputs were already invalid at runtime; valid configurations are unchanged
+- Android: `Source.loadingState()` now returns a `LoadingState` value instead of a state name
+- Android: Deliver `PlayerView.onPlayerActive` when a playback session becomes active
+- Report callback-result conversion errors in JavaScript while completing affected HTTP preprocessing with the original request or response
 
-### Changed
+### Deprecated
 
-- **Breaking change:** Remove `Source.nativeId`, `SourceConfig.nativeId`, and same-ID Source aliasing. Each Source owns its native object directly; Player and OfflineContentManager IDs remain supported
-- **Breaking change:** Player command methods, including `play()`, `load()`, and `destroy()`, and `Source.setMetadata()` now return `Promise<void>` so callers can await native completion and catch failures
-- **Breaking change:** Require configuration when constructing `Source` and `OfflineContentManager`, and require `SourceConfig.type`. `Player` configuration remains optional
-- **Breaking change:** Player, Source, and OfflineContentManager constructors start native creation immediately. Methods and `initialize()` await that single creation attempt. Retry failed creation by constructing a new wrapper. Destruction waits for pending creation before releasing the SDK object
-- **Breaking change:** Remove `Source.destroy()` and `Source.isDestroyed`. Sources follow SDK ownership and remain reusable after player destruction
-- **Breaking change:** Android OfflineContentManager aliases share initialization instead of rejecting duplicate `initialize()` calls
-- **Breaking change:** Make `Network` configuration-only, removing `initialize()`, `destroy()`, `isInitialized`, and `isDestroyed`
-- **Breaking change:** Make `Source.drm` an always-present, read-only `SourceDrmApi`, including for clear sources. Read `source.config?.drmConfig` to inspect configuration. `Drm` is configuration-only: its Source constructor parameter, `fairplay`, lifecycle methods, and lifecycle flags are removed. Continue renewing licenses through `source.drm.fairplay.renewExpiringLicense(request)`
-- Android: Use a uniform 250 ms timeout for synchronous JavaScript callbacks, matching iOS. DRM, decoder-priority, and custom-message callbacks previously waited up to 5 seconds
-- Forward offline download requests without additional bitrate or download-state validation in the binding
-- Android: Forward native source-creation and analytics failures through Expo without replacing their exceptions
-- Player and OfflineContentManager methods follow native SDK behavior after `destroy()` instead of returning binding defaults
-- Player and OfflineContentManager `nativeId` values alone no longer retain unused native objects
-- **Breaking change:** Remove `nativeId` from Network, DRM, and Decoder configuration types and configuration wrappers. Configuration and internal UI adapters now use object ownership instead of named aliases
-- **Breaking change:** Export BufferApi, AnalyticsApi, MediaControlsApi, SourceDrmApi, and FairplayDrmApi as types only; their constructors are internal. Access these APIs through `player.buffer`, `player.analytics`, `player.mediaControls`, and `source.drm`. Remove the helpers' public `nativeId`/`playerId` properties
-- iOS: Bitmovin Advertising Module ads no longer start with the subtitle track marked as default in the ad manifest. The ad subtitle now follows the subtitle selected for the main content, and stays off if the main content subtitles are off. This comes with native iOS SDK `3.131.0`
-- Update Bitmovin's native iOS SDK version to [`3.131.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31310)
+- Prefer retaining and reusing Player and OfflineContentManager instances over constructing aliases with `nativeId`. The configuration option is deprecated; ID-based construction remains supported
 
 ### Internal
 
-- Return synchronous configuration callback values directly and simplify native resource teardown
-- Report callback-result conversion failures in JavaScript while completing native network requests with their fallback
-- Keep native Player and OfflineContentManager references while their TypeScript wrappers remain reachable after `destroy()`. Pass native creation Promises directly to API helpers without empty native objects
-- Use Expo SharedObjects for native bindings and direct configuration callbacks. Resolve compatibility IDs only when constructing aliases in a shared weak TypeScript registry. Views and methods use their owned native objects directly
+- Use Expo SharedObjects for native ownership and callbacks, with weak TypeScript registries only for legacy ID-based construction
+- Configuration wrappers and API helpers no longer need separate initialization, destruction, or binding IDs. Runtime helpers remain available through `player.buffer`, `player.analytics`, `player.mediaControls`, and `source.drm`; their constructors are internal
+- Repeated destruction and calls after destruction now follow native SDK behavior instead of wrapper no-ops or placeholder values
 
 ## [1.30.0] - 2026-10-29
 

@@ -198,8 +198,8 @@ export default function OfflinePlayback() {
         {isLoadedSourceOffline && (
           <Action
             text={'Load online content'}
-            onPress={() => {
-              void player.load(sourceConfig);
+            onPress={async () => {
+              await player.load(sourceConfig);
               setIsLoadedSourceOffline(false);
             }}
           />
@@ -208,10 +208,10 @@ export default function OfflinePlayback() {
           !isLoadedSourceOffline && (
             <Action
               text={'Load offline content'}
-              onPress={() => {
+              onPress={async () => {
                 if (offlineContentManager != null) {
                   onEvent('Loading the offline video');
-                  void player.loadOfflineContent(offlineContentManager);
+                  await player.loadOfflineContent(offlineContentManager);
                   setIsLoadedSourceOffline(true);
                 }
               }}
@@ -233,16 +233,13 @@ export default function OfflinePlayback() {
         {downloadState === OfflineState.Downloaded && (
           <Action
             text={'Delete all'}
-            onPress={() => {
-              void offlineContentManager
-                ?.deleteAll()
-                .then(() => {
-                  setDownloadState(OfflineState.NotDownloaded);
-                  offlineContentManager.getOptions().catch(console.error);
-                  void player.load(sourceConfig);
-                  setIsLoadedSourceOffline(false);
-                })
-                .catch(console.error);
+            onPress={async () => {
+              if (!offlineContentManager) return;
+              await offlineContentManager.deleteAll();
+              setDownloadState(OfflineState.NotDownloaded);
+              offlineContentManager.getOptions().catch(console.error);
+              await player.load(sourceConfig);
+              setIsLoadedSourceOffline(false);
             }}
           />
         )}

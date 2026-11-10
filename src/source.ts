@@ -8,10 +8,7 @@ import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
 import SourceModule, { type NativeSource } from './modules/SourceModule';
-import {
-  createConfigurationCallbacks,
-  createSharedObjectWithCallback,
-} from './nativeCallbacks';
+import { ConfigurationCallbacks } from './nativeCallbacks';
 
 /**
  * Types of media that can be handled by the player.
@@ -149,21 +146,6 @@ export interface SourceConfig {
 }
 
 /**
- * The remote control config for a source.
- * @platform iOS
- */
-export interface SourceRemoteControlConfig {
-  /**
-   * The `SourceConfig` for casting.
-   * Enables to play different content when casting.
-   * This can be useful when the remote playback device supports different streaming formats,
-   * DRM systems, etc. than the local device.
-   * If not set, the local source config will be used for casting.
-   */
-  castSourceConfig?: SourceConfig | null;
-}
-
-/**
  * Represents audio and video content that can be loaded into a player.
  */
 export class Source {
@@ -191,18 +173,13 @@ export class Source {
   }
 
   private async createNative(): Promise<NativeSource> {
-    // Preserve synchronous remoteControl assignments made just after construction.
-    await Promise.resolve();
-    const callbacks = createConfigurationCallbacks();
-    const native = await createSharedObjectWithCallback(
-      (callback) =>
-        SourceModule.create(
-          callbacks.serialize(this.config),
-          callbacks.serialize(this.remoteControl || undefined),
-          callbacks.serialize(this.config.analyticsSourceMetadata),
-          callback
-        ),
-      callbacks.callback
+    const callbacks = new ConfigurationCallbacks();
+    const native = await callbacks.dispatcher.create((callback) =>
+      SourceModule.create(
+        callbacks.serialize(this.config),
+        callbacks.serialize(this.config.analyticsSourceMetadata),
+        callback
+      )
     );
     this.isInitialized = true;
     return native;
@@ -216,19 +193,12 @@ export class Source {
   readonly drm: SourceDrmApi;
 
   /**
-   * The remote control config for this source.
-   * This is only supported on iOS.
-   *
-   * @platform iOS
-   */
-  remoteControl: SourceRemoteControlConfig | null = null;
-  /**
    * Whether the native {@link Source} object has been created.
    */
   isInitialized = false;
 
   /**
-   * Allocates the native {@link Source} instance and its resources natively.
+   * Waits for the native {@link Source} creation started by the constructor.
    */
   initialize = async (): Promise<void> => {
     await this.native;

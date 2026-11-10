@@ -1,12 +1,13 @@
 # SharedObject compatibility decisions
 
-- Player and OfflineContentManager `nativeId` aliases remain a TS compatibility
-  contract, so multiple public wrappers can reference one SDK object. Alias flags
+- The Player and OfflineContentManager registries exist only for backward
+  compatibility with `nativeId`-based construction: wrappers created with the same
+  ID share one SDK object. Methods and views use that object directly. Alias flags
   and configuration remain
   independent. Reusing an ID redirects compatibility lookup to its current
-  registration; an existing SharedObject never changes its SDK object. The generic
-  registry holds ready objects weakly, so keep an owning TS wrapper reachable
-  while using its ID. Pending creation remains strongly retained until settlement.
+  registration; an existing SharedObject never changes its SDK object. Each
+  registry holds creation Promises weakly. Keep an owning TS wrapper reachable
+  while using its ID; the registry does not keep pending or ready objects alive.
 - Player, Source, and OfflineContentManager constructors start one native creation
   attempt. Methods and `initialize()` await the same Promise; a failed attempt
   requires a new wrapper. Destruction removes the ID registration and waits for
@@ -17,8 +18,12 @@
   API or binding ID; each wrapper owns one native Source directly.
 - Each JS SharedObject owns its configuration dispatcher; native retains only a weak JS
   forwarding callback. A callback capturing its Source forms a collectible JS
-  cycle. The canonical JS Player retains its loaded Source/offline backend until
-  replacement, unload, or destruction completes, including when used by aliases.
+  cycle. The canonical JS NativePlayer stores its loaded Source list and offline
+  backend directly, including when used by aliases. Replacement, unload, and
+  destruction release those references after native completion.
+- Offline event listeners hold a weak manager reference. UI bridges own their
+  dispatchers in JS and give native only weak forwarders, so abandoned renders
+  do not leave a native-held callback rooting the bridge.
 - Configuration callbacks share their consuming native object's scope. They
   have no independent SharedObject, lifecycle, or TS dependency list.
 - Offline factories receive an event endpoint subscribed before SDK creation.

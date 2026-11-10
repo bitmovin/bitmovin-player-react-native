@@ -34,7 +34,6 @@ public class PlayerModule: Module {
             }.runOnQueue(.main)
             AsyncFunction("unload") { (owner: SharedPlayer) in
                 owner.player.unload()
-                owner.source = nil
             }.runOnQueue(.main)
             AsyncFunction("setPlaybackSpeed") { (owner: SharedPlayer, playbackSpeed: Float) in
                 owner.player.playbackSpeed = playbackSpeed
@@ -106,7 +105,6 @@ public class PlayerModule: Module {
                     restrictedToAssetCache: options?["restrictedToAssetCache"] as? Bool ?? true
                 ) else { return false }
                 owner.player.load(sourceConfig: config)
-                owner.source = nil
                 return true
                 #else
                 return false
@@ -170,7 +168,6 @@ public class PlayerModule: Module {
                 owner.player.nowPlaying.isEnabled = enabled
             }.runOnQueue(.main)
             AsyncFunction("loadSource") { (owner: SharedPlayer, source: SharedSource) in
-                owner.source = source
                 owner.player.load(source: source.source)
             }.runOnQueue(.main)
         }

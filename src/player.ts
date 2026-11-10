@@ -2,9 +2,8 @@ import type { EventSubscription } from 'expo-modules-core';
 import type { PlayerEvents } from './events';
 import { subscribeToNativeEvent } from './nativeEvents';
 import { Platform } from 'react-native';
-import PlayerModule, { retainLoadedSource } from './modules/PlayerModule';
-import NativeInstance from './nativeInstance';
-import { getOrCreateAsync, remove } from './nativeInstanceRegistry';
+import PlayerModule, { type NativePlayer } from './modules/PlayerModule';
+import { legacyPlayerRegistry } from './nativeInstanceRegistry';
 import type { SourceConfig } from './source';
 import { Source } from './source';
 import type { AudioTrack } from './audioTrack';
@@ -17,11 +16,7 @@ import type { AdItem } from './advertising';
 import { BufferApi } from './bufferApi';
 import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
-import {
-  createConfigurationCallbacks,
-  createSharedObjectWithCallback,
-} from './nativeCallbacks';
-import { getNativeOwner } from './nativeOwner';
+import { ConfigurationCallbacks } from './nativeCallbacks';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -32,7 +27,7 @@ import { getNativeOwner } from './nativeOwner';
  * Can be attached to {@link PlayerView} component in order to use Bitmovin's Player Web UI.
  * @see PlayerView
  */
-export class Player extends NativeInstance<PlayerConfig | undefined> {
+export class Player {
   /**
    * Subscribes to native events, even without a PlayerView. For example,
    * `await player.on('play', listener)`.
@@ -46,17 +41,31 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   ): Promise<EventSubscription> =>
     subscribeToNativeEvent(this.native, event, listener);
 
+  constructor(readonly config: PlayerConfig = {}) {
+    const instance = legacyPlayerRegistry.create(config.nativeId, () =>
+      this.createNativePlayer()
+    );
+    this.nativeId = instance.nativeId;
+    this.native = instance.native;
+    void this.initialize().catch(() => {});
+    this.analytics = config.analyticsConfig
+      ? new AnalyticsApi(this.native)
+      : undefined;
+    this.buffer = new BufferApi(this.native);
+    this.mediaControls = new MediaControlsApi(this.native);
+  }
+
+  /** User-defined compatibility ID, or a generated UUIDv4. */
+  readonly nativeId: string;
+
   /** @internal */
-  readonly native = this.retainNative(
-    getOrCreateAsync('player', this.nativeId, () => this.createNativePlayer())
-  );
+  readonly native: Promise<NativePlayer>;
+
+  /** Whether the constructor's native creation attempt has completed successfully. */
+  isInitialized = false;
 
   /**
-   * Whether the native `Player` object has been created.
-   */
-  isInitialized = false;
-  /**
-   * Whether the native `Player` object has been disposed.
+   * Whether `destroy()` has been called on this wrapper.
    */
   isDestroyed = false;
   /**
@@ -68,30 +77,29 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    *
    * `undefined` if the player was created without analytics support.
    */
-  analytics?: AnalyticsApi = this.config?.analyticsConfig
-    ? new AnalyticsApi(this.native)
-    : undefined;
+  analytics?: AnalyticsApi;
   /**
    * The {@link BufferApi} for interactions regarding the buffer.
    */
-  buffer: BufferApi = new BufferApi(this.native);
+  buffer: BufferApi;
   /**
    * The {@link MediaControlsApi} for interactions regarding the Player's media controls integration.
    *
    * @platform iOS, tvOS
    */
-  mediaControls: MediaControlsApi = new MediaControlsApi(this.native);
+  mediaControls: MediaControlsApi;
 
   /**
    * Waits for the native `Player` creation started by the constructor.
    */
   initialize = async (): Promise<void> => {
     await this.native;
+    this.isInitialized = true;
   };
 
   private async createNativePlayer() {
     const beforeInitialization =
-      this.config?.advertisingConfig?.ima?.beforeInitialization;
+      this.config.advertisingConfig?.ima?.beforeInitialization;
     if (beforeInitialization && !PlayerModule.isGoogleImaEnabled) {
       console.warn(
         'advertisingConfig.ima.beforeInitialization is ignored because Google IMA is disabled. ' +
@@ -99,15 +107,17 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
           'See the "Google IMA" section of the bitmovin-player-react-native README.'
       );
     }
-    const callbacks = createConfigurationCallbacks();
-    return createSharedObjectWithCallback(
-      (callback) =>
-        PlayerModule.create(
-          callbacks.serialize(this.config, { capture: 'advertisingConfig' }),
-          callbacks.serialize(this.config?.analyticsConfig),
-          callback
-        ),
-      callbacks.callback
+    const callbacks = new ConfigurationCallbacks();
+    const config = callbacks.serialize(this.config, {
+      capture: 'advertisingConfig',
+    });
+    delete config.nativeId;
+    return callbacks.dispatcher.create((callback) =>
+      PlayerModule.create(
+        config,
+        callbacks.serialize(this.config.analyticsConfig),
+        callback
+      )
     );
   }
 
@@ -115,9 +125,8 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    * Destroys the native `Player` and releases all of its allocated resources.
    */
   destroy = async (): Promise<void> => {
-    if (this.isDestroyed) return;
     this.isDestroyed = true;
-    remove('player', this.nativeId, getNativeOwner(this) ?? this.native);
+    legacyPlayerRegistry.remove(this.nativeId, this.native);
     let native;
     try {
       native = await this.native;
@@ -125,8 +134,9 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
       // A failed constructor has no native player to destroy.
       return;
     }
-    remove('player', this.nativeId, native);
-    await retainLoadedSource(native, undefined, native.destroy());
+    await native.destroy();
+    native.loadedSources = [];
+    native.loadedOffline = undefined;
   };
 
   /**
@@ -145,11 +155,10 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   ): Promise<void> => {
     const offline = await offlineContentManager.native;
     const native = await this.native;
-    await retainLoadedSource(
-      native,
-      offline,
-      native.loadOfflineContent(offline, options)
-    );
+    if (await native.loadOfflineContent(offline, options)) {
+      native.loadedOffline = offline;
+      native.loadedSources = [];
+    }
   };
 
   /**
@@ -158,14 +167,10 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   loadSource = async (source: Source): Promise<void> => {
     this.source = source;
     const nativeSource = await source.native;
-    if (this.isDestroyed) return;
     const native = await this.native;
-    if (this.isDestroyed) return;
-    await retainLoadedSource(
-      native,
-      nativeSource,
-      native.loadSource(nativeSource)
-    );
+    await native.loadSource(nativeSource);
+    native.loadedSources = [nativeSource];
+    native.loadedOffline = undefined;
   };
 
   /**
@@ -173,7 +178,9 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
    */
   unload = async (): Promise<void> => {
     const native = await this.native;
-    await retainLoadedSource(native, undefined, native.unload());
+    await native.unload();
+    native.loadedSources = [];
+    native.loadedOffline = undefined;
   };
 
   /**
@@ -304,7 +311,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   isAirPlayActive = async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
       console.warn(
-        `[Player ${this.nativeId}] Method isAirPlayActive is not available for Android. Only iOS devices.`
+        'Method isAirPlayActive is not available for Android. Only iOS devices.'
       );
       return false;
     }
@@ -318,7 +325,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   isAirPlayAvailable = async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
       console.warn(
-        `[Player ${this.nativeId}] Method isAirPlayAvailable is not available for Android. Only iOS devices.`
+        'Method isAirPlayAvailable is not available for Android. Only iOS devices.'
       );
       return false;
     }
@@ -334,7 +341,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   showAirPlayTargetPicker = async (): Promise<void> => {
     if (Platform.OS !== 'ios' || Platform.isTV) {
       console.warn(
-        `[Player ${this.nativeId}] Method showAirPlayTargetPicker is only available on iOS (not Android/tvOS).`
+        'Method showAirPlayTargetPicker is only available on iOS (not Android/tvOS).'
       );
       return;
     }
@@ -527,7 +534,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   setVideoQuality = async (qualityId: string): Promise<void> => {
     if (Platform.OS !== 'android') {
       console.warn(
-        `[Player ${this.nativeId}] Method setVideoQuality is not available for iOS and tvOS devices. Only Android devices.`
+        'Method setVideoQuality is not available for iOS and tvOS devices. Only Android devices.'
       );
       return;
     }
@@ -573,7 +580,7 @@ export class Player extends NativeInstance<PlayerConfig | undefined> {
   ): Promise<boolean | undefined> => {
     if (Platform.OS === 'android') {
       console.warn(
-        `[Player ${this.nativeId}] Method canPlayAtPlaybackSpeed is not available for Android. Only iOS and tvOS devices.`
+        'Method canPlayAtPlaybackSpeed is not available for Android. Only iOS and tvOS devices.'
       );
       return undefined;
     }

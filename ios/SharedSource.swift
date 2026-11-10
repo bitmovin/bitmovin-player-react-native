@@ -4,21 +4,15 @@ import ExpoModulesCore
 
 public final class SharedSource: SharedObject {
     let source: Source
-    let castSourceConfig: SourceConfig?
     // The public API returns plain skdUri metadata; renewal still needs its native AVContentKeyRequest.
     let fairplayRequests = LockedBox(value: [String: FairplayContentKeyRequest]())
     private var fairplayCancellable: AnyCancellable?
     private let events = SharedObjectEvents()
     private let callback: CallbackScope?
 
-    init(source: Source, callback: CallbackScope?, remote: [String: Any]?) {
+    init(source: Source, callback: CallbackScope?) {
         self.source = source
         self.callback = callback
-#if os(iOS)
-        castSourceConfig = RCTConvert.sourceRemoteControlConfig(remote)
-#else
-        castSourceConfig = nil
-#endif
         super.init()
         events.owner = self
         source.add(listener: events)
