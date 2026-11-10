@@ -1,6 +1,6 @@
 import type { EventSubscription } from 'expo-modules-core';
-import type { CustomMessageHandler } from './custommessagehandler';
-import type { CustomMessageSender } from './custommessagesender';
+import type { CustomMessageHandler } from './customMessageHandler';
+import type { CustomMessageSender } from './customMessageSender';
 import * as Crypto from 'expo-crypto';
 import CustomMessageHandlerModule from './customMessageHandlerModule';
 

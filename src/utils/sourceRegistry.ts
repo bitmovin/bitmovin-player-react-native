@@ -1,5 +1,5 @@
 import type { EventSubscription } from 'expo-modules-core';
-import SourceModule from '../modules/SourceModule';
+import SourceModule from '../modules/sourceModule';
 import type { Source } from '../source';
 
 /**

@@ -1,7 +1,7 @@
 import type { EventSubscription } from 'expo-modules-core';
 import NativeInstance from '../nativeInstance';
 import NetworkModule from './networkModule';
-import { DebugConfig } from '../debug';
+import { DebugConfig } from '../debugConfig';
 import type { HttpRequest, HttpResponse, NetworkConfig } from './networkConfig';
 import { HttpRequestType } from './networkConfig';
 

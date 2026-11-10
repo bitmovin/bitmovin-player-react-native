@@ -6,7 +6,7 @@ import type { FairplayConfig } from './fairplayConfig';
 import type { WidevineConfig } from './widevineConfig';
 import { FairplayDrmApi } from './fairplayDrmApi';
 import DrmModule from './drmModule';
-import { DebugConfig } from '../debug';
+import { DebugConfig } from '../debugConfig';
 
 // Export config types and API classes from DRM module.
 export type { FairplayConfig, WidevineConfig };

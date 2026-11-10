@@ -30,7 +30,7 @@ export * from './mediaControlsApi';
 export * from './network';
 export * from './playlist';
 export * from './mediaControlConfig';
-export * from './debug';
+export * from './debugConfig';
 export * from './decoder/decoderConfig';
 export * from './mediaTrackRole';
 export * from './subtitleFormat';
