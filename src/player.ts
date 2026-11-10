@@ -73,7 +73,8 @@ export class Player extends NativeInstance<PlayerConfig> {
   >();
 
   private clearLoadedOffline = async (): Promise<void> => {
-    if (this.sharedPlayer) Player.loadedOffline.delete(await this.sharedPlayer);
+    const native = await this.sharedPlayer?.catch(() => undefined);
+    if (native) Player.loadedOffline.delete(native);
   };
 
   /** @internal */
