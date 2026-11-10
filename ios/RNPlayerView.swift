@@ -1,4 +1,5 @@
 import BitmovinPlayer
+@_spi(ExperimentalApi)
 import BitmovinPlayerCore
 import ExpoModulesCore
 
@@ -37,9 +38,9 @@ public class RNPlayerView: ExpoView {
         }
     }
 
-    var pendingPlayerInfo: [String: Any]?
     private var customMessageHandler: SharedCustomMessage?
-    private var playerId: NativeId?
+    private var sharedPlayer: SharedPlayer?
+    private var playerViewConfigWrapper: RNPlayerViewConfig?
     private var fullscreenHandler: SharedFullscreen?
     private var scalingMode: ScalingMode?
     private var requestedFullscreenValue: Bool?
@@ -47,10 +48,10 @@ public class RNPlayerView: ExpoView {
     private var isPictureInPictureEnabledValue: Bool?
     private var pictureInPictureActions: [RNPictureInPictureAction]?
     private var avPlayerViewControllerTransitionForced = false
-    private var shouldExitPictureInPictureOnForeground = false
     private var foregroundObserver: NSObjectProtocol?
 
     let onBmpPlayerViewReady = EventDispatcher()
+    let onBmpPictureInPictureAvailabilityChanged = EventDispatcher()
     let onBmpPictureInPictureEnter = EventDispatcher()
     let onBmpPictureInPictureEntered = EventDispatcher()
     let onBmpPictureInPictureExit = EventDispatcher()
@@ -59,7 +60,6 @@ public class RNPlayerView: ExpoView {
     let onBmpFullscreenDisabled = EventDispatcher()
     let onBmpFullscreenEnter = EventDispatcher()
     let onBmpFullscreenExit = EventDispatcher()
-    let onBmpPictureInPictureAvailabilityChanged = EventDispatcher()
 
     required init(appContext: AppContext? = nil) {
         super.init(appContext: appContext)
@@ -77,20 +77,26 @@ public class RNPlayerView: ExpoView {
         maybeFixAVPlayerViewControllerVisibility()
     }
 
-    internal func attachPlayer(
-        playerId: NativeId?,
-        playerViewConfigWrapper: RNPlayerViewConfig?
+    internal func setSharedPlayer(_ owner: SharedPlayer?) {
+        guard sharedPlayer !== owner else { return }
+        detachSharedPlayer()
+        sharedPlayer = owner
+    }
+
+    internal func configurePlayer(
+        playerViewConfig: RNPlayerViewConfig?
     ) {
-        self.playerId = playerId
-        guard let playerId else {
-            detachCurrentPlayer()
-            return
-        }
-        // PlayerView renders this native view only after player.initialize() resolves,
-        // so the player is already registered on the normal attachment path.
-        guard let player = self.appContext?.moduleRegistry.get(PlayerModule.self)?.retrieve(playerId) else {
-            return
-        }
+        playerViewConfigWrapper = playerViewConfig
+    }
+
+    internal func detachSharedPlayer() {
+        prepareForNewPlayerAttachment()
+        sharedPlayer = nil
+    }
+
+    internal func attachConfiguredPlayer() {
+        guard let owner = sharedPlayer, !owner.player.isDestroyed else { return }
+        let player = owner.player
         if let playerView, let currentPlayer = playerView.player, currentPlayer === player {
             // Player is already attached to the PlayerView
             return
@@ -104,25 +110,23 @@ public class RNPlayerView: ExpoView {
         }
 
         let previousPictureInPictureAvailableValue = playerView?.isPictureInPictureAvailable ?? false
-        if playerView?.player != nil {
-            prepareForNewPlayerAttachment()
-        }
         self.playerView = PlayerView(
             player: player,
             frame: bounds,
             playerViewConfig: playerViewConfigWrapper?.playerViewConfig ?? PlayerViewConfig()
         )
 
+        player.add(listener: self)
         playerView?.add(listener: self)
 
-        shouldExitPictureInPictureOnForeground =
-            playerViewConfigWrapper?.pictureInPictureConfig?.shouldExitOnForeground ?? false
-        updateForegroundObserver()
+        updateForegroundObserver(
+            shouldExitOnForeground: playerViewConfigWrapper?.pictureInPictureConfig?.shouldExitOnForeground ?? false
+        )
 
         self.maybeEmitPictureInPictureAvailabilityEvent(
             previousState: previousPictureInPictureAvailableValue
         )
-        onBmpPlayerViewReady(["playerId": playerId])
+        onBmpPlayerViewReady([:])
     }
 
     internal func setFullscreenHandler(_ handler: SharedFullscreen?) {
@@ -208,18 +212,18 @@ private extension RNPlayerView {
         guard let playerView else {
             return
         }
+        playerView.player?.remove(listener: self)
         playerView.remove(listener: self)
         playerView.player = nil
-        shouldExitPictureInPictureOnForeground = false
         updateForegroundObserver()
     }
 
-    func updateForegroundObserver() {
+    func updateForegroundObserver(shouldExitOnForeground: Bool = false) {
         if let foregroundObserver {
             NotificationCenter.default.removeObserver(foregroundObserver)
             self.foregroundObserver = nil
         }
-        guard shouldExitPictureInPictureOnForeground else { return }
+        guard shouldExitOnForeground else { return }
 #if os(iOS)
         foregroundObserver = NotificationCenter.default.addObserver(
             forName: UIApplication.didBecomeActiveNotification,
@@ -252,6 +256,10 @@ private extension RNPlayerView {
         // Force a fresh PlayerView on next attach.
         self.playerView = nil
     }
+}
+
+extension RNPlayerView: PlayerListener {
+    public func onDestroy(_ event: DestroyEvent, player: Player) { detachSharedPlayer() }
 }
 
 extension RNPlayerView: UserInterfaceListener {

@@ -8,8 +8,6 @@ class DebugModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("DebugModule")
 
-        AsyncFunction("setDebugLoggingEnabled") { enabled: Boolean ->
-            DebugConfig.isLoggingEnabled = enabled
-        }
+        AsyncFunction("setDebugLoggingEnabled") { enabled: Boolean -> DebugConfig.isLoggingEnabled = enabled }
     }
 }

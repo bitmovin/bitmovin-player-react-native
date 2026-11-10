@@ -21,10 +21,10 @@ export default (spec: TestScope) => {
         await callPlayer(async (player) => {
           const subtitleTrack = (await player.getAvailableSubtitles())[1];
           await player.setSubtitleTrack(subtitleTrack.identifier);
-          player.play();
+          await player.play();
         });
-        await callPlayerAndExpectEvent((player) => {
-          player.seek(105);
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.seek(105);
         }, EventType.Seeked);
         await expectEvents(
           EventSequence(
@@ -97,10 +97,10 @@ export default (spec: TestScope) => {
         await callPlayer(async (player) => {
           const subtitleTrack = (await player.getAvailableSubtitles())[1];
           await player.setSubtitleTrack(subtitleTrack.identifier);
-          player.play();
+          await player.play();
         });
-        await callPlayerAndExpectEvent((player) => {
-          player.seek(105);
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.seek(105);
         }, EventType.Seeked);
 
         const cueEnterEvent: CueEnterEvent = await expectEvent(
@@ -162,10 +162,10 @@ export default (spec: TestScope) => {
         await callPlayer(async (player) => {
           const subtitleTrack = (await player.getAvailableSubtitles())[1];
           await player.setSubtitleTrack(subtitleTrack.identifier);
-          player.play();
+          await player.play();
         });
-        await callPlayerAndExpectEvent((player) => {
-          player.seek(105);
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.seek(105);
         }, EventType.Seeked);
 
         // Wait for CueEnter first, then CueExit

@@ -1,2 +1,2 @@
 export * from './config';
-export * from './analyticsApi';
+export type { AnalyticsApi } from './analyticsApi';

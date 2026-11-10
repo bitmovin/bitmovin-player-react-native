@@ -1,47 +1,48 @@
 import type { NativeModule } from 'expo-modules-core';
+import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
 import type { SourceConfig } from '../source';
+import type { NativeCallback } from '../native/nativeCallbacks';
 import type { OfflineDownloadRequest } from './offlineDownloadRequest';
 import type { BitmovinNativeOfflineEventData } from './offlineContentManagerListener';
 
-export type OfflineModuleEvents = {
-  onBitmovinOfflineEvent: (event: BitmovinNativeOfflineEventData) => void;
+type OfflineEvents = {
+  onBitmovinOfflineEvent: (
+    event: Omit<BitmovinNativeOfflineEventData, 'nativeId'>
+  ) => void;
 };
 
-/**
- * Native OfflineModule using Expo modules API.
- * Provides modern async/await interface while maintaining backward compatibility.
- */
-declare class OfflineModule extends NativeModule<OfflineModuleEvents> {
-  initializeWithConfig(
-    nativeId: string,
+/** @internal */
+export type NativeOfflineEvents = SharedObject<OfflineEvents>;
+
+/** @internal */
+export interface NativeOfflineBackend extends SharedObject {
+  getState(): Promise<string | null>;
+  getOptions(): Promise<void>;
+  download(request: OfflineDownloadRequest): Promise<void>;
+  resume(): Promise<void>;
+  suspend(): Promise<void>;
+  cancelDownload(): Promise<void>;
+  usedStorage(): Promise<number | null>;
+  deleteAll(): Promise<void>;
+  downloadLicense(): Promise<void>;
+  releaseLicense(): Promise<void>;
+  renewOfflineLicense(): Promise<void>;
+  destroy(): Promise<void>;
+}
+
+/** @internal */
+export type NativeOffline = NativeOfflineBackend & {
+  readonly events: NativeOfflineEvents;
+};
+
+declare class OfflineModule extends NativeModule {
+  createEvents(): NativeOfflineEvents;
+  create(
     config: { identifier: string; sourceConfig: SourceConfig },
-    drmNativeId: string | undefined
-  ): Promise<void>;
-
-  getState(nativeId: string): Promise<string>;
-
-  getOptions(nativeId: string): Promise<void>;
-
-  download(nativeId: string, request: OfflineDownloadRequest): Promise<void>;
-
-  resume(nativeId: string): Promise<void>;
-
-  suspend(nativeId: string): Promise<void>;
-
-  cancelDownload(nativeId: string): Promise<void>;
-
-  usedStorage(nativeId: string): Promise<number>;
-
-  deleteAll(nativeId: string): Promise<void>;
-
-  downloadLicense(nativeId: string): Promise<void>;
-
-  releaseLicense(nativeId: string): Promise<void>;
-
-  renewOfflineLicense(nativeId: string): Promise<void>;
-
-  release(nativeId: string): Promise<void>;
+    events: NativeOfflineEvents,
+    callback?: NativeCallback
+  ): Promise<NativeOfflineBackend>;
 }
 
 export default requireNativeModule<OfflineModule>('OfflineModule');

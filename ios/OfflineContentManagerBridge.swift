@@ -18,20 +18,17 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
     }
 
     let offlineContentManager: OfflineContentManager
-    private weak var module: OfflineModule?
-    let nativeId: NativeId
+    private let events: SharedOfflineEvents
     let identifier: String
     var currentTrackSelection: OfflineTrackSelection?
 
     init(
         forManager offlineContentManager: OfflineContentManager,
-        module: OfflineModule,
-        nativeId: NativeId,
+        events: SharedOfflineEvents,
         identifier: String
     ) {
         self.offlineContentManager = offlineContentManager
-        self.module = module
-        self.nativeId = nativeId
+        self.events = events
         self.identifier = identifier
         super.init()
 
@@ -129,7 +126,6 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
 
     private func sendOfflineEvent(eventType: EventType, body: [String: Any] = [:]) {
         let baseEvent: [String: Any] = [
-            "nativeId": nativeId,
             "identifier": identifier,
             "eventType": eventType.rawValue,
             "state": RCTConvert.toJson(offlineState: offlineContentManager.offlineState)
@@ -137,7 +133,7 @@ internal class OfflineContentManagerBridge: NSObject, OfflineContentManagerListe
 
         let eventBody = baseEvent.merging(body) { current, _ in current }
 
-        module?.sendEvent("onBitmovinOfflineEvent", eventBody)
+        events.emit(event: "onBitmovinOfflineEvent", payload: eventBody)
     }
 }
 #endif

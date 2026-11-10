@@ -1,5 +1,5 @@
+import type { NativePlayer } from './modules/playerModule';
 import { Platform } from 'react-native';
-import MediaControlsModule from './modules/MediaControlsModule';
 
 /**
  * Provides control for the Player's media controls integration.
@@ -9,14 +9,8 @@ import MediaControlsModule from './modules/MediaControlsModule';
  * @platform iOS, tvOS
  */
 export class MediaControlsApi {
-  /**
-   * The native player id that this media controls api is attached to.
-   */
-  readonly nativeId: string;
-
-  constructor(playerId: string) {
-    this.nativeId = playerId;
-  }
+  /** @internal */
+  constructor(private readonly nativePlayer: Promise<NativePlayer>) {}
 
   /**
    * Indicates whether the Player publishes media control information and registers media command handlers.
@@ -36,11 +30,11 @@ export class MediaControlsApi {
   isEnabled = async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
       console.warn(
-        `[Player ${this.nativeId}] Runtime mediaControls APIs are not implemented on Android yet.`
+        'Runtime mediaControls APIs are not implemented on Android yet.'
       );
       return false;
     }
-    return (await MediaControlsModule?.isEnabled(this.nativeId)) ?? false;
+    return (await (await this.nativePlayer).isMediaControlsEnabled()) ?? false;
   };
 
   /**
@@ -52,10 +46,10 @@ export class MediaControlsApi {
   setEnabled = async (enabled: boolean): Promise<void> => {
     if (Platform.OS === 'android') {
       console.warn(
-        `[Player ${this.nativeId}] Runtime mediaControls APIs are not implemented on Android yet.`
+        'Runtime mediaControls APIs are not implemented on Android yet.'
       );
       return;
     }
-    return MediaControlsModule?.setEnabled(this.nativeId, enabled);
+    return (await this.nativePlayer).setMediaControlsEnabled(enabled);
   };
 }
