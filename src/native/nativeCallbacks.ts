@@ -83,8 +83,6 @@ export class NativeCallbacks {
     completion: NativeCallbackResult,
     fallbackArgument?: number
   ): Promise<void> {
-    // Network preprocessing has always invoked customer callbacks on a later microtask.
-    await Promise.resolve();
     let value = fallbackArgument == null ? null : args[fallbackArgument];
     try {
       value = (await this.invoke(operation, args)) ?? value;
