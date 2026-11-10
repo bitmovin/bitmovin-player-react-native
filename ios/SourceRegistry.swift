@@ -13,7 +13,8 @@ import Foundation
  */
 internal enum SourceRegistry {
     private struct Entry {
-        let source: Source
+        let sharedSource: SharedSource
+        var source: Source { sharedSource.source }
         let owner: ObjectIdentifier
         let instanceId: Int
     }
@@ -32,7 +33,11 @@ internal enum SourceRegistry {
         defer { lock.unlock() }
         let instanceId = nextInstanceId
         nextInstanceId += 1
-        sources[nativeId] = Entry(source: source, owner: ObjectIdentifier(owner), instanceId: instanceId)
+        sources[nativeId] = Entry(
+            sharedSource: SharedSource(source: source),
+            owner: ObjectIdentifier(owner),
+            instanceId: instanceId
+        )
         return instanceId
     }
 
@@ -53,6 +58,12 @@ internal enum SourceRegistry {
         lock.lock()
         defer { lock.unlock() }
         return sources[nativeId]?.source
+    }
+
+    static func sharedSource(nativeId: NativeId) -> SharedSource? {
+        lock.lock()
+        defer { lock.unlock() }
+        return sources[nativeId]?.sharedSource
     }
 
     /**

@@ -46,6 +46,36 @@ class SourceModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("SourceModule")
 
+        AsyncFunction("getSharedSource") { nativeId: NativeId ->
+            checkNotNull(SourceRegistry.getSharedSource(nativeId)) { "Source has not been initialized" }
+        }.runOnQueue(Queues.MAIN)
+
+        Class(SharedSource::class) {
+            AsyncFunction("isAttachedToPlayer") { shared: SharedSource ->
+                shared.source.isAttachedToPlayer
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isActive") { shared: SharedSource -> shared.source.isActive }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("duration") { shared: SharedSource -> shared.source.duration }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("loadingState") { shared: SharedSource ->
+                shared.source.loadingState.toJson()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getMetadata") { shared: SharedSource ->
+                shared.source.config.metadata
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setMetadata") { shared: SharedSource, metadata: Map<String, Any>? ->
+                shared.source.config.metadata = metadata?.mapValues { it.value.toString() }
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getThumbnail") { shared: SharedSource, time: Double ->
+                shared.source.getThumbnail(time)?.toJson()
+            }.runOnQueue(Queues.MAIN)
+        }
+
         OnCreate {
             // Module initialization
         }
@@ -87,33 +117,7 @@ class SourceModule : Module() {
             releaseSource(nativeId)
         }.runOnQueue(Queues.MAIN)
 
-        AsyncFunction("isAttachedToPlayer") { nativeId: NativeId ->
-            SourceRegistry.getSource(nativeId)?.isAttachedToPlayer
-        }
 
-        AsyncFunction("isActive") { nativeId: NativeId ->
-            SourceRegistry.getSource(nativeId)?.isActive
-        }
-
-        AsyncFunction("duration") { nativeId: NativeId ->
-            SourceRegistry.getSource(nativeId)?.duration
-        }
-
-        AsyncFunction("loadingState") { nativeId: NativeId ->
-            SourceRegistry.getSource(nativeId)?.loadingState?.toJson()
-        }
-
-        AsyncFunction("getMetadata") { nativeId: NativeId ->
-            SourceRegistry.getSource(nativeId)?.config?.metadata
-        }
-
-        AsyncFunction("setMetadata") { nativeId: NativeId, metadata: Map<String, Any>? ->
-            SourceRegistry.getSource(nativeId)?.config?.metadata = metadata?.mapValues { it.value.toString() }
-        }
-
-        AsyncFunction("getThumbnail") { nativeId: NativeId, time: Double ->
-            SourceRegistry.getSource(nativeId)?.getThumbnail(time)?.toJson()
-        }
     }
 
     /**
@@ -148,7 +152,7 @@ class SourceModule : Module() {
             } else {
                 Source.create(sourceConfig)
             }
-            return SourceRegistry.register(nativeId, source, owner = this)
+            return SourceRegistry.register(nativeId, source, owner = this, appContext = appContext)
         } catch (e: Exception) {
             throw SourceException.SourceCreationFailed(e.message ?: "Unknown error")
         }

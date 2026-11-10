@@ -6,7 +6,7 @@ import NativeInstance from './nativeInstance';
 import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
-import SourceModule from './modules/sourceModule';
+import SourceModule, { type NativeSource } from './modules/sourceModule';
 import type { SourceEventMap } from './eventMap';
 import { EventListeners } from './utils/eventListeners';
 import { SourceRegistry } from './utils/sourceRegistry';
@@ -193,6 +193,22 @@ export class Source extends NativeInstance<SourceConfig> {
   isDestroyed = false;
 
   private initialization?: Promise<void>;
+  private nativeSource?: Promise<NativeSource>;
+
+  /** @internal */
+  get native(): Promise<NativeSource> {
+    if (!this.nativeSource) {
+      const attempt = this.initialize().then(() =>
+        SourceModule.getSharedSource(this.nativeId)
+      );
+      this.nativeSource = attempt;
+      void attempt.catch(() => {
+        if (this.nativeSource === attempt) this.nativeSource = undefined;
+      });
+    }
+    return this.nativeSource;
+  }
+
   /**
    * The instance id of the native source, as resolved by its creation.
    */
@@ -274,6 +290,7 @@ export class Source extends NativeInstance<SourceConfig> {
       return;
     }
     this.nativeInstanceId = undefined;
+    this.nativeSource = undefined;
     SourceRegistry.unregister(this);
     this.isInitialized = false;
     void this.drm?.destroy();
@@ -290,6 +307,7 @@ export class Source extends NativeInstance<SourceConfig> {
     if (!this.isDestroyed) {
       SourceRegistry.unregister(this);
       this.nativeInstanceId = undefined;
+      this.nativeSource = undefined;
       void SourceModule.destroy(this.nativeId);
       void this.drm?.destroy();
       this.drm = undefined;
@@ -345,7 +363,7 @@ export class Source extends NativeInstance<SourceConfig> {
    * Default value is `0` if the duration is not available or not known.
    */
   duration = async (): Promise<number> => {
-    return (await SourceModule.duration(this.nativeId)) || 0;
+    return (await this.native).duration();
   };
 
   /**
@@ -353,21 +371,21 @@ export class Source extends NativeInstance<SourceConfig> {
    * Only one source can be active in the same player instance at any time.
    */
   isActive = async (): Promise<boolean> => {
-    return (await SourceModule.isActive(this.nativeId)) ?? false;
+    return (await this.native).isActive();
   };
 
   /**
    * Whether the source is currently attached to a player instance.
    */
   isAttachedToPlayer = async (): Promise<boolean> => {
-    return (await SourceModule.isAttachedToPlayer(this.nativeId)) ?? false;
+    return (await this.native).isAttachedToPlayer();
   };
 
   /**
    * Metadata for the currently loaded source.
    */
   metadata = async (): Promise<Record<string, any> | null> => {
-    return SourceModule.getMetadata(this.nativeId);
+    return (await this.native).getMetadata();
   };
 
   /**
@@ -376,17 +394,15 @@ export class Source extends NativeInstance<SourceConfig> {
    *
    * @param metadata metadata to be set.
    */
-  setMetadata = (metadata: Record<string, any> | null): void => {
-    void SourceModule.setMetadata(this.nativeId, metadata);
+  setMetadata = async (metadata: Record<string, any> | null): Promise<void> => {
+    await (await this.native).setMetadata(metadata);
   };
 
   /**
    * The current `LoadingState` of the source.
    */
   loadingState = async (): Promise<LoadingState> => {
-    return (
-      (await SourceModule.loadingState(this.nativeId)) || LoadingState.UNLOADED
-    );
+    return (await this.native).loadingState();
   };
 
   /**
@@ -400,6 +416,6 @@ export class Source extends NativeInstance<SourceConfig> {
    * @param time - The time in seconds for which to retrieve the thumbnail.
    */
   getThumbnail = async (time: number): Promise<Thumbnail | null> => {
-    return SourceModule.getThumbnail(this.nativeId, time);
+    return (await this.native).getThumbnail(time);
   };
 }

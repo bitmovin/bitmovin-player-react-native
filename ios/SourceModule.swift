@@ -22,6 +22,37 @@ public class SourceModule: Module {
     // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
         Name("SourceModule")
+        AsyncFunction("getSharedSource") { (nativeId: NativeId) -> SharedSource in
+            guard let owner = SourceRegistry.sharedSource(nativeId: nativeId) else {
+                throw Exception(name: "SourceNotInitialized", description: "Source has not been initialized")
+            }
+            return owner
+        }.runOnQueue(.main)
+        Class("Source", SharedSource.self) {
+            AsyncFunction("isAttachedToPlayer") { (owner: SharedSource) -> Bool in
+                owner.source.isAttachedToPlayer
+            }.runOnQueue(.main)
+            AsyncFunction("isActive") { (owner: SharedSource) -> Bool in owner.source.isActive }.runOnQueue(.main)
+            AsyncFunction("duration") { (owner: SharedSource) -> Double in owner.source.duration }.runOnQueue(.main)
+            AsyncFunction("loadingState") { (owner: SharedSource) -> Int in
+                owner.source.loadingState.rawValue
+            }.runOnQueue(.main)
+            AsyncFunction("getMetadata") { (owner: SharedSource) -> [String: Any]? in
+                let source = owner.source
+                if let metadata = source.metadata { return metadata }
+                let metadata = source.sourceConfig.metadata
+                return metadata.isEmpty ? nil : metadata
+            }.runOnQueue(.main)
+            AsyncFunction("setMetadata") { (owner: SharedSource, metadata: [String: Any]?) in
+                let source = owner.source
+                source.sourceConfig.metadata = metadata ?? [:]
+                source.metadata = metadata as [String: AnyObject]?
+            }.runOnQueue(.main)
+            AsyncFunction("getThumbnail") { (owner: SharedSource, time: Double) -> [String: Any]? in
+                guard let thumbnail = owner.source.thumbnail(forTime: time) else { return nil }
+                return RCTConvert.toJson(thumbnail: thumbnail)
+            }.runOnQueue(.main)
+        }
         OnCreate {
             // Module initialization
         }
@@ -68,27 +99,6 @@ public class SourceModule: Module {
         AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
             self?.releaseSource(nativeId: nativeId)
         }.runOnQueue(.main)
-        AsyncFunction("isAttachedToPlayer") { [weak self] (nativeId: NativeId) -> Bool? in
-            self?.retrieve(nativeId)?.isAttachedToPlayer
-        }.runOnQueue(.main)
-        AsyncFunction("isActive") { [weak self] (nativeId: NativeId) -> Bool? in
-            self?.retrieve(nativeId)?.isActive
-        }.runOnQueue(.main)
-        AsyncFunction("duration") { [weak self] (nativeId: NativeId) -> Double? in
-            self?.retrieve(nativeId)?.duration
-        }.runOnQueue(.main)
-        AsyncFunction("loadingState") { [weak self] (nativeId: NativeId) -> Int? in
-            self?.retrieve(nativeId)?.loadingState.rawValue
-        }.runOnQueue(.main)
-        AsyncFunction("getMetadata") { [weak self] (nativeId: NativeId) -> [String: Any]? in
-            self?.getSourceMetadata(nativeId: nativeId)
-        }.runOnQueue(.main)
-        AsyncFunction("setMetadata") { [weak self] (nativeId: NativeId, metadata: [String: Any]?) in
-            self?.setSourceMetadata(nativeId: nativeId, metadata: metadata)
-        }.runOnQueue(.main)
-        AsyncFunction("getThumbnail") { [weak self] (nativeId: NativeId, time: Double) -> [String: Any]? in
-            self?.getSourceThumbnail(nativeId: nativeId, time: time)
-        }.runOnQueue(.main)
         AsyncFunction("drmFairplayRenewExpiringLicense") { [weak self] (nativeId: NativeId, skdUri: String) in
             guard let source = self?.retrieve(nativeId),
                   let contentKeyRequest = self?.fairplayRegistry.retrieve(nativeId: nativeId, skdUri: skdUri) else {
@@ -113,26 +123,6 @@ public class SourceModule: Module {
     }
 
     // MARK: - Private methods
-    private func getSourceMetadata(nativeId: NativeId) -> [String: Any]? {
-        retrieve(nativeId)?.metadata
-    }
-
-    private func setSourceMetadata(nativeId: NativeId, metadata: [String: Any]?) {
-        guard let metadata else {
-            retrieve(nativeId)?.metadata = nil
-            return
-        }
-        let metadataObjects = metadata as [String: AnyObject]
-        retrieve(nativeId)?.metadata = metadataObjects
-    }
-
-    private func getSourceThumbnail(nativeId: NativeId, time: Double) -> [String: Any]? {
-        guard let thumbnail = retrieve(nativeId)?.thumbnail(forTime: time) else {
-            return nil
-        }
-        return RCTConvert.toJson(thumbnail: thumbnail)
-    }
-
     /**
      Creates and registers the source with the given `nativeId`.
 

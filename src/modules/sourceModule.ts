@@ -1,4 +1,5 @@
 import type { NativeModule } from 'expo-modules-core';
+import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
 import type { LoadingState, SourceRemoteControlConfig } from '../source';
 import type { Thumbnail } from '../thumbnail';
@@ -13,7 +14,21 @@ export type SourceModuleEvents = {
   onSourceReleased: (payload: { nativeId: string; instanceId: number }) => void;
 };
 
+/** @internal Shared handle used by migrated Source APIs. */
+export interface NativeSource extends SharedObject {
+  isAttachedToPlayer(): Promise<boolean>;
+  isActive(): Promise<boolean>;
+  duration(): Promise<number>;
+  loadingState(): Promise<LoadingState>;
+  getMetadata(): Promise<Record<string, any> | null>;
+  setMetadata(metadata: Record<string, any> | null): Promise<void>;
+  getThumbnail(time: number): Promise<Thumbnail | null>;
+}
+
 declare class SourceModule extends NativeModule<SourceModuleEvents> {
+  /** @internal */
+  getSharedSource(nativeId: string): Promise<NativeSource>;
+
   /**
    * Attaches a native listener for `eventName` to the source with the given nativeId.
    */
@@ -23,16 +38,6 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
    * Detaches the native listener for `eventName` from the source with the given nativeId.
    */
   off(nativeId: string, eventName: string): Promise<void>;
-
-  /**
-   * Checks if the source is attached to a player.
-   */
-  isAttachedToPlayer(nativeId: string): Promise<boolean | null>;
-
-  /**
-   * Checks if the source is currently active.
-   */
-  isActive(nativeId: string): Promise<boolean | null>;
 
   /**
    * Initializes a source with the given nativeId, optional DRM nativeId, configuration object,
@@ -67,33 +72,6 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
    * Destroys the source with the given nativeId.
    */
   destroy(nativeId: string): Promise<void>;
-
-  /**
-   * Returns the native DRM config reference of the source with the given nativeId.
-   */
-  duration(nativeId: string): Promise<number | null>;
-  /**
-   * Returns the current loading state of the source with the given nativeId.
-   */
-  loadingState(nativeId: string): Promise<LoadingState | null>;
-
-  /**
-   * Returns the metadata of the source with the given nativeId.
-   */
-  getMetadata(nativeId: string): Promise<Record<string, any> | null>;
-
-  /**
-   * Sets the metadata of the source with the given nativeId.
-   */
-  setMetadata(
-    nativeId: string,
-    metadata: Record<string, any> | null
-  ): Promise<void>;
-
-  /**
-   * Returns a thumbnail for the specified playback time.
-   */
-  getThumbnail(nativeId: string, time: number): Promise<Thumbnail | null>;
 
   /**
    * Renews an expiring FairPlay license for the given content key request.

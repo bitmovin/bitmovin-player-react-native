@@ -1,6 +1,7 @@
 package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.api.source.Source
+import expo.modules.kotlin.AppContext
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -15,7 +16,10 @@ import java.util.concurrent.atomic.AtomicInteger
  * the released one.
  */
 object SourceRegistry {
-    private class Entry(val source: Source, val owner: Any, val instanceId: Int)
+    private class Entry(val sharedSource: SharedSource, val owner: Any, val instanceId: Int) {
+        val source: Source
+            get() = sharedSource.source
+    }
 
     private val nextInstanceId = AtomicInteger(0)
 
@@ -27,9 +31,9 @@ object SourceRegistry {
     /**
      * @return The instance id of this registration.
      */
-    fun register(nativeId: NativeId, source: Source, owner: Any): Int {
+    fun register(nativeId: NativeId, source: Source, owner: Any, appContext: AppContext): Int {
         val instanceId = nextInstanceId.getAndIncrement()
-        sources[nativeId] = Entry(source, owner, instanceId)
+        sources[nativeId] = Entry(SharedSource(appContext, source), owner, instanceId)
         return instanceId
     }
 
@@ -37,6 +41,8 @@ object SourceRegistry {
      * @return The instance id of the removed registration, or `null` if [nativeId] was not registered.
      */
     fun unregister(nativeId: NativeId): Int? = sources.remove(nativeId)?.instanceId
+
+    fun getSharedSource(nativeId: NativeId): SharedSource? = sources[nativeId]?.sharedSource
 
     fun getSource(nativeId: NativeId): Source? = sources[nativeId]?.source
 

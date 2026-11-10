@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- iOS: Preserve metadata set before loading a Source
+
+### Changed
+
+- `Source.setMetadata()` returns a Promise so callers can await native completion
+
 ### Changed
 
 - Access media controls through `player.mediaControls`. `MediaControlsApi` no longer exposes a binding ID or accepts one in its internal constructor

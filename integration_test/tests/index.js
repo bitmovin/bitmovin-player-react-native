@@ -39,6 +39,11 @@ const testRegistrations = [
     androidAndIos,
     () => require('./metadataId3Test').default
   ),
+  testSuite(
+    'source',
+    androidAndIos,
+    () => require('./sourceMetadataTest').default
+  ),
   testSuite('network', androidAndIos, () => require('./networkTest').default),
   testSuite('playback', androidAndIos, () => require('./playbackTest').default),
   testSuite('playlist', androidAndIos, () => require('./playlistTest').default),
