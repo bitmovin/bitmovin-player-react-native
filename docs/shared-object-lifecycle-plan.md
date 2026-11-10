@@ -18,8 +18,9 @@
   API or binding ID; each wrapper owns one native Source directly.
 - Each JS SharedObject owns its configuration dispatcher; native retains only a weak JS
   forwarding callback. A callback capturing its Source forms a collectible JS
-  cycle. The canonical JS Player retains its loaded Source/offline backend until
-  replacement, unload, or destruction completes, including when used by aliases.
+  cycle. The canonical JS NativePlayer stores its loaded Source list and offline
+  backend directly, including when used by aliases. Replacement, unload, and
+  destruction release those references after native completion.
 - Configuration callbacks share their consuming native object's scope. They
   have no independent SharedObject, lifecycle, or TS dependency list.
 - Offline factories receive an event endpoint subscribed before SDK creation.
