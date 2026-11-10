@@ -87,7 +87,7 @@ function fixture(t, config, rejectAfterCompletion = false) {
   };
   require(path.join(directory, 'node_modules/expo-crypto')).randomUUID = () =>
     'network-id';
-  const { DebugConfig } = require(path.join(directory, 'debug.js'));
+  const { DebugConfig } = require(path.join(directory, 'debugConfig.js'));
   t.mock.method(DebugConfig, 'log', (...args) => logs.push(args));
   const { Network, HttpRequestType } = require(path.join(directory, 'network'));
   const network = new Network(config);
