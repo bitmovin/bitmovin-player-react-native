@@ -112,13 +112,16 @@ export class Player {
       capture: 'advertisingConfig',
     });
     delete config.nativeId;
-    return callbacks.dispatcher.create((callback) =>
+    const native = await callbacks.dispatcher.create((callback) =>
       PlayerModule.create(
         config,
         callbacks.serialize(this.config.analyticsConfig),
         callback
       )
     );
+    // Fabric freezes native view props. Keep the mutable holder outside its enumerable traversal.
+    Object.defineProperty(native, 'loadedContent', { value: { sources: [] } });
+    return native;
   }
 
   /**
@@ -135,8 +138,8 @@ export class Player {
       return;
     }
     await native.destroy();
-    native.loadedSources = [];
-    native.loadedOffline = undefined;
+    native.loadedContent.sources = [];
+    native.loadedContent.offline = undefined;
   };
 
   /**
@@ -156,8 +159,8 @@ export class Player {
     const offline = await offlineContentManager.native;
     const native = await this.native;
     if (await native.loadOfflineContent(offline, options)) {
-      native.loadedOffline = offline;
-      native.loadedSources = [];
+      native.loadedContent.offline = offline;
+      native.loadedContent.sources = [];
     }
   };
 
@@ -169,8 +172,8 @@ export class Player {
     const nativeSource = await source.native;
     const native = await this.native;
     await native.loadSource(nativeSource);
-    native.loadedSources = [nativeSource];
-    native.loadedOffline = undefined;
+    native.loadedContent.sources = [nativeSource];
+    native.loadedContent.offline = undefined;
   };
 
   /**
@@ -179,8 +182,8 @@ export class Player {
   unload = async (): Promise<void> => {
     const native = await this.native;
     await native.unload();
-    native.loadedSources = [];
-    native.loadedOffline = undefined;
+    native.loadedContent.sources = [];
+    native.loadedContent.offline = undefined;
   };
 
   /**

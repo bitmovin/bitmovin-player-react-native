@@ -33,6 +33,7 @@
 
 ### Fixed
 
+- Prevent load, unload, and destroy calls from failing when React Native freezes native view props in development builds
 - Deliver `PlayerView` playback and source callbacks through the attached Player's public event API
 - iOS: Invalid source, analytics, and offline configuration, or failed offline manager creation, now reject instead of reporting success without a usable instance
 - iOS: Avoid inconsistent HTTP preprocessing results when the native SDK processes requests and responses concurrently

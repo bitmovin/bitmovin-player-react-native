@@ -363,3 +363,23 @@ test('registration and destruction await the same native creation promise', asyn
   assert.equal(calls, 1);
   subscription.remove();
 });
+
+test('loaded content can change after Fabric freezes the native player prop', async (t) => {
+  const { Player, Source } = fixture(t);
+  const player = new Player();
+  const alias = new Player({ nativeId: player.nativeId });
+  const native = await player.native;
+  const source = new Source({ url: 'https://test/source', type: 'hls' });
+  // Fabric deep-freezes enumerable view props. The owned mutable holder stays out of that traversal.
+  assert.equal(Object.keys(native).includes('loadedContent'), false);
+  Object.freeze(native);
+  await player.loadSource(source);
+  assert.deepEqual((await alias.native).loadedContent.sources, [
+    await source.native,
+  ]);
+  await alias.unload();
+  assert.deepEqual(native.loadedContent.sources, []);
+  await player.loadSource(source);
+  await alias.destroy();
+  assert.deepEqual(native.loadedContent.sources, []);
+});
