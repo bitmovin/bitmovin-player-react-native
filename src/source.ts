@@ -196,7 +196,7 @@ export class Source extends NativeInstance<SourceConfig> {
 
   /**
    * Allocates the native {@link Source} instance and its resources natively.
-   * Calls made while an initialization is in progress share it.
+   * Calls made while an initialization is in progress share it. Has no effect on a destroyed source.
    */
   initialize = (): Promise<void> => {
     this.initialization ??= this.initializeNative().finally(() => {
@@ -206,32 +206,39 @@ export class Source extends NativeInstance<SourceConfig> {
   };
 
   private initializeNative = async (): Promise<void> => {
-    if (!this.isInitialized) {
-      const sourceMetadata = this.config?.analyticsSourceMetadata;
-      if (this.config?.drmConfig) {
-        this.drm = new Drm(this.config.drmConfig, this.nativeId);
-        await this.drm.initialize();
-      }
-      if (sourceMetadata) {
-        await SourceModule.initializeWithAnalyticsConfig(
-          this.nativeId,
-          this.drm?.nativeId,
-          this.config,
-          this.remoteControl || undefined,
-          sourceMetadata
-        );
-      } else {
-        await SourceModule.initializeWithConfig(
-          this.nativeId,
-          this.drm?.nativeId,
-          this.config,
-          this.remoteControl || undefined
-        );
-      }
-      this.isInitialized = true;
-      this.eventListeners.attachNative();
+    if (this.isInitialized || this.isDestroyed) {
+      return;
     }
-    return Promise.resolve();
+    const sourceMetadata = this.config?.analyticsSourceMetadata;
+    if (this.config?.drmConfig) {
+      this.drm = new Drm(this.config.drmConfig, this.nativeId);
+      await this.drm.initialize();
+    }
+    // Native runs creations and destroys in call order, so a destroy made after this check runs after the creation.
+    if (this.isDestroyed) {
+      return;
+    }
+    if (sourceMetadata) {
+      await SourceModule.initializeWithAnalyticsConfig(
+        this.nativeId,
+        this.drm?.nativeId,
+        this.config,
+        this.remoteControl || undefined,
+        sourceMetadata
+      );
+    } else {
+      await SourceModule.initializeWithConfig(
+        this.nativeId,
+        this.drm?.nativeId,
+        this.config,
+        this.remoteControl || undefined
+      );
+    }
+    if (this.isDestroyed) {
+      return;
+    }
+    this.isInitialized = true;
+    this.eventListeners.attachNative();
   };
 
   /**

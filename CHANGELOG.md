@@ -18,6 +18,7 @@
 - Android: `onPlayerActive` not being emitted
 - Android: `com.google.android.gms.permission.AD_ID` being added to apps with Google IMA disabled, which makes Google Play require an advertising ID declaration. Apps with Google IMA disabled that rely on the advertising ID, e.g. through an analytics SDK, may need to add `com.google.android.gms:play-services-ads-identifier` to their own dependencies
 - iOS: Data race in `NetworkConfig` HTTP request and response preprocessing now that the native SDK invokes the callbacks on a background thread
+- A source destroyed while it was initializing, e.g. by `Player.destroy()` right after `Player.load()`, being created natively afterwards and keeping its DRM config
 
 ### Changed
 

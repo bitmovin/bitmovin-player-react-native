@@ -13,9 +13,8 @@ import java.util.concurrent.ConcurrentHashMap
 object SourceRegistry {
     private class Entry(val source: Source, val owner: Any)
 
-    // Must be thread-safe: sources are registered and read on Expo's background queue
-    // (e.g. `initializeWithConfig`, `duration`) and read on the main thread (e.g. `on`, `destroy`,
-    // and when serializing events).
+    // Must be thread-safe: sources are registered and unregistered on the main thread, and read on the main
+    // thread (e.g. `on` and when serializing events) and on Expo's background queue (e.g. `duration`).
     private val sources: Registry<Entry> = ConcurrentHashMap()
 
     fun register(nativeId: NativeId, source: Source, owner: Any) {

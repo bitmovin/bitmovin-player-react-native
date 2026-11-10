@@ -75,13 +75,13 @@ class SourceModule : Module() {
         AsyncFunction("initializeWithConfig") { nativeId: NativeId, drmNativeId: NativeId?,
             config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?, ->
             initializeSource(nativeId, drmNativeId, config, sourceRemoteControlConfig, null)
-        }
+        }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("initializeWithAnalyticsConfig") { nativeId: NativeId, drmNativeId: NativeId?,
             config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?,
             analyticsSourceMetadata: Map<String, Any>?, ->
             initializeSource(nativeId, drmNativeId, config, sourceRemoteControlConfig, analyticsSourceMetadata)
-        }
+        }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("destroy") { nativeId: NativeId ->
             eventRelay.offAll(nativeId, SourceRegistry.getSource(nativeId))
