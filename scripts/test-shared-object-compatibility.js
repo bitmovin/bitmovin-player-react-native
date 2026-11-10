@@ -300,3 +300,17 @@ test('play awaits native completion and propagates failures', async (t) => {
   await assert.rejects(player.play(), (error) => error === failure);
   await player.destroy();
 });
+
+test('loaded content follows a non-extensible shared player across aliases', async (t) => {
+  const { Player, Source } = fixture(t);
+  const player = new Player({ nativeId: 'shared-host-object' });
+  const alias = new Player({ nativeId: 'shared-host-object' });
+  const native = await player.native;
+  Object.preventExtensions(native);
+  assert.equal(await alias.native, native);
+  await player.loadSource(
+    new Source({ url: 'https://test/source', type: 'hls' })
+  );
+  await alias.unload();
+  await player.destroy();
+});

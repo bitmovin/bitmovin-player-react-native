@@ -10,11 +10,6 @@ export type PlayerModuleEvents = Record<string, never>;
 
 /** @internal */
 export interface NativePlayer extends SharedObject<PlayerModuleEvents> {
-  // Retain callback-owning JS peers on the shared player, including across aliases.
-  // Native SDK references alone do not keep these JS objects alive.
-  loadedSources?: NativeSource[];
-  loadedOffline?: NativeOffline;
-
   getBufferLevel(type: string): Promise<BufferLevels | null>;
 
   setBufferTargetLevel(type: string, value: number): Promise<void>;

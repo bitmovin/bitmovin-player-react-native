@@ -15,6 +15,16 @@ import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
 import { NativeConfigSerializer } from './native/nativeConfigSerializer';
 
+// SharedRef peers reject new string properties. Keep callback-owning content
+// reachable for exactly as long as their shared JS player peer is reachable.
+const loadedContent = new WeakMap<
+  NativePlayer,
+  {
+    sources: Awaited<Source['native']>[];
+    offline?: Awaited<OfflineContentManager['native']>;
+  }
+>();
+
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
  * instance can be created via the {@link usePlayer} hook and will idle until one or more {@link Source}s are
@@ -119,8 +129,7 @@ export class Player {
       return;
     }
     await native.destroy();
-    native.loadedSources = [];
-    native.loadedOffline = undefined;
+    loadedContent.delete(native);
   };
 
   /**
@@ -140,8 +149,7 @@ export class Player {
     const offline = await offlineContentManager.native;
     const native = await this.native;
     if (await native.loadOfflineContent(offline, options)) {
-      native.loadedOffline = offline;
-      native.loadedSources = [];
+      loadedContent.set(native, { sources: [], offline });
     }
   };
 
@@ -153,8 +161,7 @@ export class Player {
     const nativeSource = await source.native;
     const native = await this.native;
     await native.loadSource(nativeSource);
-    native.loadedSources = [nativeSource];
-    native.loadedOffline = undefined;
+    loadedContent.set(native, { sources: [nativeSource] });
   };
 
   /**
@@ -163,8 +170,7 @@ export class Player {
   unload = async (): Promise<void> => {
     const native = await this.native;
     await native.unload();
-    native.loadedSources = [];
-    native.loadedOffline = undefined;
+    loadedContent.delete(native);
   };
 
   /**
