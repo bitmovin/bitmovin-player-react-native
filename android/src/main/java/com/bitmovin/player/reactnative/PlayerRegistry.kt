@@ -1,6 +1,7 @@
 package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.api.Player
+import expo.modules.kotlin.AppContext
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -8,16 +9,16 @@ import java.util.concurrent.ConcurrentHashMap
  * without requiring access to the PlayerModule instance or Expo runtime.
  */
 object PlayerRegistry {
-    private val players: Registry<Player> = ConcurrentHashMap()
-    
+    private val players: Registry<SharedPlayer> = ConcurrentHashMap()
+
     /**
      * Register a player instance with the given native ID.
      */
     @JvmStatic
-    fun register(player: Player, nativeId: NativeId) {
-        players[nativeId] = player
+    fun register(player: Player, nativeId: NativeId, appContext: AppContext) {
+        players[nativeId] = SharedPlayer(appContext, player)
     }
-    
+
     /**
      * Unregister a player instance with the given native ID.
      */
@@ -25,24 +26,27 @@ object PlayerRegistry {
     fun unregister(nativeId: NativeId) {
         players.remove(nativeId)
     }
-    
+
     /**
      * Get a player instance by native ID.
      * Returns null if no player is registered with the given ID.
      */
     @JvmStatic
     fun getPlayer(nativeId: NativeId): Player? {
-        return players[nativeId]
+        return players[nativeId]?.player
     }
-    
+
+    /** Returns the canonical handle shared by migrated APIs and compatibility aliases. */
+    fun getSharedPlayer(nativeId: NativeId): SharedPlayer? = players[nativeId]
+
     /**
      * Get all registered player instances.
      */
     @JvmStatic
     fun getAllPlayers(): List<Player> {
-        return players.values.toList()
+        return players.values.map { it.player }
     }
-    
+
     /**
      * Get all registered native IDs.
      */
@@ -50,7 +54,7 @@ object PlayerRegistry {
     fun getAllNativeIds(): List<NativeId> {
         return players.keys.toList()
     }
-    
+
     /**
      * Check if a player is registered with the given native ID.
      */
@@ -58,7 +62,7 @@ object PlayerRegistry {
     fun hasPlayer(nativeId: NativeId): Boolean {
         return players.containsKey(nativeId)
     }
-    
+
     /**
      * Clear all registered players.
      * Note: This does not destroy the players, just removes them from the registry.
@@ -67,7 +71,7 @@ object PlayerRegistry {
     fun clear() {
         players.clear()
     }
-    
+
     /**
      * Get the count of registered players.
      */

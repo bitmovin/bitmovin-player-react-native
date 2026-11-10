@@ -11,6 +11,7 @@ const testRegistrations = [
     androidAndIos,
     () => require('./advertisingTest').default
   ),
+  testSuite('buffer', androidAndIos, () => require('./bufferTest').default),
   testSuite('caption', androidAndIos, () => require('./captionTest').default),
   testSuite(
     'cue-metadata',

@@ -1,6 +1,6 @@
 import type { EventSubscription } from 'expo-modules-core';
 import { Platform } from 'react-native';
-import PlayerModule from './modules/playerModule';
+import PlayerModule, { type NativePlayer } from './modules/playerModule';
 import NativeInstance from './nativeInstance';
 import type { SourceConfig } from './source';
 import { Source } from './source';
@@ -50,7 +50,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * The {@link BufferApi} for interactions regarding the buffer.
    */
-  buffer: BufferApi = new BufferApi(this.nativeId);
+  buffer: BufferApi = new BufferApi(() => this.native);
   /**
    * The {@link MediaControlsApi} for interactions regarding the Player's media controls integration.
    *
@@ -69,6 +69,15 @@ export class Player extends NativeInstance<PlayerConfig> {
   private onShouldPlayAdBreakSubscription?: EventSubscription;
   private onImaBeforeInitializationSubscription?: EventSubscription;
   private initialization?: Promise<void>;
+  private sharedPlayer?: Promise<NativePlayer>;
+
+  /** @internal */
+  get native(): Promise<NativePlayer> {
+    return (this.sharedPlayer ??= this.initialize().then(() =>
+      PlayerModule.getSharedPlayer(this.nativeId)
+    ));
+  }
+
   private readonly eventListeners = new EventListeners<PlayerEventMap>(
     this.nativeId,
     PlayerModule,

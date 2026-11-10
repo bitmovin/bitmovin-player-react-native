@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Access buffer APIs through `player.buffer`. `BufferApi` no longer exposes a binding ID or accepts one in its internal constructor
+
 ### Added
 
 - Android: `onPlaybackSpeedChanged` event to indicate playback speed changes. The event is already available in iOS

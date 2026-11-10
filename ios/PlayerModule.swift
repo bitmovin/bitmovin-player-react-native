@@ -18,9 +18,29 @@ public class PlayerModule: Module {
         self?.appContext?.moduleRegistry.get(SourceModule.self)?.releaseSource(nativeId: nativeId)
     }
 
-    // swiftlint:disable:next function_body_length
+    // swiftlint:disable:next function_body_length cyclomatic_complexity
     public func definition() -> ModuleDefinition {
         Name("PlayerModule")
+        AsyncFunction("getSharedPlayer") { (nativeId: NativeId) -> SharedPlayer in
+            guard let owner = PlayerRegistry.getSharedPlayer(nativeId: nativeId) else {
+                throw Exception(name: "PlayerNotInitialized", description: "Player has not been initialized")
+            }
+            return owner
+        }.runOnQueue(.main)
+        Class("Player", SharedPlayer.self) {
+            AsyncFunction("getBufferLevel") { (owner: SharedPlayer, type: String) -> [String: Any]? in
+                guard let bufferType = RCTConvert.bufferType(type) else { return nil }
+                let level = owner.player.buffer.getLevel(bufferType)
+                return [
+                    "audio": RCTConvert.toJson(bufferLevel: level, mediaType: "audio"),
+                    "video": RCTConvert.toJson(bufferLevel: level, mediaType: "video")
+                ]
+            }.runOnQueue(.main)
+            AsyncFunction("setBufferTargetLevel") { (owner: SharedPlayer, type: String, value: Double) in
+                guard RCTConvert.bufferType(type) == .forwardDuration else { return }
+                owner.player.buffer.setTargetLevel(value)
+            }.runOnQueue(.main)
+        }
         OnCreate {}
         OnDestroy {
             // Destroy all players on the main thread when the module is deallocated.

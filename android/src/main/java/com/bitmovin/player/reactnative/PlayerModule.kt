@@ -9,10 +9,12 @@ import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.advertising.AdvertisingConfig
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.event.Event
+import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.api.playlist.PlaylistConfig
 import com.bitmovin.player.api.playlist.PlaylistOptions
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.toAdItem
+import com.bitmovin.player.reactnative.converter.toBufferTypeOrThrow
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
 import com.bitmovin.player.reactnative.converter.toJson
@@ -48,6 +50,25 @@ class PlayerModule : Module() {
 
     override fun definition() = ModuleDefinition {
         Name("PlayerModule")
+
+        AsyncFunction("getSharedPlayer") { nativeId: NativeId ->
+            checkNotNull(PlayerRegistry.getSharedPlayer(nativeId)) { "Player has not been initialized" }
+        }.runOnQueue(Queues.MAIN)
+
+        Class(SharedPlayer::class) {
+            AsyncFunction("getBufferLevel") { shared: SharedPlayer, type: String ->
+                val buffer = shared.player.buffer
+                val bufferType = type.toBufferTypeOrThrow()
+                mapOf(
+                    "audio" to buffer.getLevel(bufferType, MediaType.Audio).toJson(),
+                    "video" to buffer.getLevel(bufferType, MediaType.Video).toJson(),
+                )
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setBufferTargetLevel") { shared: SharedPlayer, type: String, value: Double ->
+                shared.player.buffer.setTargetLevel(type.toBufferTypeOrThrow(), value)
+            }.runOnQueue(Queues.MAIN)
+        }
 
         OnCreate {
             // Module initialization
@@ -435,7 +456,7 @@ class PlayerModule : Module() {
         } else {
             Player.create(applicationContext, playerConfig)
         }
-        PlayerRegistry.register(player, nativeId)
+        PlayerRegistry.register(player, nativeId, appContext)
         removedSourceReleaser.attach(nativeId, player)
 
         if (enableMediaSession) {

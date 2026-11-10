@@ -7,7 +7,7 @@ import ExpoModulesCore
  */
 public class PlayerRegistry {
     private static let shared = PlayerRegistry()
-    private var players: Registry<Player> = [:]
+    private var players: Registry<SharedPlayer> = [:]
     private let queue = DispatchQueue(label: "PlayerRegistry", attributes: .concurrent)
 
     private init() {}
@@ -16,8 +16,9 @@ public class PlayerRegistry {
      * Register a player instance with the given native ID.
      */
     public static func register(player: Player, nativeId: NativeId) {
+        let owner = SharedPlayer(player: player)
         shared.queue.async(flags: .barrier) {
-            shared.players[nativeId] = player
+            shared.players[nativeId] = owner
         }
     }
 
@@ -36,8 +37,13 @@ public class PlayerRegistry {
      */
     public static func getPlayer(nativeId: NativeId) -> Player? {
         shared.queue.sync {
-            shared.players[nativeId]
+            shared.players[nativeId]?.player
         }
+    }
+
+    /// Returns the canonical handle shared by migrated APIs and compatibility aliases.
+    static func getSharedPlayer(nativeId: NativeId) -> SharedPlayer? {
+        shared.queue.sync { shared.players[nativeId] }
     }
 
     /**
@@ -45,7 +51,7 @@ public class PlayerRegistry {
      */
     public static func getAllPlayers() -> [Player] {
         shared.queue.sync {
-            Array(shared.players.values)
+            shared.players.values.map(\.player)
         }
     }
 

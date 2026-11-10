@@ -1,4 +1,6 @@
 import type { NativeModule } from 'expo-modules-core';
+import type { SharedObject } from 'expo-modules-core/types';
+import type { BufferLevels } from '../bufferApi';
 import { requireNativeModule } from 'expo-modules-core';
 import type { AdBreak, AdItem, ImaSettings } from '../advertising';
 import type { NativeEventPayload } from '../utils/eventListeners';
@@ -34,7 +36,16 @@ export type PlayerModuleEvents = {
   onPlayerEvent: (payload: NativeEventPayload) => void;
 };
 
+/** @internal Shared handle used by migrated Player APIs. */
+export interface NativePlayer extends SharedObject {
+  getBufferLevel(type: string): Promise<BufferLevels | null>;
+  setBufferTargetLevel(type: string, value: number): Promise<void>;
+}
+
 declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
+  /** @internal */
+  getSharedPlayer(nativeId: string): Promise<NativePlayer>;
+
   /**
    * Whether the native app was built with Google IMA.
    */
