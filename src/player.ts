@@ -184,6 +184,9 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Loads a new {@link Source} from `sourceConfig` into the player.
+   *
+   * Previously loaded sources are not destroyed, so that they can be loaded again. They stay allocated until the
+   * player is destroyed (see {@link Player.destroy}); destroy them via {@link Source.destroy} to release them earlier.
    */
   load = (sourceConfig: SourceConfig) => {
     if (this.isDestroyed) {
@@ -208,6 +211,9 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Loads the given {@link Source} into the player.
+   *
+   * Previously loaded sources are not destroyed, so that they can be loaded again. They stay allocated until the
+   * player is destroyed (see {@link Player.destroy}); destroy them via {@link Source.destroy} to release them earlier.
    *
    * @throws if the `source` was destroyed.
    */
@@ -242,6 +248,9 @@ export class Player extends NativeInstance<PlayerConfig> {
    * preloaded source, are not emitted by the player; use {@link Source.on} to receive them. Only `sourceError`
    * is also emitted for inactive sources, without identifying the source. Ads scheduled
    * via the advertising config only apply to the first source.
+   *
+   * Previously loaded sources are not destroyed, so that they can be loaded again. They stay allocated until the
+   * player is destroyed (see {@link Player.destroy}); destroy them via {@link Source.destroy} to release them earlier.
    *
    * @throws if `sources` is empty, `options.replayMode` is unknown or a source was destroyed.
    * @platform Android
