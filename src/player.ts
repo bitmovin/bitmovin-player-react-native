@@ -40,6 +40,12 @@ export class Player extends NativeInstance<NativePlayer> {
       legacyPlayerRegistry,
       () => this.createNativePlayer()
     );
+    void this.native.then(
+      () => {
+        this.isInitialized = true;
+      },
+      () => {}
+    );
     this.analytics = config.analyticsConfig
       ? new AnalyticsApi(this.native)
       : undefined;
@@ -49,6 +55,9 @@ export class Player extends NativeInstance<NativePlayer> {
 
   /** @internal */
   readonly native: Promise<NativePlayer>;
+
+  /** Whether the constructor's native creation attempt has completed successfully. */
+  isInitialized = false;
 
   /**
    * Whether `destroy()` has been called on this wrapper.

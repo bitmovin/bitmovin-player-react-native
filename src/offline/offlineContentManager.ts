@@ -64,13 +64,19 @@ export class OfflineContentManager extends NativeInstance<NativeOffline> {
       () => this.createNativeOffline()
     );
     void this.native.then(
-      (native) => this.observeEvents(native.events),
+      (native) => {
+        this.isInitialized = true;
+        this.observeEvents(native.events);
+      },
       () => {}
     );
   }
 
   /** @internal */
   readonly native: Promise<NativeOffline>;
+
+  /** Whether the constructor's native creation attempt has completed successfully. */
+  isInitialized = false;
 
   /** Whether `destroy()` has been called on this wrapper. */
   isDestroyed = false;
