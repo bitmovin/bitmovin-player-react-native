@@ -13,6 +13,7 @@
 - iOS: Reject invalid source or analytics configuration during initialization instead of exposing an empty native binding
 - iOS: Reject offline initialization when configuration is invalid or the SDK cannot create the content manager
 - iOS: Read and update source metadata before the source is loaded
+- Require `Source` and `OfflineContentManager` configuration and `SourceConfig.type` during TypeScript checking instead of deferring missing values to native initialization. Valid runtime configurations are unchanged
 - Android: **Breaking change:** `PlayerActive` and `PlayerInactive` events being named `onActive` and `onInactive` instead of `onPlayerActive` and `onPlayerInactive`, as on iOS. Apps comparing `Event.name`, e.g. in `onEvent`, must use the new names.
 - Android: `Source.loadingState()` returning the state name instead of a `LoadingState` value
 - Android: `onPlayerActive` not being emitted
@@ -20,14 +21,13 @@
 
 ### Changed
 
-- Default `Player.config` to an empty configuration when omitted; native SDK defaults continue to apply
+- Default `Player.config` to an empty configuration when omitted; `new Player()` remains supported and native SDK defaults continue to apply
 
 - Forward repeated Player and OfflineContentManager destruction and pending Source loads to native instead of suppressing them using TypeScript lifecycle flags
 
 - **Breaking change:** Remove `Source.nativeId`, `SourceConfig.nativeId`, and same-ID Source aliasing. Each Source owns its native object directly; Player and OfflineContentManager IDs remain supported
 - **Breaking change:** Player command methods, including `play()`, `load()`, and `destroy()`, and `Source.setMetadata()` now return `Promise<void>` so callers can await native completion and catch failures
-- **Breaking change:** Require configuration when constructing `Source` and `OfflineContentManager`, and require `SourceConfig.type`. `Player` configuration remains optional
-- **Breaking change:** Player, Source, and OfflineContentManager constructors start native creation immediately. Methods and `initialize()` await that single creation attempt. Retry failed creation by constructing a new wrapper. Destruction waits for pending creation before releasing the SDK object
+- **Breaking change:** Start native creation when constructing Player, Source, and OfflineContentManager instead of during `initialize()`. Methods and `initialize()` await that single creation attempt. Retry failed creation by constructing a new wrapper. Destruction waits for pending creation before releasing the SDK object
 - **Breaking change:** Remove `Source.destroy()` and `Source.isDestroyed`. Sources follow SDK ownership and remain reusable after player destruction
 - **Breaking change:** Android OfflineContentManager aliases share initialization instead of rejecting duplicate `initialize()` calls
 - **Breaking change:** Make `Network` configuration-only, removing `initialize()`, `destroy()`, `isInitialized`, and `isDestroyed`
