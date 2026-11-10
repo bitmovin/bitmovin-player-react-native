@@ -15,16 +15,6 @@ import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
 import { NativeConfigSerializer } from './native/nativeConfigSerializer';
 
-// SharedRef peers reject new string properties. Keep callback-owning content
-// reachable for exactly as long as their shared JS player peer is reachable.
-const loadedContent = new WeakMap<
-  NativePlayer,
-  {
-    sources: Awaited<Source['native']>[];
-    offline?: Awaited<OfflineContentManager['native']>;
-  }
->();
-
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
  * instance can be created via the {@link usePlayer} hook and will idle until one or more {@link Source}s are
@@ -35,6 +25,17 @@ const loadedContent = new WeakMap<
  * @see PlayerView
  */
 export class Player {
+  // nativeId aliases can create several Player wrappers for one NativePlayer.
+  // Retention cannot be an instance property: collecting the wrapper that loaded
+  // a source must not release its callbacks while another alias still uses it.
+  private static readonly loadedContent = new WeakMap<
+    NativePlayer,
+    {
+      sources: Awaited<Source['native']>[];
+      offline?: Awaited<OfflineContentManager['native']>;
+    }
+  >();
+
   constructor(readonly config: PlayerConfig = {}) {
     const instance = legacyPlayerRegistry.create(config.nativeId, () =>
       this.createNativePlayer()
@@ -129,7 +130,7 @@ export class Player {
       return;
     }
     await native.destroy();
-    loadedContent.delete(native);
+    Player.loadedContent.delete(native);
   };
 
   /**
@@ -149,7 +150,7 @@ export class Player {
     const offline = await offlineContentManager.native;
     const native = await this.native;
     if (await native.loadOfflineContent(offline, options)) {
-      loadedContent.set(native, { sources: [], offline });
+      Player.loadedContent.set(native, { sources: [], offline });
     }
   };
 
@@ -161,7 +162,7 @@ export class Player {
     const nativeSource = await source.native;
     const native = await this.native;
     await native.loadSource(nativeSource);
-    loadedContent.set(native, { sources: [nativeSource] });
+    Player.loadedContent.set(native, { sources: [nativeSource] });
   };
 
   /**
@@ -170,7 +171,7 @@ export class Player {
   unload = async (): Promise<void> => {
     const native = await this.native;
     await native.unload();
-    loadedContent.delete(native);
+    Player.loadedContent.delete(native);
   };
 
   /**

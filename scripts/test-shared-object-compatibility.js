@@ -303,12 +303,12 @@ test('play awaits native completion and propagates failures', async (t) => {
   await player.destroy();
 });
 
-test('loaded content follows a non-extensible shared player across aliases', async (t) => {
+test('loaded content follows a frozen shared player across aliases', async (t) => {
   const { Player, Source } = fixture(t);
   const player = new Player({ nativeId: 'shared-host-object' });
   const alias = new Player({ nativeId: 'shared-host-object' });
   const native = await player.native;
-  Object.preventExtensions(native);
+  Object.freeze(native);
   assert.equal(await alias.native, native);
   await player.loadSource(
     new Source({ url: 'https://test/source', type: 'hls' })
