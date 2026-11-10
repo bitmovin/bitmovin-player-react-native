@@ -13,10 +13,7 @@ import OfflineModule, {
   type NativeOfflineEvents,
 } from './offlineModule';
 import { legacyOfflineRegistry } from '../nativeInstanceRegistry';
-import {
-  createConfigurationCallbacks,
-  createSharedObjectWithCallback,
-} from '../nativeCallbacks';
+import { ConfigurationCallbacks } from '../nativeCallbacks';
 
 const handleBitmovinNativeOfflineEvent = (
   data: BitmovinNativeOfflineEventData,
@@ -87,19 +84,15 @@ export class OfflineContentManager {
   };
 
   private async createNativeOffline(): Promise<NativeOffline> {
-    const callbacks = createConfigurationCallbacks();
+    const callbacks = new ConfigurationCallbacks();
     const events = OfflineModule.createEvents();
     this.observeEvents(events);
     let native: NativeOfflineBackend | undefined;
     try {
-      native = await createSharedObjectWithCallback(
-        (callback) =>
-          OfflineModule.create(
-            callbacks.serialize(this.config),
-            events,
-            callback
-          ),
-        callbacks.callback
+      const config = callbacks.serialize(this.config);
+      delete config.nativeId;
+      native = await callbacks.dispatcher.create((callback) =>
+        OfflineModule.create(config, events, callback)
       );
       const created = Object.defineProperty(native, 'events', {
         value: events,

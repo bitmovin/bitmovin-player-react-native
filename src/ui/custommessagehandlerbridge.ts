@@ -3,14 +3,14 @@ import type { CustomMessageSender } from './custommessagesender';
 import CustomMessageHandlerModule, {
   type NativeCustomMessage,
 } from './customMessageHandlerModule';
-import { createNativeCallback, weakNativeCallback } from '../nativeCallbacks';
+import { NativeCallbacks } from '../nativeCallbacks';
 
 /** Takes care of JS/Native communication for a CustomMessageHandler. */
 export class CustomMessageHandlerBridge implements CustomMessageSender {
   /** @internal */
   native?: NativeCustomMessage;
   private customMessageHandler?: CustomMessageHandler;
-  private readonly callback = createNativeCallback(
+  private readonly callbacks = new NativeCallbacks(
     (operation, [message, data]) => {
       if (operation === 'synchronousMessage') {
         return this.customMessageHandler?.receivedSynchronousMessage(
@@ -29,9 +29,7 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
   );
 
   constructor() {
-    this.native = CustomMessageHandlerModule.create(
-      weakNativeCallback(new WeakRef(this.callback))
-    );
+    this.native = CustomMessageHandlerModule.create(this.callbacks.weak());
   }
 
   setCustomMessageHandler(customMessageHandler: CustomMessageHandler) {

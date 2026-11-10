@@ -2,14 +2,14 @@ import type { FullscreenHandler } from './fullscreenhandler';
 import FullscreenHandlerModule, {
   type NativeFullscreen,
 } from './fullscreenHandlerModule';
-import { createNativeCallback, weakNativeCallback } from '../nativeCallbacks';
+import { NativeCallbacks } from '../nativeCallbacks';
 
 /** Takes care of JS/Native communication for a FullscreenHandler. */
 export class FullscreenHandlerBridge {
   /** @internal */
   readonly native: NativeFullscreen;
   fullscreenHandler?: FullscreenHandler;
-  private readonly callback = createNativeCallback((operation) => {
+  private readonly callbacks = new NativeCallbacks((operation) => {
     if (operation === 'enterFullscreen')
       this.fullscreenHandler?.enterFullscreen();
     if (operation === 'exitFullscreen')
@@ -18,9 +18,7 @@ export class FullscreenHandlerBridge {
   });
 
   constructor() {
-    this.native = FullscreenHandlerModule.create(
-      weakNativeCallback(new WeakRef(this.callback))
-    );
+    this.native = FullscreenHandlerModule.create(this.callbacks.weak());
   }
 
   setFullscreenHandler(fullscreenHandler: FullscreenHandler | undefined) {

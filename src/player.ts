@@ -13,10 +13,7 @@ import type { AdItem } from './advertising';
 import { BufferApi } from './bufferApi';
 import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
-import {
-  createConfigurationCallbacks,
-  createSharedObjectWithCallback,
-} from './nativeCallbacks';
+import { ConfigurationCallbacks } from './nativeCallbacks';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -94,15 +91,17 @@ export class Player {
           'See the "Google IMA" section of the bitmovin-player-react-native README.'
       );
     }
-    const callbacks = createConfigurationCallbacks();
-    return createSharedObjectWithCallback(
-      (callback) =>
-        PlayerModule.create(
-          callbacks.serialize(this.config, { capture: 'advertisingConfig' }),
-          callbacks.serialize(this.config.analyticsConfig),
-          callback
-        ),
-      callbacks.callback
+    const callbacks = new ConfigurationCallbacks();
+    const config = callbacks.serialize(this.config, {
+      capture: 'advertisingConfig',
+    });
+    delete config.nativeId;
+    return callbacks.dispatcher.create((callback) =>
+      PlayerModule.create(
+        config,
+        callbacks.serialize(this.config.analyticsConfig),
+        callback
+      )
     );
   }
 

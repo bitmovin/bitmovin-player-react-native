@@ -75,7 +75,7 @@ function fixture(t) {
       },
     };
     if (callback) callbacks.set(native, { config, callback });
-    creations.push({ kind, native });
+    creations.push({ kind, native, config });
     return native;
   };
   const modules = {
@@ -138,6 +138,8 @@ test('Player aliases share eager native creation', async (t) => {
   assert.equal(player.isInitialized, false);
   await new Promise(setImmediate);
   assert.equal(creations.length, 1);
+  assert.equal(Object.hasOwn(creations[0].config, 'nativeId'), false);
+  assert.equal(player.config.nativeId, 'shared');
   assert.equal(await player.native, await alias.native);
   assert.equal(await alias.getVolume(), 37);
   assert.equal(player.isInitialized, true);
@@ -219,10 +221,11 @@ test('advertising callbacks return decisions and update IMA settings', async (t)
 });
 
 test('a Source can be loaded by another Player and still use its DRM API', async (t) => {
-  const { Player, Source, calls, invoke } = fixture(t);
+  const { Player, Source, calls, invoke, creations } = fixture(t);
   const source = new Source({
     url: 'https://test/source',
     type: 'hls',
+    metadata: { nativeId: 'customer metadata' },
     drmConfig: { fairplay: { prepareMessage: (message) => message } },
   });
   const first = new Player();
@@ -232,6 +235,10 @@ test('a Source can be loaded by another Player and still use its DRM API', async
   const second = new Player();
   await second.loadSource(source);
   const nativeSource = await source.native;
+  assert.deepEqual(
+    creations.find((entry) => entry.kind === 'source').config.metadata,
+    source.config.metadata
+  );
   assert.deepEqual(
     calls.map((call) => call.source),
     [nativeSource, nativeSource]

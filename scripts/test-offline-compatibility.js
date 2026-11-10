@@ -61,8 +61,9 @@ function fixture(t) {
         },
       };
     },
-    create: async (_config, events) => {
+    create: async (config, events) => {
       const owner = {
+        config,
         emit: (event) => events.emit(event),
         getState: async () => 'Downloaded',
         destroy: async () => {},
@@ -87,6 +88,8 @@ test('offline aliases share the native manager', async (t) => {
   const alias = new OfflineContentManager(config);
   assert.equal(await alias.state(), 'Downloaded');
   assert.equal(owners.length, 1);
+  assert.equal(Object.hasOwn(owners[0].config, 'nativeId'), false);
+  assert.equal(config.nativeId, 'public-label');
   assert.equal(await manager.native, await alias.native);
   await manager.destroy();
   await alias.destroy();
