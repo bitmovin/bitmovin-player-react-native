@@ -6,17 +6,14 @@ import type { NativeOffline } from '../offline/offlineModule';
 import type { NativeSource } from './SourceModule';
 import type { BufferLevels } from '../bufferApi';
 
-// Retain callback-owning JS peers on the shared player, including across aliases.
-// Native SDK references alone do not keep these JS objects alive.
-const loadedSources = Symbol('loadedSources');
-const loadedOffline = Symbol('loadedOffline');
-
 export type PlayerModuleEvents = Record<string, never>;
 
 /** @internal */
 export interface NativePlayer extends SharedObject<PlayerModuleEvents> {
-  [loadedSources]?: NativeSource[];
-  [loadedOffline]?: NativeOffline;
+  // Retain callback-owning JS peers on the shared player, including across aliases.
+  // Native SDK references alone do not keep these JS objects alive.
+  loadedSources?: NativeSource[];
+  loadedOffline?: NativeOffline;
 
   getBufferLevel(type: string): Promise<BufferLevels | null>;
 
@@ -138,8 +135,8 @@ export function retainLoadedSource(
   player: NativePlayer,
   source: NativeSource | undefined
 ): void {
-  player[loadedSources] = source ? [source] : [];
-  player[loadedOffline] = undefined;
+  player.loadedSources = source ? [source] : [];
+  player.loadedOffline = undefined;
 }
 
 /** @internal */
@@ -147,6 +144,6 @@ export function retainLoadedOfflineContent(
   player: NativePlayer,
   offline: NativeOffline
 ): void {
-  player[loadedOffline] = offline;
-  player[loadedSources] = [];
+  player.loadedOffline = offline;
+  player.loadedSources = [];
 }
