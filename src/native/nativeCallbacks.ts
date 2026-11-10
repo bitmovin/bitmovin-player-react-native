@@ -20,7 +20,14 @@ export type NativeCallback = (
 
 const callbackOwner = Symbol('callbackOwner');
 
-/** @internal */
+/**
+ * Dispatches native requests to JavaScript: SDK decisions return synchronously,
+ * while network hooks resolve a native completion object after awaiting the result.
+ * Native receives only a weak forwarder. The JS owner must retain this instance;
+ * create() attaches it to the returned SharedObject's JS peer, while UI bridges
+ * retain it directly and pass weak() to their synchronous native factories.
+ * @internal
+ */
 export class NativeCallbacks {
   constructor(
     private readonly invoke: (operation: string, args: any[]) => any
