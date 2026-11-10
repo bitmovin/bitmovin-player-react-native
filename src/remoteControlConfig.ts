@@ -1,7 +1,34 @@
+import type { SourceConfig } from './source';
+
+/**
+ * Remote device types supported by {@link RemoteControlConfig.prepareSource}.
+ * @platform iOS
+ */
+export enum RemoteControlType {
+  /** A Google Cast compatible device. */
+  CAST = 0,
+}
+
 /**
  * Configures remote playback behavior.
  */
 export interface RemoteControlConfig {
+  /**
+   * Prepares an alternative source configuration for remote playback, for example
+   * DASH with Widevine on Chromecast while playing HLS with FairPlay locally.
+   * Receives a snapshot of the native source configuration, without JavaScript
+   * DRM callbacks or analytics metadata. Return `null` or `undefined` to use the
+   * original native configuration unchanged.
+   *
+   * This callback must return synchronously. The original configuration is used
+   * if the callback throws or does not return within 250 ms.
+   *
+   * @platform iOS
+   */
+  prepareSource?: (
+    type: RemoteControlType,
+    sourceConfig: SourceConfig
+  ) => SourceConfig | null | undefined;
   /**
    * A URL to a CSS file the receiver app loads to style the receiver app.
    * Default value is `null`, indicating that the default CSS of the receiver app will be used.

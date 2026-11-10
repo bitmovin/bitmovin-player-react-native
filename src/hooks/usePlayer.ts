@@ -7,5 +7,9 @@ import type { PlayerConfig } from '../playerConfig';
  * that can be used inside any component.
  */
 export function usePlayer(config?: PlayerConfig): Player {
-  return useRef(new Player(config)).current;
+  const player = useRef<Player | null>(null);
+  if (player.current === null) {
+    player.current = new Player(config);
+  }
+  return player.current;
 }

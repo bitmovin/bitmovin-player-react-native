@@ -36,8 +36,8 @@ export default (spec: TestScope) => {
           },
           async () => {
             // The manifest has to pass through both callbacks before the player can become ready.
-            await callPlayerAndExpectEvent((player) => {
-              player.load(Sources.artOfMotionHls);
+            await callPlayerAndExpectEvent(async (player) => {
+              await player.load(Sources.artOfMotionHls);
             }, EventType.Ready);
 
             expect(

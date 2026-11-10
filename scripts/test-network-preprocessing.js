@@ -12,7 +12,10 @@ const compiled = path.join(root, 'compiled');
 // Node resolves and loads the emitted CommonJS files normally.
 before(() => {
   const program = ts.createProgram(
-    [path.resolve(__dirname, '../src/network/index.ts')],
+    [
+      path.resolve(__dirname, '../src/network/index.ts'),
+      path.resolve(__dirname, '../src/native/nativeConfigSerializer.ts'),
+    ],
     {
       rootDir: path.resolve(__dirname, '../src'),
       outDir: compiled,
@@ -43,7 +46,7 @@ function fixture(t, config, rejectAfterCompletion = false) {
     fs.rmSync(directory, { recursive: true, force: true });
   });
   fs.cpSync(compiled, directory, { recursive: true });
-  for (const name of ['expo-modules-core', 'expo-crypto']) {
+  for (const name of ['expo-modules-core']) {
     const packageDirectory = path.join(directory, 'node_modules', name);
     fs.mkdirSync(packageDirectory, { recursive: true });
     fs.writeFileSync(
@@ -51,54 +54,43 @@ function fixture(t, config, rejectAfterCompletion = false) {
       'module.exports = {};'
     );
   }
-  const listeners = new Map();
   const attempts = [];
   const completions = [];
-  const logs = [];
-  const nativeError = new Error('native rejected after completing operation');
-  const complete = (kind, id, payload) => {
-    const operation = { kind, id, payload };
-    attempts.push(operation);
-    // Model native completion BEFORE rejection. A pre-completion failure (e.g.
-    // Android invalid Base64 conversion) can still leave native work pending.
-    completions.push(operation);
-    return rejectAfterCompletion
-      ? Promise.reject(nativeError)
-      : Promise.resolve();
-  };
-  const bridge = {
-    addListener: (name, listener) => {
-      listeners.set(name, listener);
-      return { remove: () => listeners.delete(name) };
-    },
-    initializeWithConfig: async () => {},
-    destroy: async () => {},
-    setPreprocessedHttpRequest: (id, payload) =>
-      complete('Request', id, payload),
-    setPreprocessedHttpResponse: (id, payload) =>
-      complete('Response', id, payload),
-  };
+  const nativeError = new Error('native threw after completing operation');
   require(
     path.join(directory, 'node_modules/expo-modules-core')
   ).requireNativeModule = (name) => {
-    if (name === 'NetworkModule') return bridge;
-    assert.equal(name, 'DebugModule');
-    return { setDebugLoggingEnabled: async () => {} };
+    assert.equal(name, 'NativeCallbacksModule');
+    return {};
   };
-  require(path.join(directory, 'node_modules/expo-crypto')).randomUUID = () =>
-    'network-id';
-  const { DebugConfig } = require(path.join(directory, 'debug.js'));
-  t.mock.method(DebugConfig, 'log', (...args) => logs.push(args));
-  const { Network, HttpRequestType } = require(path.join(directory, 'network'));
-  const network = new Network(config);
-  t.after(() => network.destroy());
+  const { HttpRequestType } = require(path.join(directory, 'network'));
+  const helpers = require(
+    path.join(directory, 'native/nativeConfigSerializer.js')
+  );
+  const serializer = new helpers.NativeConfigSerializer();
+  const nativeConfig = serializer.serialize({ networkConfig: config });
+  const native = serializer.dispatcher.create((callback) => ({ callback }));
+  const invoke = (kind, type, payload) => {
+    native.callback(
+      nativeConfig.networkConfig?.[`preprocessHttp${kind}`] ?? '-1',
+      [type, payload],
+      {
+        resolve: (result) => {
+          const operation = { kind, payload: result };
+          attempts.push(operation);
+          // This fixture models completion before the synchronous resolve failure.
+          completions.push(operation);
+          if (rejectAfterCompletion) throw nativeError;
+        },
+      },
+      false,
+      1
+    );
+  };
   return {
-    network,
-    listeners,
+    invoke,
     attempts,
     completions,
-    logs,
-    nativeError,
     HttpRequestType,
   };
 }
@@ -129,7 +121,7 @@ for (const [kind, original] of [
     'no config',
   ]) {
     for (const rejectAfterCompletion of [false, true]) {
-      test(`${kind}: ${behavior}, native ${rejectAfterCompletion ? 'rejects after completion' : 'resolves'}`, async (t) => {
+      test(`${kind}: ${behavior}, native ${rejectAfterCompletion ? 'throws after completion' : 'resolves'}`, async (t) => {
         const transformed = { ...original, headers: { Changed: 'yes' } };
         const callbackCalls = [];
         const config =
@@ -147,53 +139,21 @@ for (const [kind, original] of [
                     return Promise.resolve(transformed);
                   },
                 };
-        const {
-          network,
-          listeners,
-          attempts,
-          completions,
-          logs,
-          nativeError,
-          HttpRequestType,
-        } = fixture(t, config, rejectAfterCompletion);
-        await network.initialize();
-        const event = {
-          nativeId: network.nativeId,
-          [`${kind.toLowerCase()}Id`]: 'completion-id',
-          type: HttpRequestType.ManifestDash,
-          [kind.toLowerCase()]: original,
-        };
-        const listener = listeners.get(`onPreprocessHttp${kind}`);
-        listener({ ...event, nativeId: 'another-network' });
-        await new Promise(setImmediate);
-        assert.equal(callbackCalls.length, 0);
-        assert.equal(attempts.length, 0);
-        assert.equal(completions.length, 0);
-
-        assert.doesNotThrow(() => listener(event));
-        // Drain callback and completion promises, including rejection handlers.
+        const { invoke, attempts, completions, HttpRequestType } = fixture(
+          t,
+          config,
+          rejectAfterCompletion
+        );
+        assert.doesNotThrow(() =>
+          invoke(kind, HttpRequestType.ManifestDash, original)
+        );
         await new Promise(setImmediate);
         assert.equal(attempts.length, 1);
         assert.equal(completions.length, 1);
         assert.equal(completions[0].kind, kind);
-        assert.equal(completions[0].id, 'completion-id');
         assert.equal(
           completions[0].payload,
           behavior === 'success' ? transformed : original
-        );
-        const failureLogs = logs.filter(([message]) =>
-          message.startsWith('Failed to complete HTTP')
-        );
-        assert.deepEqual(
-          failureLogs,
-          rejectAfterCompletion
-            ? [
-                [
-                  `Failed to complete HTTP ${kind.toLowerCase()} preprocessing:`,
-                  nativeError,
-                ],
-              ]
-            : []
         );
         if (behavior !== 'missing' && behavior !== 'no config') {
           assert.equal(callbackCalls.length, 1);

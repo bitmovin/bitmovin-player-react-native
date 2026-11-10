@@ -5,7 +5,7 @@ import type { TweaksConfig } from './tweaksConfig';
 import type { AdaptationConfig } from './adaptationConfig';
 import type { RemoteControlConfig } from './remoteControlConfig';
 import type { BufferConfig } from './bufferConfig';
-import type { NativeInstanceConfig } from './nativeInstance';
+import type { NativeInstanceConfig } from './nativeInstanceRegistry';
 import type { PlaybackConfig } from './playbackConfig';
 import type { LiveConfig } from './liveConfig';
 import type { NetworkConfig } from './network/networkConfig';
