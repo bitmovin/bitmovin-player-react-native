@@ -133,12 +133,12 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   destroy = () => {
     if (!this.isDestroyed) {
-      // Remove the listeners only after the native destroy, so they still receive the `destroy` event.
-      void PlayerModule.destroy(this.nativeId)
-        .then(() => SourceRegistry.destroyOwned(this))
-        .finally(() => {
-          this.eventListeners.removeAll();
-        });
+      // Remove the listeners only after the native destroy, so they still receive the `destroy` event. Destroy the
+      // owned sources also if the native destroy fails, as nothing else destroys them once the player is destroyed.
+      void PlayerModule.destroy(this.nativeId).finally(() => {
+        SourceRegistry.destroyOwned(this);
+        this.eventListeners.removeAll();
+      });
       void this.network?.destroy();
       void this.decoderConfig?.destroy();
       this.onShouldLoadAdItemSubscription?.remove();
