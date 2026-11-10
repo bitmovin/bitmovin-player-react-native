@@ -197,16 +197,16 @@ export class Source extends NativeInstance<SourceConfig> {
 
   /** @internal */
   get native(): Promise<NativeSource> {
-    if (!this.nativeSource) {
-      const attempt = this.initialize().then(() =>
-        SourceModule.getSharedSource(this.nativeId)
-      );
-      this.nativeSource = attempt;
-      void attempt.catch(() => {
-        if (this.nativeSource === attempt) this.nativeSource = undefined;
-      });
-    }
-    return this.nativeSource;
+    // Legacy Source aliases can outlive another alias's release notification.
+    // Refresh through the current registry generation until Source owns its lifetime.
+    const attempt = this.initialize().then(() =>
+      SourceModule.getSharedSource(this.nativeId)
+    );
+    this.nativeSource = attempt;
+    void attempt.catch(() => {
+      if (this.nativeSource === attempt) this.nativeSource = undefined;
+    });
+    return attempt;
   }
 
   /**
