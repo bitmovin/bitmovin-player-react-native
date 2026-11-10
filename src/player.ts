@@ -14,7 +14,6 @@ import type { AdBreak, AdItem, ImaSettings } from './advertising';
 import { BufferApi } from './bufferApi';
 import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
-import { Network } from './network';
 import { DecoderConfigBridge } from './decoder';
 import type { PlaylistConfig } from './playlist';
 import { PlaylistApi } from './playlist';
@@ -22,6 +21,7 @@ import { validatePlaylistConfig } from './playlist/validatePlaylistConfig';
 import type { PlayerEventMap } from './eventMap';
 import { EventListeners } from './utils/eventListeners';
 import { SourceRegistry } from './utils/sourceRegistry';
+import { NativeConfigSerializer } from './native/nativeConfigSerializer';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -62,8 +62,6 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   playlist: PlaylistApi = new PlaylistApi(this.nativeId);
 
-  private network?: Network;
-
   private decoderConfig?: DecoderConfigBridge;
   private onShouldLoadAdItemSubscription?: EventSubscription;
   private onShouldPlayAdBreakSubscription?: EventSubscription;
@@ -99,29 +97,32 @@ export class Player extends NativeInstance<PlayerConfig> {
       this.ensureShouldLoadAdItemListener();
       this.ensureShouldPlayAdBreakListener();
       this.ensureImaBeforeInitializationListener();
-      if (this.config?.networkConfig) {
-        this.network = new Network(this.config.networkConfig);
-        await this.network.initialize();
-      }
       await this.maybeInitDecoderConfig();
       const analyticsConfig = this.config?.analyticsConfig;
-      if (analyticsConfig) {
-        await PlayerModule.initializeWithAnalyticsConfig(
-          this.nativeId,
-          analyticsConfig,
-          this.config,
-          this.network?.nativeId,
-          this.decoderConfig?.nativeId
-        );
-        this.analytics = new AnalyticsApi(() => this.native);
-      } else {
-        await PlayerModule.initializeWithConfig(
-          this.nativeId,
-          this.config,
-          this.network?.nativeId,
-          this.decoderConfig?.nativeId
-        );
-      }
+      const serializer = new NativeConfigSerializer();
+      const config = {
+        ...this.config,
+        networkConfig: serializer.serialize(this.config?.networkConfig),
+      };
+      const native = await serializer.dispatcher.createAsync((callback) =>
+        analyticsConfig
+          ? PlayerModule.initializeWithAnalyticsConfig(
+              this.nativeId,
+              analyticsConfig,
+              config,
+              this.decoderConfig?.nativeId,
+              callback
+            )
+          : PlayerModule.initializeWithConfig(
+              this.nativeId,
+              config,
+              this.decoderConfig?.nativeId,
+              callback
+            )
+      );
+      // Every initialized alias keeps the canonical peer and its configuration callbacks alive.
+      this.sharedPlayer = Promise.resolve(native);
+      if (analyticsConfig) this.analytics = new AnalyticsApi(() => this.native);
 
       this.isInitialized = true;
       this.eventListeners.attachNative();
@@ -141,7 +142,6 @@ export class Player extends NativeInstance<PlayerConfig> {
       void PlayerModule.destroy(this.nativeId).finally(() => {
         this.eventListeners.removeAll();
       });
-      void this.network?.destroy();
       void this.decoderConfig?.destroy();
       this.onShouldLoadAdItemSubscription?.remove();
       this.onShouldPlayAdBreakSubscription?.remove();

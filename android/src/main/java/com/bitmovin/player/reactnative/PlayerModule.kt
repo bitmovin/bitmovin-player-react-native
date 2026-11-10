@@ -21,11 +21,14 @@ import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toMediaControlConfig
+import com.bitmovin.player.reactnative.converter.toNetworkConfig
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.converter.toPlaylistOptions
 import com.bitmovin.player.reactnative.extensions.getMap
 import com.bitmovin.player.reactnative.util.NonFiniteSanitizer
 import expo.modules.kotlin.functions.Queues
+import expo.modules.kotlin.jni.JavaScriptFunction
+import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
@@ -93,6 +96,7 @@ class PlayerModule : Module() {
                 // Detach the listeners first, so destroying the players does not emit into this module.
                 eventRelay.clear { PlayerRegistry.getPlayer(it) }
                 removedSourceReleaser.clear { PlayerRegistry.getPlayer(it) }
+                PlayerRegistry.getAllNativeIds().forEach { PlayerRegistry.getSharedPlayer(it)?.closeCallbacks() }
                 // Clean up all players when module is destroyed
                 PlayerRegistry.getAllPlayers().forEach { player ->
                     try {
@@ -154,6 +158,7 @@ class PlayerModule : Module() {
         AsyncFunction("destroy") { nativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
             if (player != null) {
+                PlayerRegistry.getSharedPlayer(nativeId)?.closeCallbacks()
                 // Note: MediaSession cleanup would need to be handled here
                 player.destroy()
                 PlayerRegistry.unregister(nativeId)
@@ -367,13 +372,13 @@ class PlayerModule : Module() {
         }
 
         AsyncFunction("initializeWithConfig") { nativeId: NativeId, config: Map<String, Any>?,
-            networkNativeId: NativeId?, decoderNativeId: NativeId?, ->
-            initializePlayer(nativeId, config, networkNativeId, decoderNativeId, null)
+            decoderNativeId: NativeId?, callback: JavaScriptFunction<JavaScriptValue>?, ->
+            initializePlayer(nativeId, config, decoderNativeId, null, callback)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("initializeWithAnalyticsConfig") { nativeId: NativeId, analyticsConfigJson: Map<String, Any>,
-            config: Map<String, Any>?, networkNativeId: NativeId?, decoderNativeId: NativeId?, ->
-            initializePlayer(nativeId, config, networkNativeId, decoderNativeId, analyticsConfigJson)
+            config: Map<String, Any>?, decoderNativeId: NativeId?, callback: JavaScriptFunction<JavaScriptValue>?, ->
+            initializePlayer(nativeId, config, decoderNativeId, analyticsConfigJson, callback)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("loadSource") { nativeId: NativeId, sourceNativeId: NativeId ->
@@ -406,72 +411,71 @@ class PlayerModule : Module() {
     private fun initializePlayer(
         nativeId: NativeId,
         config: Map<String, Any>?,
-        networkNativeId: NativeId?,
         decoderNativeId: NativeId?,
         analyticsConfigJson: Map<String, Any>?,
-    ) {
-        if (PlayerRegistry.hasPlayer(nativeId)) {
-            // Player already exists for this nativeId
-            return
-        }
-
-        val playerConfig = config?.toPlayerConfig() ?: PlayerConfig()
-        @Suppress("UNCHECKED_CAST")
-        val configJson = config as? Map<String, Any?>
-        setupShouldLoadAdItem(nativeId, configJson, playerConfig)
-        setupShouldPlayAdBreak(nativeId, configJson, playerConfig)
-        ImaBeforeInitializationConfigurator.configure(
-            nativeId = nativeId,
-            configJson = configJson,
-            playerConfig = playerConfig,
-            imaSettingsWaiter = imaSettingsWaiter,
-        ) { eventNativeId, id, payload ->
-            sendEvent(
-                "onImaBeforeInitialization",
-                bundleOf(
-                    "nativeId" to eventNativeId,
-                    "id" to id,
-                    "settings" to payload,
-                ),
-            )
-        }
-        val enableMediaSession = config?.getMap("mediaControlConfig")
-            ?.toMediaControlConfig()?.isEnabled ?: true
-
-        val networkConfig = networkNativeId?.let { id ->
-            appContext.registry.getModule<NetworkModule>()?.getConfig(id)
-        }
-        networkConfig?.let {
-            playerConfig.networkConfig = it
-        }
-
-        val decoderConfig = decoderNativeId?.let {
-            appContext.registry.getModule<DecoderConfigModule>()?.getDecoderConfig(it)
-        }
-        if (decoderConfig != null) {
-            playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = decoderConfig)
-        }
-
-        val applicationContext = appContext.reactContext?.applicationContext
-            ?: throw IllegalStateException("Application context is not available")
-        val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
-        val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
-
-        val player = if (analyticsConfig != null) {
-            Player.create(
-                context = applicationContext,
+        callback: JavaScriptFunction<JavaScriptValue>?,
+    ): SharedPlayer {
+        PlayerRegistry.getSharedPlayer(nativeId)?.let { return it }
+        val callbacks = CallbackScope(appContext, callback)
+        return callbacks.createSharedObject {
+            val playerConfig = config?.toPlayerConfig() ?: PlayerConfig()
+            @Suppress("UNCHECKED_CAST")
+            val configJson = config as? Map<String, Any?>
+            setupShouldLoadAdItem(nativeId, configJson, playerConfig)
+            setupShouldPlayAdBreak(nativeId, configJson, playerConfig)
+            ImaBeforeInitializationConfigurator.configure(
+                nativeId = nativeId,
+                configJson = configJson,
                 playerConfig = playerConfig,
-                analyticsConfig = analyticsConfig,
-                defaultMetadata = defaultMetadata ?: DefaultMetadata(),
-            )
-        } else {
-            Player.create(applicationContext, playerConfig)
-        }
-        PlayerRegistry.register(player, nativeId, appContext)
-        removedSourceReleaser.attach(nativeId, player)
+                imaSettingsWaiter = imaSettingsWaiter,
+            ) { eventNativeId, id, payload ->
+                sendEvent(
+                    "onImaBeforeInitialization",
+                    bundleOf(
+                        "nativeId" to eventNativeId,
+                        "id" to id,
+                        "settings" to payload,
+                    ),
+                )
+            }
+            val enableMediaSession = config?.getMap("mediaControlConfig")
+                ?.toMediaControlConfig()?.isEnabled ?: true
 
-        if (enableMediaSession) {
-            mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)
+            config?.getMap("networkConfig")?.let { playerConfig.networkConfig = it.toNetworkConfig(callbacks) }
+
+            val decoderConfig = decoderNativeId?.let {
+                appContext.registry.getModule<DecoderConfigModule>()?.getDecoderConfig(it)
+            }
+            if (decoderConfig != null) {
+                playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = decoderConfig)
+            }
+
+            val applicationContext = appContext.reactContext?.applicationContext
+                ?: throw IllegalStateException("Application context is not available")
+            val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
+            val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
+
+            val player = if (analyticsConfig != null) {
+                Player.create(
+                    context = applicationContext,
+                    playerConfig = playerConfig,
+                    analyticsConfig = analyticsConfig,
+                    defaultMetadata = defaultMetadata ?: DefaultMetadata(),
+                )
+            } else {
+                Player.create(applicationContext, playerConfig)
+            }
+            PlayerRegistry.register(player, nativeId, appContext, callbacks)
+            removedSourceReleaser.attach(nativeId, player)
+
+            try {
+                if (enableMediaSession) mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)
+            } catch (error: Throwable) {
+                PlayerRegistry.unregister(nativeId)
+                player.destroy()
+                throw error
+            }
+            checkNotNull(PlayerRegistry.getSharedPlayer(nativeId))
         }
     }
 

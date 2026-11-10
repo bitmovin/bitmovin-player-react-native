@@ -15,8 +15,8 @@ public class PlayerRegistry {
     /**
      * Register a player instance with the given native ID.
      */
-    public static func register(player: Player, nativeId: NativeId) {
-        let owner = SharedPlayer(player: player)
+    static func register(player: Player, nativeId: NativeId, callback: CallbackScope?) {
+        let owner = SharedPlayer(player: player, callback: callback)
         shared.queue.async(flags: .barrier) {
             shared.players[nativeId] = owner
         }

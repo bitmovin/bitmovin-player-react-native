@@ -15,8 +15,8 @@ object PlayerRegistry {
      * Register a player instance with the given native ID.
      */
     @JvmStatic
-    fun register(player: Player, nativeId: NativeId, appContext: AppContext) {
-        players[nativeId] = SharedPlayer(appContext, player)
+    fun register(player: Player, nativeId: NativeId, appContext: AppContext, callbacks: CallbackScope) {
+        players[nativeId] = SharedPlayer(appContext, player, callbacks)
     }
 
     /**

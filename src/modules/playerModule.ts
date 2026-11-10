@@ -1,6 +1,7 @@
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import type { BufferLevels } from '../bufferApi';
+import type { NativeCallback } from '../native/nativeCallbacks';
 import { requireNativeModule } from 'expo-modules-core';
 import type { AdBreak, AdItem, ImaSettings } from '../advertising';
 import type { NativeEventPayload } from '../utils/eventListeners';
@@ -245,9 +246,9 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
   initializeWithConfig(
     nativeId: string,
     config?: Record<string, any>,
-    networkNativeId?: string,
-    decoderNativeId?: string
-  ): Promise<void>;
+    decoderNativeId?: string,
+    callback?: NativeCallback
+  ): Promise<NativePlayer>;
 
   /**
    * Creates a new analytics-enabled Player instance.
@@ -256,9 +257,9 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
     nativeId: string,
     analyticsConfig: Record<string, any>,
     config?: Record<string, any>,
-    networkNativeId?: string,
-    decoderNativeId?: string
-  ): Promise<void>;
+    decoderNativeId?: string,
+    callback?: NativeCallback
+  ): Promise<NativePlayer>;
 
   /**
    * Load source into the player.

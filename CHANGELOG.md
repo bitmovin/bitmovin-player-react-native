@@ -4,6 +4,10 @@
 
 ### Changed
 
+- `Network` is configuration only. HTTP preprocessing uses callbacks owned by its Player instead of a separate configuration lifecycle and binding ID
+
+### Changed
+
 - Read DRM configuration from `source.config.drmConfig`. `source.drm` is now an always-present, readonly runtime API, including for clear content. `Drm` is configuration only and no longer has initialization, destruction, or binding IDs
 - Android: Source DRM callbacks now use the same 250 ms synchronous deadline as iOS
 

@@ -72,6 +72,8 @@ import com.bitmovin.player.api.network.HttpRequest
 import com.bitmovin.player.api.network.HttpRequestType
 import com.bitmovin.player.api.network.HttpResponse
 import com.bitmovin.player.api.network.NetworkConfig
+import com.bitmovin.player.api.network.PreprocessHttpRequestCallback
+import com.bitmovin.player.api.network.PreprocessHttpResponseCallback
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.playlist.PlaylistOptions
@@ -920,6 +922,37 @@ fun Map<String, Any?>.toHttpResponse(): HttpResponse? {
 }
 
 fun Map<String, Any?>.toNetworkConfig(): NetworkConfig = NetworkConfig()
+
+fun Map<String, Any?>.toNetworkConfig(callbacks: CallbackScope): NetworkConfig =
+    NetworkConfig().apply {
+        withString("preprocessHttpRequest") { token ->
+            preprocessHttpRequestCallback = PreprocessHttpRequestCallback { type, request ->
+                callbacks.future(
+                    token,
+                    listOf(type.toJson(), request.toJson()),
+                    request,
+                    fallbackArgument = 1,
+                ) {
+                    @Suppress("UNCHECKED_CAST")
+                    (it as Map<String, Any?>).toHttpRequest()
+                }
+            }
+        }
+        withString("preprocessHttpResponse") { token ->
+            preprocessHttpResponseCallback = PreprocessHttpResponseCallback { type, response ->
+                callbacks.future(
+                    token,
+                    listOf(type.toJson(), response.toJson()),
+                    response,
+                    fallbackArgument = 1,
+                ) {
+                    @Suppress("UNCHECKED_CAST")
+                    (it as Map<String, Any?>).toHttpResponse()
+                }
+            }
+        }
+    }
+
 
 fun HttpRequest.toJson(): Map<String, Any> = mapOf(
     "url" to url,

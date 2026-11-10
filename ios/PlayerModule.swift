@@ -1,6 +1,7 @@
 import BitmovinCollector
 import BitmovinPlayer
 import ExpoModulesCore
+import ExpoModulesJSI
 
 // swiftlint:disable:next type_body_length
 public class PlayerModule: Module {
@@ -19,7 +20,7 @@ public class PlayerModule: Module {
         self?.appContext?.moduleRegistry.get(SourceModule.self)?.releaseSource(nativeId: nativeId)
     }
 
-    // swiftlint:disable:next function_body_length cyclomatic_complexity
+    // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
         Name("PlayerModule")
         AsyncFunction("getSharedPlayer") { (nativeId: NativeId) -> SharedPlayer in
@@ -67,6 +68,9 @@ public class PlayerModule: Module {
                 // Cancel the event subscriptions first, so destroying the players does not emit into this module.
                 eventRelay.clear()
                 removedSourceReleaser.clear()
+                PlayerRegistry.getAllNativeIds().forEach {
+                    PlayerRegistry.getSharedPlayer(nativeId: $0)?.closeCallbacks()
+                }
                 PlayerRegistry.getAllPlayers().forEach { $0.destroy() }
                 PlayerRegistry.clear()
             }
@@ -106,8 +110,9 @@ public class PlayerModule: Module {
             PlayerRegistry.getPlayer(nativeId: nativeId)?.timeShift = offset
         }.runOnQueue(.main)
         AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
-            if let player = PlayerRegistry.getPlayer(nativeId: nativeId) {
-                player.destroy()
+            if let owner = PlayerRegistry.getSharedPlayer(nativeId: nativeId) {
+                owner.closeCallbacks()
+                owner.player.destroy()
                 PlayerRegistry.unregister(nativeId: nativeId)
             }
             // Detach only after destroying, so the sources that `destroy` removes while unloading are released.
@@ -258,45 +263,13 @@ public class PlayerModule: Module {
         AsyncFunction("setShouldLoadAdItem") { [weak self] (id: Int, shouldLoad: Bool) in
             self?.shouldLoadAdItemWaiter.complete(id: id, with: shouldLoad)
         }
-        AsyncFunction(
-            "initializeWithConfig"
-        ) { [weak self] (nativeId: NativeId, config: [String: Any]?, networkNativeId: NativeId?, _: String?) in // swiftlint:disable:this line_length
-            guard !PlayerRegistry.hasPlayer(nativeId: nativeId),
-                  let playerConfig = RCTConvert.playerConfig(config) else { return }
-            #if os(iOS)
-            self?.setupRemoteControlConfig(playerConfig.remoteControlConfig)
-            #endif
-            if let networkNativeId, let networkConfig = self?.setupNetworkConfig(nativeId: networkNativeId) {
-                playerConfig.networkConfig = networkConfig
-            }
-            self?.setupShouldLoadAdItem(nativeId: nativeId, config: config, playerConfig: playerConfig)
-            self?.setupImaBeforeInitialization(nativeId: nativeId, config: config, playerConfig: playerConfig)
-            let player = PlayerFactory.create(playerConfig: playerConfig)
-            PlayerRegistry.register(player: player, nativeId: nativeId)
-            self?.removedSourceReleaser.attach(nativeId: nativeId, player: player)
+        AsyncFunction("initializeWithConfig") { (nativeId: NativeId, config: [String: Any]?, _: String?, callback: JavaScriptValue?) -> SharedPlayer in // swiftlint:disable:this line_length
+            try self.initializePlayer(nativeId: nativeId, config: config, callbackValue: callback)
         }.runOnQueue(.main)
-        AsyncFunction(
-            "initializeWithAnalyticsConfig"
-        ) { [weak self] (nativeId: NativeId, analyticsConfigJson: [String: Any]?, config: [String: Any]?, networkNativeId: NativeId?, _: String?) in // swiftlint:disable:this line_length
-            guard !PlayerRegistry.hasPlayer(nativeId: nativeId),
-                  let playerConfig = RCTConvert.playerConfig(config),
-                  let analyticsConfig = RCTConvert.analyticsConfig(analyticsConfigJson) else { return }
-            #if os(iOS)
-            self?.setupRemoteControlConfig(playerConfig.remoteControlConfig)
-            #endif
-            if let networkNativeId, let networkConfig = self?.setupNetworkConfig(nativeId: networkNativeId) {
-                playerConfig.networkConfig = networkConfig
-            }
-            self?.setupShouldLoadAdItem(nativeId: nativeId, config: config, playerConfig: playerConfig)
-            self?.setupImaBeforeInitialization(nativeId: nativeId, config: config, playerConfig: playerConfig)
-            let defaultMetadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfigJson)
-            let player = PlayerFactory.create(
-                playerConfig: playerConfig,
-                analyticsConfig: analyticsConfig,
-                defaultMetadata: defaultMetadata ?? DefaultMetadata()
+        AsyncFunction("initializeWithAnalyticsConfig") { (nativeId: NativeId, analytics: [String: Any]?, config: [String: Any]?, _: String?, callback: JavaScriptValue?) -> SharedPlayer in // swiftlint:disable:this line_length
+            try self.initializePlayer(
+                nativeId: nativeId, config: config, callbackValue: callback, analyticsConfigJson: analytics
             )
-            PlayerRegistry.register(player: player, nativeId: nativeId)
-            self?.removedSourceReleaser.attach(nativeId: nativeId, player: player)
         }.runOnQueue(.main)
         AsyncFunction("loadSource") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId) in
             guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
@@ -389,6 +362,48 @@ public class PlayerModule: Module {
         removedSourceReleaser.keep(source)
     }
 
+    private func initializePlayer(
+        nativeId: NativeId,
+        config: [String: Any]?,
+        callbackValue: JavaScriptValue?,
+        analyticsConfigJson: [String: Any]? = nil
+    ) throws -> SharedPlayer {
+        if let existing = PlayerRegistry.getSharedPlayer(nativeId: nativeId) { return existing }
+        let callback = try callbackValue.map { try CallbackScope(callback: $0, context: appContext) }
+        guard let playerConfig = RCTConvert.playerConfig(config ?? [:]) else {
+            callback?.close()
+            throw Exception(name: "InvalidPlayerConfig", description: "Invalid player configuration")
+        }
+        #if os(iOS)
+        setupRemoteControlConfig(playerConfig.remoteControlConfig)
+        #endif
+        if let network = RCTConvert.networkConfig(config?["networkConfig"], callback: callback) {
+            playerConfig.networkConfig = network
+        }
+        setupShouldLoadAdItem(nativeId: nativeId, config: config, playerConfig: playerConfig)
+        setupImaBeforeInitialization(nativeId: nativeId, config: config, playerConfig: playerConfig)
+        let player: Player
+        if let analyticsConfigJson {
+            guard let analytics = RCTConvert.analyticsConfig(analyticsConfigJson) else {
+                callback?.close()
+                throw Exception(name: "InvalidAnalyticsConfig", description: "Invalid analytics configuration")
+            }
+            let metadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfigJson)
+            player = PlayerFactory.create(
+                playerConfig: playerConfig, analyticsConfig: analytics, defaultMetadata: metadata ?? DefaultMetadata()
+            )
+        } else {
+            player = PlayerFactory.create(playerConfig: playerConfig)
+        }
+        PlayerRegistry.register(player: player, nativeId: nativeId, callback: callback)
+        removedSourceReleaser.attach(nativeId: nativeId, player: player)
+        guard let owner = PlayerRegistry.getSharedPlayer(nativeId: nativeId) else {
+            callback?.close()
+            throw Exception(name: "PlayerNotInitialized", description: "Player registration failed")
+        }
+        return owner
+    }
+
     private func setupRemoteControlConfig(_ remoteControlConfig: RemoteControlConfig) {
         remoteControlConfig.prepareSource = { [weak self] _, sourceConfig in
             guard let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self),
@@ -399,13 +414,6 @@ public class PlayerModule: Module {
 
             return castSourceConfig
         }
-    }
-
-    private func setupNetworkConfig(nativeId: NativeId) -> NetworkConfig? {
-        guard let networkModule = self.appContext?.moduleRegistry.get(NetworkModule.self) else {
-            return nil
-        }
-        return networkModule.retrieve(nativeId)
     }
 
     private func setupShouldLoadAdItem(
