@@ -6,6 +6,7 @@ function testSuite(name, platforms, load) {
 }
 
 const testRegistrations = [
+  testSuite('drm', ['android'], () => require('./drmCallbacksTest').default),
   testSuite(
     'source',
     androidAndIos,
