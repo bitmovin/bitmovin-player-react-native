@@ -38,6 +38,8 @@ export type PlayerModuleEvents = {
 
 /** @internal Shared handle used by migrated Player APIs. */
 export interface NativePlayer extends SharedObject {
+  sendCustomDataEvent(customData: Record<string, any>): Promise<void>;
+  getAnalyticsUserId(): Promise<string | null>;
   getBufferLevel(type: string): Promise<BufferLevels | null>;
   setBufferTargetLevel(type: string, value: number): Promise<void>;
 }

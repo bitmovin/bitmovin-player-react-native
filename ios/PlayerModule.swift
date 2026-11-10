@@ -1,3 +1,4 @@
+import BitmovinCollector
 import BitmovinPlayer
 import ExpoModulesCore
 
@@ -28,6 +29,14 @@ public class PlayerModule: Module {
             return owner
         }.runOnQueue(.main)
         Class("Player", SharedPlayer.self) {
+            AsyncFunction("sendCustomDataEvent") { (owner: SharedPlayer, json: [String: Any]) in
+                guard let analytics = owner.player.analytics,
+                      let customData = RCTConvert.analyticsCustomData(json) else { return }
+                analytics.sendCustomDataEvent(customData: customData)
+            }.runOnQueue(.main)
+            AsyncFunction("getAnalyticsUserId") { (owner: SharedPlayer) -> String? in
+                owner.player.analytics?.userId
+            }.runOnQueue(.main)
             AsyncFunction("getBufferLevel") { (owner: SharedPlayer, type: String) -> [String: Any]? in
                 guard let bufferType = RCTConvert.bufferType(type) else { return nil }
                 let level = owner.player.buffer.getLevel(bufferType)

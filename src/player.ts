@@ -113,7 +113,7 @@ export class Player extends NativeInstance<PlayerConfig> {
           this.network?.nativeId,
           this.decoderConfig?.nativeId
         );
-        this.analytics = new AnalyticsApi(this.nativeId);
+        this.analytics = new AnalyticsApi(() => this.native);
       } else {
         await PlayerModule.initializeWithConfig(
           this.nativeId,

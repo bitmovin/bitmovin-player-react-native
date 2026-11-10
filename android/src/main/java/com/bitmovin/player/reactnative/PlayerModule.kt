@@ -7,6 +7,7 @@ import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.advertising.AdvertisingConfig
+import com.bitmovin.player.api.analytics.AnalyticsApi.Companion.analytics
 import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.media.MediaType
@@ -16,6 +17,7 @@ import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toBufferTypeOrThrow
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
+import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toMediaControlConfig
@@ -56,6 +58,15 @@ class PlayerModule : Module() {
         }.runOnQueue(Queues.MAIN)
 
         Class(SharedPlayer::class) {
+            AsyncFunction("sendCustomDataEvent") { shared: SharedPlayer, json: Map<String, Any?> ->
+                checkNotNull(shared.player.analytics) { "Analytics is disabled" }
+                    .sendCustomDataEvent(json.toAnalyticsCustomData())
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getAnalyticsUserId") { shared: SharedPlayer ->
+                checkNotNull(shared.player.analytics) { "Analytics is disabled" }.userId
+            }.runOnQueue(Queues.MAIN)
+
             AsyncFunction("getBufferLevel") { shared: SharedPlayer, type: String ->
                 val buffer = shared.player.buffer
                 val bufferType = type.toBufferTypeOrThrow()
