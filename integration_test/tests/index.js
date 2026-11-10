@@ -7,6 +7,11 @@ function testSuite(name, platforms, load) {
 
 const testRegistrations = [
   testSuite(
+    'offline',
+    androidAndIos,
+    () => require('./offlineOptionsTest').default
+  ),
+  testSuite(
     'advertising',
     androidAndIos,
     () => require('./advertisingTest').default
