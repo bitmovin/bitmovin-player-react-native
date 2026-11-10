@@ -21,6 +21,7 @@
 
 ### Changed
 
+- iOS: **Breaking change:** Replace `Source.remoteControl` and `SourceRemoteControlConfig` with `RemoteControlConfig.prepareSource(type, sourceConfig)`. Return an alternative `SourceConfig` for casting, or `null`/`undefined` to keep the local source configuration. Configure the callback when creating the Player
 - Default `Player.config` to an empty configuration when omitted; `new Player()` remains supported and native SDK defaults continue to apply
 
 - Forward repeated Player and OfflineContentManager destruction and pending Source loads to native instead of suppressing them using TypeScript lifecycle flags

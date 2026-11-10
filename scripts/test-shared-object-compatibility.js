@@ -84,7 +84,7 @@ function fixture(t) {
       isGoogleImaEnabled: true,
     },
     SourceModule: {
-      create: async (...args) => create('source', args[0], args[3]),
+      create: async (...args) => create('source', args[0], args[2]),
     },
     FullscreenHandlerModule: {
       create: (callback) => create('fullscreen', {}, callback),
@@ -243,6 +243,29 @@ test('a Source can be loaded by another Player and still use its DRM API', async
   await source.drm.fairplay.renewExpiringLicense({ skdUri: 'skd://content' });
   assert.deepEqual(calls[2], { native: nativeSource, skdUri: 'skd://content' });
   await second.destroy();
+});
+
+test('remote playback preparation uses the Player configuration callback', async (t) => {
+  const { Player, invoke } = fixture(t);
+  const local = { url: 'https://test/local.m3u8', type: 'hls' };
+  const remote = { url: 'https://test/cast.mpd', type: 'dash' };
+  const player = new Player({
+    remoteControlConfig: {
+      prepareSource: (type, sourceConfig) => {
+        assert.equal(type, 0);
+        assert.deepEqual(sourceConfig, local);
+        return remote;
+      },
+    },
+  });
+  assert.deepEqual(
+    invoke(await player.native, 'remoteControlConfig.prepareSource', [
+      0,
+      local,
+    ]),
+    remote
+  );
+  await player.destroy();
 });
 
 test('play awaits native completion and propagates failures', async (t) => {

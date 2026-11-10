@@ -146,21 +146,6 @@ export interface SourceConfig {
 }
 
 /**
- * The remote control config for a source.
- * @platform iOS
- */
-export interface SourceRemoteControlConfig {
-  /**
-   * The `SourceConfig` for casting.
-   * Enables to play different content when casting.
-   * This can be useful when the remote playback device supports different streaming formats,
-   * DRM systems, etc. than the local device.
-   * If not set, the local source config will be used for casting.
-   */
-  castSourceConfig?: SourceConfig | null;
-}
-
-/**
  * Represents audio and video content that can be loaded into a player.
  */
 export class Source {
@@ -175,15 +160,11 @@ export class Source {
   }
 
   private async createNative(): Promise<NativeSource> {
-    // Existing casting setup assigns source.remoteControl just after new Source().
-    // Read that configuration on the next microtask before creating the native Source.
-    await Promise.resolve();
     const callbacks = createConfigurationCallbacks();
     const native = await createSharedObjectWithCallback(
       (callback) =>
         SourceModule.create(
           callbacks.serialize(this.config),
-          callbacks.serialize(this.remoteControl || undefined),
           callbacks.serialize(this.config.analyticsSourceMetadata),
           callback
         ),
@@ -200,13 +181,6 @@ export class Source {
    */
   readonly drm: SourceDrmApi;
 
-  /**
-   * The remote control config for this source.
-   * This is only supported on iOS.
-   *
-   * @platform iOS
-   */
-  remoteControl: SourceRemoteControlConfig | null = null;
   /**
    * Whether the native {@link Source} object has been created.
    */

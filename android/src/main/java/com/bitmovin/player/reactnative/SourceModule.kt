@@ -11,7 +11,7 @@ class SourceModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("SourceModule")
         AsyncFunction("create") { config: Map<String, Any>?,
-            _: Map<String, Any>?, analytics: Map<String, Any>?, callback: JavaScriptFunction<JavaScriptValue>?, ->
+            analytics: Map<String, Any>?, callback: JavaScriptFunction<JavaScriptValue>?, ->
             SharedSource.create(appContext, config, analytics, callback)
         }.runOnQueue(Queues.MAIN)
 

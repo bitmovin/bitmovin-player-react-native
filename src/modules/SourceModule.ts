@@ -1,7 +1,7 @@
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
-import type { LoadingState, SourceRemoteControlConfig } from '../source';
+import type { LoadingState } from '../source';
 import type { Thumbnail } from '../thumbnail';
 import type { NativeCallback } from '../nativeCallbacks';
 
@@ -29,7 +29,6 @@ export interface NativeSource extends SharedObject<SourceModuleEvents> {
 declare class SourceModule extends NativeModule {
   create(
     config: Record<string, any>,
-    remoteControl?: SourceRemoteControlConfig,
     analyticsSourceMetadata?: Record<string, any>,
     callback?: NativeCallback
   ): Promise<NativeSource>;

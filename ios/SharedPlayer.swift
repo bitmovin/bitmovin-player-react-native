@@ -5,7 +5,6 @@ import Foundation
 
 public final class SharedPlayer: SharedObject {
     let player: Player
-    var source: SharedSource?
     private let callback: CallbackScope?
 
     private init(player: Player, callback: CallbackScope?) {
@@ -27,7 +26,6 @@ public final class SharedPlayer: SharedObject {
         callback?.close()
         // Keep listeners attached for the SDK's final DestroyEvent.
         player.destroy()
-        source = nil
     }
 
     static func create(
@@ -41,13 +39,6 @@ public final class SharedPlayer: SharedObject {
             callback?.close()
             throw Exception(name: "InvalidAnalyticsConfig", description: "Invalid analytics configuration")
         }
-#if os(iOS)
-        weak var owner: SharedPlayer?
-        playerConfig.remoteControlConfig.prepareSource = { _, sourceConfig in
-            guard let source = owner?.source, source.source.sourceConfig === sourceConfig else { return nil }
-            return source.castSourceConfig
-        }
-#endif
         let player: Player
         if let analytics {
             let metadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfig)
@@ -59,10 +50,6 @@ public final class SharedPlayer: SharedObject {
         } else {
             player = PlayerFactory.create(playerConfig: playerConfig)
         }
-        let shared = SharedPlayer(player: player, callback: callback)
-#if os(iOS)
-        owner = shared
-#endif
-        return shared
+        return SharedPlayer(player: player, callback: callback)
     }
 }

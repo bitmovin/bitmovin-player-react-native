@@ -109,7 +109,6 @@ export async function createSharedObjectWithCallback<T extends SharedObject>(
 const configurationFields = new Set([
   'playerConfig',
   'sourceConfig',
-  'castSourceConfig',
   'networkConfig',
   'decoderConfig',
   'drmConfig',
