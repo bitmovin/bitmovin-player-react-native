@@ -1,5 +1,4 @@
 import type { EventSubscription } from 'expo-modules-core';
-import NativeInstance from '../nativeInstance';
 import type {
   BitmovinNativeOfflineEventData,
   OfflineContentManagerListener,
@@ -55,14 +54,13 @@ const handleBitmovinNativeOfflineEvent = (
  *
  * @platform Android, iOS
  */
-export class OfflineContentManager extends NativeInstance<NativeOffline> {
+export class OfflineContentManager {
   constructor(readonly config: OfflineContentConfig) {
-    super(config.nativeId);
-    this.native = this.registerNative(
-      config.nativeId,
-      legacyOfflineRegistry,
-      () => this.createNativeOffline()
+    const instance = legacyOfflineRegistry.create(config.nativeId, () =>
+      this.createNativeOffline()
     );
+    this.nativeId = instance.nativeId;
+    this.native = instance.native;
     void this.native.then(
       (native) => {
         this.isInitialized = true;
@@ -71,6 +69,9 @@ export class OfflineContentManager extends NativeInstance<NativeOffline> {
       () => {}
     );
   }
+
+  /** User-defined compatibility ID, or a generated UUIDv4. */
+  readonly nativeId: string;
 
   /** @internal */
   readonly native: Promise<NativeOffline>;

@@ -149,8 +149,6 @@ export type PlaybackFinishedEvent = Event;
  *
  * This interface only type hints what should be the shape of a {@link Source} object inside an event's
  * payload during runtime so it has no direct relation with the `Source` class present in `src/source.ts`.
- *
- * Do not mistake it for a `NativeInstance` type.
  */
 export interface EventSource {
   /**

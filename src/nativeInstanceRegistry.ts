@@ -1,6 +1,17 @@
+import * as Crypto from 'expo-crypto';
 import type { SharedObject } from 'expo-modules-core/types';
 import type { NativePlayer } from './modules/PlayerModule';
 import type { NativeOffline } from './offline/offlineModule';
+
+export interface NativeInstanceConfig {
+  /**
+   * Legacy identifier for constructing wrappers that share one native object.
+   *
+   * @deprecated Retain and reuse the Player or OfflineContentManager instance instead of constructing aliases by ID. Kept only for backward compatibility.
+   * @defaultValue A generated UUIDv4.
+   */
+  nativeId?: string;
+}
 
 /**
  * Backward compatibility for nativeId-based construction: live wrappers created with
@@ -12,14 +23,16 @@ import type { NativeOffline } from './offline/offlineModule';
 export class NativeInstanceRegistry<T extends SharedObject> {
   private readonly instances = new Map<string, WeakRef<Promise<T>>>();
 
-  getOrCreate(nativeId: string, factory: () => Promise<T>): Promise<T> {
-    return (
-      this.instances.get(nativeId)?.deref() ?? this.register(nativeId, factory)
-    );
+  create(nativeId: string | undefined, factory: () => Promise<T>) {
+    const id = nativeId ?? Crypto.randomUUID();
+    const native =
+      (nativeId == null ? undefined : this.instances.get(id)?.deref()) ??
+      this.register(id, factory);
+    return { nativeId: id, native };
   }
 
   /** Register a new ID directly, without looking for an existing alias. */
-  register(nativeId: string, factory: () => Promise<T>): Promise<T> {
+  private register(nativeId: string, factory: () => Promise<T>): Promise<T> {
     for (const [id, reference] of this.instances) {
       if (!reference.deref()) this.instances.delete(id);
     }

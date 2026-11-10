@@ -4,7 +4,6 @@ import PlayerModule, {
   retainLoadedOfflineContent,
   retainLoadedSource,
 } from './modules/PlayerModule';
-import NativeInstance from './nativeInstance';
 import { legacyPlayerRegistry } from './nativeInstanceRegistry';
 import type { SourceConfig } from './source';
 import { Source } from './source';
@@ -32,14 +31,13 @@ import {
  * Can be attached to {@link PlayerView} component in order to use Bitmovin's Player Web UI.
  * @see PlayerView
  */
-export class Player extends NativeInstance<NativePlayer> {
+export class Player {
   constructor(readonly config: PlayerConfig = {}) {
-    super(config.nativeId);
-    this.native = this.registerNative(
-      config.nativeId,
-      legacyPlayerRegistry,
-      () => this.createNativePlayer()
+    const instance = legacyPlayerRegistry.create(config.nativeId, () =>
+      this.createNativePlayer()
     );
+    this.nativeId = instance.nativeId;
+    this.native = instance.native;
     void this.native.then(
       () => {
         this.isInitialized = true;
@@ -52,6 +50,9 @@ export class Player extends NativeInstance<NativePlayer> {
     this.buffer = new BufferApi(this.native);
     this.mediaControls = new MediaControlsApi(this.native);
   }
+
+  /** User-defined compatibility ID, or a generated UUIDv4. */
+  readonly nativeId: string;
 
   /** @internal */
   readonly native: Promise<NativePlayer>;
