@@ -170,4 +170,5 @@ class SourceModule : Module() {
 
 sealed class SourceException(message: String) : CodedException(message) {
     class InvalidSourceConfig : SourceException("Invalid source configuration")
+    class SourceNotInitialized(nativeId: NativeId) : SourceException("Source $nativeId is not initialized")
 }
