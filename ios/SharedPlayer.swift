@@ -4,7 +4,8 @@ import ExpoModulesCore
 import Foundation
 
 public final class SharedPlayer: SharedObject {
-    let player: Player
+    /// SDK player for native integrations. Retain this owner while using the player.
+    public let player: Player
     private let callback: CallbackScope?
 
     private init(player: Player, callback: CallbackScope?) {
