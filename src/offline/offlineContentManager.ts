@@ -13,7 +13,7 @@ import OfflineModule, {
   type NativeOfflineEvents,
 } from './offlineModule';
 import { legacyOfflineRegistry } from '../nativeInstanceRegistry';
-import { NativeConfigSerializer } from '../nativeCallbacks';
+import { NativeConfigSerializer } from '../native/nativeConfigSerializer';
 
 const handleBitmovinNativeOfflineEvent = (
   data: BitmovinNativeOfflineEventData,

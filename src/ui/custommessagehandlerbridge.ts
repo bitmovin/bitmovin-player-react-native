@@ -3,7 +3,7 @@ import type { CustomMessageSender } from './custommessagesender';
 import CustomMessageHandlerModule, {
   type NativeCustomMessage,
 } from './customMessageHandlerModule';
-import { NativeCallbacks } from '../nativeCallbacks';
+import { NativeCallbacks } from '../native/nativeCallbacks';
 
 /** Takes care of JS/Native communication for a CustomMessageHandler. */
 export class CustomMessageHandlerBridge implements CustomMessageSender {

@@ -66,7 +66,7 @@
 - Workflow
   - Bootstrap from repo root: `yarn bootstrap`. Re-run prebuilds after env/native/config changes (`yarn example prebuild`, `yarn integration-test prebuild`).
   - Public API: export via `src/index.ts`; keep native module/view names identical to TS wrappers; maintain event parity with TS types.
-  - Compatibility IDs live only in `src/nativeInstanceRegistry.ts`; native methods and view props use SharedObjects directly. Configuration callbacks use `src/nativeCallbacks.ts`, without request-ID tables.
+  - Compatibility IDs live only in `src/nativeInstanceRegistry.ts`; native methods and view props use SharedObjects directly. Configuration callbacks use `src/native/nativeConfigSerializer.ts`, without request-ID tables.
 - Secrets
   - Never commit keys. Store license keys only in `.env` under `example/` and `integration_test/` as documented.
 - Validation

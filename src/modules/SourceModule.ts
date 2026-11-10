@@ -3,7 +3,7 @@ import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
 import type { LoadingState } from '../source';
 import type { Thumbnail } from '../thumbnail';
-import type { NativeCallback } from '../nativeCallbacks';
+import type { NativeCallback } from '../native/nativeCallbacks';
 
 export type SourceModuleEvents = Record<string, never>;
 

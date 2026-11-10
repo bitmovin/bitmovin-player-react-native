@@ -14,7 +14,7 @@ before(() => {
   const program = ts.createProgram(
     [
       path.resolve(__dirname, '../src/network/index.ts'),
-      path.resolve(__dirname, '../src/nativeCallbacks.ts'),
+      path.resolve(__dirname, '../src/native/nativeConfigSerializer.ts'),
     ],
     {
       rootDir: path.resolve(__dirname, '../src'),
@@ -64,7 +64,9 @@ function fixture(t, config, rejectAfterCompletion = false) {
     return {};
   };
   const { HttpRequestType } = require(path.join(directory, 'network'));
-  const helpers = require(path.join(directory, 'nativeCallbacks.js'));
+  const helpers = require(
+    path.join(directory, 'native/nativeConfigSerializer.js')
+  );
   const serializer = new helpers.NativeConfigSerializer();
   const nativeConfig = serializer.serialize({ networkConfig: config });
   const invoke = (kind, type, payload) => {

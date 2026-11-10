@@ -2,7 +2,7 @@ import type { FullscreenHandler } from './fullscreenhandler';
 import FullscreenHandlerModule, {
   type NativeFullscreen,
 } from './fullscreenHandlerModule';
-import { NativeCallbacks } from '../nativeCallbacks';
+import { NativeCallbacks } from '../native/nativeCallbacks';
 
 /** Takes care of JS/Native communication for a FullscreenHandler. */
 export class FullscreenHandlerBridge {

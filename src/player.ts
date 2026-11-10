@@ -13,7 +13,7 @@ import type { AdItem } from './advertising';
 import { BufferApi } from './bufferApi';
 import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
-import { NativeConfigSerializer } from './nativeCallbacks';
+import { NativeConfigSerializer } from './native/nativeConfigSerializer';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player

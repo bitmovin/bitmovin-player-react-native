@@ -5,7 +5,7 @@ import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
 import SourceModule, { type NativeSource } from './modules/SourceModule';
-import { NativeConfigSerializer } from './nativeCallbacks';
+import { NativeConfigSerializer } from './native/nativeConfigSerializer';
 
 /**
  * Types of media that can be handled by the player.
