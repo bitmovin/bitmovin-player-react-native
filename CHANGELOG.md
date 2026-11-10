@@ -19,6 +19,8 @@
 
 ### Changed
 
+- Android: Use Expo 57's Gradle plugin. For apps without root-project SDK overrides, the library's compile SDK and target SDK defaults are now API 36, so install Android SDK Platform 36. The minimum SDK stays API 24, existing host overrides are honored, and the app keeps its own target SDK
+
 - **Breaking change:** `SourceUnloadedEvent.source` is now optional. Android does not provide it for events received via `Player.on` or the `PlayerView` event props, as the native event does not carry the source. It is provided for events received via `Source.on`.
 - `PlayerView` event props are delivered through the player's event subscriptions on all platforms. The order of fullscreen and picture-in-picture events relative to player events can differ slightly. On Android, events emitted right after loading (e.g. `onPlayerActive`) are no longer lost, and two `PlayerView`s showing the same player now both receive the events. On iOS, `onEvent` now only receives the events of the documented `PlayerView` props, instead of every event of the native player.
 - Update Bitmovin's native iOS SDK version to [`3.130.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31300)
