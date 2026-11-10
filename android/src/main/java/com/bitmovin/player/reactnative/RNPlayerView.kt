@@ -40,7 +40,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private var scalingMode: ScalingMode? = null
     private var requestedFullscreenValue: Boolean? = null
     private var requestedPictureInPictureValue: Boolean? = null
-    private var fullscreenBridgeId: NativeId? = null
+    private var fullscreenHandler: SharedFullscreen? = null
+    private var customMessageHandler: SharedCustomMessage? = null
 
     private val onBmpPlayerViewReady by EventDispatcher()
     private val onBmpFullscreenEnabled by EventDispatcher()
@@ -208,9 +209,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         scalingMode?.let {
             playerView.scalingMode = it
         }
-        fullscreenBridgeId?.let {
-            attachFullscreenBridge(it)
-        }
+        fullscreenHandler?.let { playerView.setFullscreenHandler(it) }
         requestedFullscreenValue?.let {
             setFullscreen(it)
         }
@@ -222,7 +221,6 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     fun attachPlayer(
         playerId: NativeId,
         playerViewConfigWrapper: RNPlayerViewConfigWrapper?,
-        customMessageHandlerBridgeId: NativeId?,
         enableBackgroundPlayback: Boolean,
         isPictureInPictureEnabledOnPlayer: Boolean,
         userInterfaceTypeName: String?,
@@ -291,12 +289,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
                 }
             }
         }
-        customMessageHandlerBridgeId?.let {
-            appContext.registry.getModule<CustomMessageHandlerModule>()?.getInstance(it)
-                ?.let { customMessageHandlerBridge ->
-                    playerView?.setCustomMessageHandler(customMessageHandlerBridge.customMessageHandler)
-                }
-        }
+        customMessageHandler?.let { playerView?.setCustomMessageHandler(it.customMessageHandler) }
         onBmpPlayerViewReady(mapOf("playerId" to playerId))
     }
 
@@ -472,22 +465,14 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         playerView?.scalingMode = this.scalingMode ?: ScalingMode.Fit
     }
 
-    fun attachFullscreenBridge(fullscreenBridgeId: NativeId) {
-        this.fullscreenBridgeId = fullscreenBridgeId
-        val playerView = playerView ?: return
-        appContext.registry.getModule<FullscreenHandlerModule>()?.getInstance(fullscreenBridgeId)
-            ?.let { fullscreenBridge ->
-                playerView.setFullscreenHandler(fullscreenBridge)
-            } ?: throw IllegalArgumentException("Fullscreen bridge with ID $fullscreenBridgeId not found")
-        requestedFullscreenValue?.let { isFullscreen ->
-            playerView.let {
-                if (isFullscreen) {
-                    it.enterFullscreen()
-                } else {
-                    it.exitFullscreen()
-                }
-            }
-        }
+    fun attachFullscreenHandler(handler: SharedFullscreen?) {
+        fullscreenHandler = handler
+        handler?.let { playerView?.setFullscreenHandler(it) }
+    }
+
+    fun attachCustomMessageHandler(handler: SharedCustomMessage?) {
+        customMessageHandler = handler
+        handler?.let { playerView?.setCustomMessageHandler(it.customMessageHandler) }
     }
 
     fun updatePictureInPictureActions(pictureInPictureActions: List<PictureInPictureAction>) {

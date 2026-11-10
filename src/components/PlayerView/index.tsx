@@ -76,7 +76,6 @@ export function PlayerView({
 
   const nativePlayerViewConfig: NativePlayerViewConfig = {
     playerId: player.nativeId,
-    customMessageHandlerBridgeId: customMessageHandlerBridge.current?.nativeId,
     enableBackgroundPlayback:
       player.config?.playbackConfig?.isBackgroundPlaybackEnabled,
     isPictureInPictureEnabledOnPlayer:
@@ -160,7 +159,8 @@ export function PlayerView({
       isFullscreenRequested={isFullscreenRequested}
       isPictureInPictureRequested={isPictureInPictureRequested}
       scalingMode={scalingMode}
-      fullscreenBridgeId={fullscreenBridge.current?.nativeId}
+      fullscreenHandler={fullscreenBridge.current?.native}
+      customMessageHandler={customMessageHandlerBridge.current?.native}
       onBmpPlayerViewReady={(event) => {
         if (
           currentPlayer.current !== player ||

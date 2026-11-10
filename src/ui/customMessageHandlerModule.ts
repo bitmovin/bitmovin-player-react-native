@@ -1,45 +1,16 @@
 import type { NativeModule } from 'expo-modules-core';
+import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
+import type { NativeCallback } from '../native/nativeCallbacks';
 
-export type CustomMessageHandlerModuleEvents = {
-  onReceivedSynchronousMessage: ({
-    nativeId,
-    id,
-    message,
-    data,
-  }: {
-    nativeId: string;
-    id: number;
-    message: string;
-    data: string | undefined;
-  }) => void;
-  onReceivedAsynchronousMessage: ({
-    nativeId,
-    message,
-    data,
-  }: {
-    nativeId: string;
-    message: string;
-    data: string | undefined;
-  }) => void;
-};
+/** @internal */
+export interface NativeCustomMessage extends SharedObject {
+  sendMessage(message: string, data?: string): Promise<void>;
+  destroy(): Promise<void>;
+}
 
-/**
- * Native CustomMessageHandlerModule using Expo modules API.
- * Provides modern async/await interface while maintaining backward compatibility.
- */
-declare class CustomMessageHandlerModule extends NativeModule<CustomMessageHandlerModuleEvents> {
-  registerHandler(nativeId: string): Promise<void>;
-  destroy(nativeId: string): Promise<void>;
-  onReceivedSynchronousMessageResult(
-    id: number,
-    result: string | undefined
-  ): Promise<void>;
-  sendMessage(
-    nativeId: string,
-    message: string,
-    data: string | undefined
-  ): Promise<void>;
+declare class CustomMessageHandlerModule extends NativeModule {
+  create(callback: NativeCallback): NativeCustomMessage;
 }
 
 export default requireNativeModule<CustomMessageHandlerModule>(

@@ -42,11 +42,9 @@ public class RNPlayerViewManager: Module {
                 let playerId = playerInfo?["playerId"] as? NativeId
                 let playerViewConfigWrapper = RCTConvert
                     .rnPlayerViewConfig(playerInfo?["playerViewConfig"] as? [String: Any])
-                let customMessageHandlerBridgeId = playerInfo?["customMessageHandlerBridgeId"] as? NativeId
                 view.attachPlayer(
                     playerId: playerId,
-                    playerViewConfigWrapper: playerViewConfigWrapper,
-                    customMessageHandlerBridgeId: customMessageHandlerBridgeId
+                    playerViewConfigWrapper: playerViewConfigWrapper
                 )
                 self?.registerView(view, playerId: playerId)
             }
@@ -59,8 +57,11 @@ public class RNPlayerViewManager: Module {
             Prop("isPictureInPictureRequested") { (view: RNPlayerView, isPictureInPictureRequested: Bool) in
                 view.setPictureInPicture(enterPictureInPicture: isPictureInPictureRequested)
             }
-            Prop("fullscreenBridgeId") { (view: RNPlayerView, fullscreenBridgeId: String) in
-                view.attachFullscreenBridge(fullscreenBridgeId: fullscreenBridgeId)
+            Prop("fullscreenHandler") { (view: RNPlayerView, handler: SharedFullscreen?) in
+                view.setFullscreenHandler(handler)
+            }
+            Prop("customMessageHandler") { (view: RNPlayerView, handler: SharedCustomMessage?) in
+                view.setCustomMessageHandler(handler)
             }
             Events(
                 "onBmpPlayerViewReady",

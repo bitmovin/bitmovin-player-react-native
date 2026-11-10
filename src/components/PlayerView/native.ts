@@ -1,3 +1,5 @@
+import type { NativeFullscreen } from '../../ui/fullscreenHandlerModule';
+import type { NativeCustomMessage } from '../../ui/customMessageHandlerModule';
 import { requireNativeViewManager } from 'expo-modules-core';
 import type { NativeSyntheticEvent, ViewStyle } from 'react-native';
 import type { NativePlayerViewEvents } from './nativeEvents';
@@ -8,7 +10,6 @@ import type { RefObject } from 'react';
 export interface NativePlayerViewConfig {
   playerViewConfig?: PlayerViewConfig;
   playerId: string;
-  customMessageHandlerBridgeId?: string;
   enableBackgroundPlayback?: boolean;
   isPictureInPictureEnabledOnPlayer?: boolean;
   userInterfaceTypeName?: string;
@@ -28,7 +29,8 @@ export interface NativePlayerViewProps extends NativePlayerViewEvents {
   isPictureInPictureRequested?: boolean;
   style?: ViewStyle;
   config: NativePlayerViewConfig;
-  fullscreenBridgeId?: string;
+  fullscreenHandler?: NativeFullscreen;
+  customMessageHandler?: NativeCustomMessage;
 }
 
 /**

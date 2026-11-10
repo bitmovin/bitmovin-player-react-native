@@ -67,7 +67,6 @@ class RNPlayerViewManager : Module() {
             Prop("config") { view: RNPlayerView, playerInfo: Map<String, Any>? ->
                 val playerId = playerInfo?.get("playerId") as? String
                     ?: throw IllegalArgumentException("Player info must contain 'playerId' field")
-                val customMessageHandlerBridgeId = playerInfo.getString("customMessageHandlerBridgeId")
                 val enableBackgroundPlayback = playerInfo.getBooleanOrNull("enableBackgroundPlayback") ?: false
                 val isPictureInPictureEnabledOnPlayer =
                     playerInfo.getBooleanOrNull("isPictureInPictureEnabledOnPlayer") ?: false
@@ -91,7 +90,6 @@ class RNPlayerViewManager : Module() {
                 view.attachPlayer(
                     playerId,
                     playerViewConfigWrapper,
-                    customMessageHandlerBridgeId,
                     enableBackgroundPlayback,
                     isPictureInPictureEnabledOnPlayer,
                     userInterfaceTypeName,
@@ -113,8 +111,12 @@ class RNPlayerViewManager : Module() {
                 view.setPictureInPicture(isPictureInPicture)
             }
 
-            Prop("fullscreenBridgeId") { view: RNPlayerView, fullscreenBridgeId: String ->
-                view.attachFullscreenBridge(fullscreenBridgeId)
+            Prop("fullscreenHandler") { view: RNPlayerView, handler: SharedFullscreen? ->
+                view.attachFullscreenHandler(handler)
+            }
+
+            Prop("customMessageHandler") { view: RNPlayerView, handler: SharedCustomMessage? ->
+                view.attachCustomMessageHandler(handler)
             }
 
             Events(
