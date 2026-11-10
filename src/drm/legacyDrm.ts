@@ -44,10 +44,6 @@ export class LegacyDrm extends NativeInstance<DrmConfig> {
 
   private eventSubscriptions: EventSubscription[] = [];
 
-  constructor(config?: DrmConfig) {
-    super(config);
-  }
-
   /**
    * Allocates the DRM config instance and its resources natively.
    */
