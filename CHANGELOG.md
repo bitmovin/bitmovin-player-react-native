@@ -48,6 +48,7 @@
 
 ### Internal
 
+- Use weak forwarding for offline event listeners and UI callbacks so native references do not retain their JavaScript owners
 - Return synchronous configuration callback values directly and simplify native resource teardown
 - Report callback-result conversion failures in JavaScript while completing native network requests with their fallback
 - Keep native Player and OfflineContentManager references while their TypeScript wrappers remain reachable after `destroy()`. Pass native creation Promises directly to API helpers without empty native objects

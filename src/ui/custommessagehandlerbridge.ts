@@ -3,31 +3,34 @@ import type { CustomMessageSender } from './custommessagesender';
 import CustomMessageHandlerModule, {
   type NativeCustomMessage,
 } from './customMessageHandlerModule';
-import { createNativeCallback } from '../nativeCallbacks';
+import { createNativeCallback, weakNativeCallback } from '../nativeCallbacks';
 
 /** Takes care of JS/Native communication for a CustomMessageHandler. */
 export class CustomMessageHandlerBridge implements CustomMessageSender {
   /** @internal */
   native?: NativeCustomMessage;
   private customMessageHandler?: CustomMessageHandler;
+  private readonly callback = createNativeCallback(
+    (operation, [message, data]) => {
+      if (operation === 'synchronousMessage') {
+        return this.customMessageHandler?.receivedSynchronousMessage(
+          message,
+          data ?? undefined
+        );
+      }
+      if (operation === 'asynchronousMessage') {
+        this.customMessageHandler?.receivedAsynchronousMessage(
+          message,
+          data ?? undefined
+        );
+      }
+      return null;
+    }
+  );
 
   constructor() {
     this.native = CustomMessageHandlerModule.create(
-      createNativeCallback((operation, [message, data]) => {
-        if (operation === 'synchronousMessage') {
-          return this.customMessageHandler?.receivedSynchronousMessage(
-            message,
-            data ?? undefined
-          );
-        }
-        if (operation === 'asynchronousMessage') {
-          this.customMessageHandler?.receivedAsynchronousMessage(
-            message,
-            data ?? undefined
-          );
-        }
-        return null;
-      })
+      weakNativeCallback(new WeakRef(this.callback))
     );
   }
 

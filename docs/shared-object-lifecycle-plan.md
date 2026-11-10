@@ -21,6 +21,9 @@
   cycle. The canonical JS NativePlayer stores its loaded Source list and offline
   backend directly, including when used by aliases. Replacement, unload, and
   destruction release those references after native completion.
+- Offline event listeners hold a weak manager reference. UI bridges own their
+  dispatchers in JS and give native only weak forwarders, so abandoned renders
+  do not leave a native-held callback rooting the bridge.
 - Configuration callbacks share their consuming native object's scope. They
   have no independent SharedObject, lifecycle, or TS dependency list.
 - Offline factories receive an event endpoint subscribed before SDK creation.

@@ -13,9 +13,12 @@ after(() => fs.rmSync(root, { recursive: true, force: true }));
 
 before(() => {
   const program = ts.createProgram(
-    ['player.ts', 'source.ts'].map((name) =>
-      path.resolve(__dirname, '../src', name)
-    ),
+    [
+      'player.ts',
+      'source.ts',
+      'ui/fullscreenhandlerbridge.ts',
+      'ui/custommessagehandlerbridge.ts',
+    ].map((name) => path.resolve(__dirname, '../src', name)),
     {
       rootDir: path.resolve(__dirname, '../src'),
       outDir: compiled,
@@ -28,7 +31,7 @@ before(() => {
   assert.equal(program.emit().emitSkipped, false);
 });
 
-// Exercise public TS orchestration. These doubles do not establish native SDK
+// Exercise TS orchestration. These doubles do not establish native SDK
 // cleanup, Expo conversion, garbage collection, or playback behavior.
 function fixture(t) {
   const directory = fs.mkdtempSync(path.join(root, 'case-'));
@@ -64,6 +67,7 @@ function fixture(t) {
         calls.push({ native, source });
       },
       unload: async () => {},
+      setIsFullscreenActive: async () => {},
       getVolume: async () => 37,
       getMetadata: async () => ({ title: 'shared source' }),
       drmFairplayRenewExpiringLicense: async (skdUri) => {
@@ -82,6 +86,12 @@ function fixture(t) {
     SourceModule: {
       create: async (...args) => create('source', args[0], args[3]),
     },
+    FullscreenHandlerModule: {
+      create: (callback) => create('fullscreen', {}, callback),
+    },
+    CustomMessageHandlerModule: {
+      create: (callback) => create('custom-message', {}, callback),
+    },
     NativeCallbacksModule: {},
     OfflineModule: {},
     DebugModule: {},
@@ -97,9 +107,17 @@ function fixture(t) {
   return {
     Player,
     Source,
+    FullscreenHandlerBridge: require(
+      path.join(directory, 'ui/fullscreenhandlerbridge.js')
+    ).FullscreenHandlerBridge,
+    CustomMessageHandlerBridge: require(
+      path.join(directory, 'ui/custommessagehandlerbridge.js')
+    ).CustomMessageHandlerBridge,
     modules,
     calls,
     creations,
+    dispatch: (native, operation, args = []) =>
+      callbacks.get(native)?.callback(operation, args),
     invoke: (native, field, args, mutating = false) => {
       const entry = callbacks.get(native);
       const token = field
@@ -124,6 +142,41 @@ test('Player aliases share eager native creation', async (t) => {
   assert.equal(await alias.getVolume(), 37);
   assert.equal(player.isInitialized, true);
   await player.destroy();
+});
+
+test('fullscreen callbacks reach the current JS handler', (t) => {
+  const { FullscreenHandlerBridge, dispatch } = fixture(t);
+  const bridge = new FullscreenHandlerBridge();
+  const handler = {
+    isFullscreenActive: false,
+    enterFullscreen() {
+      this.isFullscreenActive = true;
+    },
+    exitFullscreen() {
+      this.isFullscreenActive = false;
+    },
+  };
+  bridge.setFullscreenHandler(handler);
+  assert.equal(dispatch(bridge.native, 'enterFullscreen'), true);
+  assert.equal(dispatch(bridge.native, 'exitFullscreen'), false);
+  bridge.destroy();
+});
+
+test('custom messages preserve synchronous replies and async delivery', (t) => {
+  const { CustomMessageHandlerBridge, dispatch } = fixture(t);
+  const bridge = new CustomMessageHandlerBridge();
+  const received = [];
+  bridge.setCustomMessageHandler({
+    receivedSynchronousMessage: (message, data) => `${message}:${data}`,
+    receivedAsynchronousMessage: (...args) => received.push(args),
+  });
+  assert.equal(
+    dispatch(bridge.native, 'synchronousMessage', ['get', 'value']),
+    'get:value'
+  );
+  dispatch(bridge.native, 'asynchronousMessage', ['notify', 'value']);
+  assert.deepEqual(received, [['notify', 'value']]);
+  bridge.destroy();
 });
 
 test('Player creation failures reach callers', async (t) => {

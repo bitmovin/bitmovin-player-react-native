@@ -117,16 +117,23 @@ export class OfflineContentManager {
     if (this.eventSubscription) return;
     this.eventSubscription = events.addListener(
       'onBitmovinOfflineEvent',
-      (event) => {
-        handleBitmovinNativeOfflineEvent(
-          {
-            ...event,
-            nativeId: this.nativeId,
-          } as BitmovinNativeOfflineEventData,
-          this.listeners
-        );
-      }
+      OfflineContentManager.weakEventListener(new WeakRef(this))
     );
+  }
+
+  // A separate scope keeps the native-held listener from capturing the manager.
+  private static weakEventListener(reference: WeakRef<OfflineContentManager>) {
+    return (event: Omit<BitmovinNativeOfflineEventData, 'nativeId'>) => {
+      const manager = reference.deref();
+      if (!manager) return;
+      handleBitmovinNativeOfflineEvent(
+        {
+          ...event,
+          nativeId: manager.nativeId,
+        } as BitmovinNativeOfflineEventData,
+        manager.listeners
+      );
+    };
   }
 
   /**

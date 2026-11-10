@@ -80,7 +80,8 @@ export function createNativeCallback(
 const callbackOwner = Symbol('callbackOwner');
 
 // This scope receives only the WeakRef, so the native function cannot retain the dispatcher.
-function weakNativeCallback(
+/** @internal */
+export function weakNativeCallback(
   reference: WeakRef<NativeCallback>
 ): NativeCallback {
   return (operation, args, completion, mutating, fallbackArgument) => {
