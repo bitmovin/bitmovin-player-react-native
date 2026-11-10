@@ -7,6 +7,11 @@ function testSuite(name, platforms, load) {
 
 const testRegistrations = [
   testSuite(
+    'shared-object-lifecycle',
+    androidAndIos,
+    () => require('./sharedObjectLifecycleTest').default
+  ),
+  testSuite(
     'offline',
     androidAndIos,
     () => require('./offlineOptionsTest').default

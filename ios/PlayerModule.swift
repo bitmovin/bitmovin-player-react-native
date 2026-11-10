@@ -248,8 +248,6 @@ public class PlayerModule: Module {
             // Detach only after destroying, so the sources that `destroy` removes while unloading are released.
             self?.removedSourceReleaser.detach(nativeId: nativeId)
             self?.eventRelay.offAll(nativeId: nativeId)
-            self?.appContext?.moduleRegistry.get(RNPlayerViewManager.self)?
-                .discardPendingPictureInPictureValues(playerId: nativeId)
         }.runOnQueue(.main)
         AsyncFunction("setPreparedImaSettings") { [weak self] (id: Int, settings: [String: Any]?) in
             self?.imaSettingsWaiter.complete(id: id, with: settings ?? [:])

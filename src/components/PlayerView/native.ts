@@ -1,15 +1,16 @@
-import type { NativeFullscreen } from '../../ui/fullscreenHandlerModule';
-import type { NativeCustomMessage } from '../../ui/customMessageHandlerModule';
 import { requireNativeViewManager } from 'expo-modules-core';
 import type { NativeSyntheticEvent, ViewStyle } from 'react-native';
 import type { NativePlayerViewEvents } from './nativeEvents';
 import type { ScalingMode } from '../../styleConfig';
 import type { PlayerViewConfig } from './playerViewConfig';
 import type { RefObject } from 'react';
+import type { NativePlayer } from '../../modules/playerModule';
+import type { NativeFullscreen } from '../../ui/fullscreenHandlerModule';
+import type { NativeCustomMessage } from '../../ui/customMessageHandlerModule';
+import type { PictureInPictureAction } from './pictureInPictureAction';
 
 export interface NativePlayerViewConfig {
   playerViewConfig?: PlayerViewConfig;
-  playerId: string;
   enableBackgroundPlayback?: boolean;
   isPictureInPictureEnabledOnPlayer?: boolean;
   userInterfaceTypeName?: string;
@@ -20,9 +21,10 @@ export interface NativePlayerViewConfig {
  * Mostly maps the event props defined in native code.
  */
 export interface NativePlayerViewProps extends NativePlayerViewEvents {
-  ref?: RefObject<any>;
+  player: NativePlayer;
+  ref?: RefObject<NativePlayerViewRef | null>;
   onBmpPlayerViewReady?: (
-    event: NativeSyntheticEvent<{ playerId: string }>
+    event: NativeSyntheticEvent<Record<string, never>>
   ) => void;
   isFullscreenRequested?: boolean;
   scalingMode?: ScalingMode;
@@ -31,6 +33,13 @@ export interface NativePlayerViewProps extends NativePlayerViewEvents {
   config: NativePlayerViewConfig;
   fullscreenHandler?: NativeFullscreen;
   customMessageHandler?: NativeCustomMessage;
+}
+
+export interface NativePlayerViewRef {
+  updatePictureInPictureActions(
+    actions: PictureInPictureAction[]
+  ): Promise<void>;
+  setIsPictureInPictureEnabled(enabled: boolean): Promise<void>;
 }
 
 /**

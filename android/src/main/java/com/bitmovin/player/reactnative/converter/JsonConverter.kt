@@ -92,9 +92,7 @@ import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.CallbackScope
 import com.bitmovin.player.reactnative.PictureInPictureAction
 import com.bitmovin.player.reactnative.PictureInPictureConfig
-import com.bitmovin.player.reactnative.RNBufferLevels
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
-import com.bitmovin.player.reactnative.RNStyleConfigWrapper
 import com.bitmovin.player.reactnative.SourceRegistry
 import com.bitmovin.player.reactnative.UserInterfaceType
 import com.bitmovin.player.reactnative.converter.toPictureInPictureActions
@@ -105,7 +103,6 @@ import com.bitmovin.player.reactnative.extensions.getInt
 import com.bitmovin.player.reactnative.extensions.getMap
 import com.bitmovin.player.reactnative.extensions.getName
 import com.bitmovin.player.reactnative.extensions.getString
-import com.bitmovin.player.reactnative.extensions.getStringArray
 import com.bitmovin.player.reactnative.extensions.toBase64DataUri
 import com.bitmovin.player.reactnative.extensions.toMap
 import com.bitmovin.player.reactnative.extensions.toMapList
@@ -867,13 +864,6 @@ private fun Map<String, Any?>.toVariant(): UiConfig.WebUi.Variant? {
     }
 }
 
-private fun Map<String, Any?>.toUserInterfaceTypeFromPlayerConfig(): UserInterfaceType? =
-    when (getMap("styleConfig")?.getString("userInterfaceType")) {
-        "Subtitle" -> UserInterfaceType.Subtitle
-        "Bitmovin" -> UserInterfaceType.Bitmovin
-        else -> null
-    }
-
 fun String.toUserInterfaceType(): UserInterfaceType? = when (this) {
     "Subtitle" -> UserInterfaceType.Subtitle
     "Bitmovin" -> UserInterfaceType.Bitmovin
@@ -884,13 +874,6 @@ fun Map<String, Any?>.toRNPlayerViewConfigWrapper() = RNPlayerViewConfigWrapper(
     playerViewConfig = toPlayerViewConfig(),
     pictureInPictureConfig = getMap("pictureInPictureConfig")?.toPictureInPictureConfig(),
 )
-
-fun Map<String, Any?>.toRNStyleConfigWrapperFromPlayerConfig(): RNStyleConfigWrapper? {
-    return RNStyleConfigWrapper(
-        styleConfig = toStyleConfig(),
-        userInterfaceType = toUserInterfaceTypeFromPlayerConfig() ?: return null,
-    )
-}
 
 fun Map<String, Any?>.toLiveConfig(): LiveConfig = LiveConfig().apply {
     withDouble("minTimeshiftBufferDepth") { minTimeShiftBufferDepth = it }
@@ -996,12 +979,7 @@ fun BufferLevel.toJson(): Map<String, Any> = mapOf(
     "type" to type.toJson(),
 )
 
-fun RNBufferLevels.toJson(): Map<String, Any> = mapOf(
-    "audio" to audio.toJson(),
-    "video" to video.toJson(),
-)
 
-// Extension function to convert string to BufferType
 fun String.toBufferTypeOrThrow(): BufferType = when (this.lowercase()) {
     "forwardduration" -> BufferType.ForwardDuration
     "backwardduration" -> BufferType.BackwardDuration

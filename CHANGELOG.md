@@ -4,6 +4,8 @@
 
 ### Changed
 
+- PlayerView attaches the owned native Player directly. Picture-in-picture actions and enabled state belong to the native view, so remounting a view does not depend on a player-ID lookup
+
 - Access playlists through `player.playlist`. `PlaylistApi` no longer exposes a binding ID or accepts one in its internal constructor
 
 - Android: Decoder priority callbacks use the Player's callback owner instead of a separate configuration lifecycle and binding ID. Calls have a 250 ms deadline and use the SDK decoder order when the callback fails or misses the deadline

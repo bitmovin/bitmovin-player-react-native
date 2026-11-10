@@ -2,14 +2,14 @@ import type { RefObject } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
-import type { NativePlayerViewConfig } from './native';
+import type { NativePlayerViewConfig, NativePlayerViewRef } from './native';
 import { NativePlayerView } from './native';
 import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenHandlerBridge';
 import { CustomMessageHandlerBridge } from '../../ui/customMessageHandlerBridge';
 import type { PlayerViewProps } from './properties';
 import type { PictureInPictureAction } from './pictureInPictureAction';
-import RNPlayerViewManagerModule from '../../modules/RNPlayerViewManagerModule';
+import type { NativePlayer } from '../../modules/playerModule';
 import { usePlayerEventProps } from './usePlayerEventProps';
 
 /**
@@ -45,7 +45,9 @@ export function PlayerView({
   // Keep the device awake while the PlayerView is mounted
   useKeepAwake();
 
-  const nativeView = useRef(viewRef?.current || null);
+  const nativeView = useRef<NativePlayerViewRef | null>(
+    viewRef?.current || null
+  );
 
   // Native events proxy helper.
   const proxy = useProxy();
@@ -75,7 +77,6 @@ export function PlayerView({
   }
 
   const nativePlayerViewConfig: NativePlayerViewConfig = {
-    playerId: player.nativeId,
     enableBackgroundPlayback:
       player.config?.playbackConfig?.isBackgroundPlaybackEnabled,
     isPictureInPictureEnabledOnPlayer:
@@ -84,8 +85,12 @@ export function PlayerView({
     playerViewConfig: config,
   };
 
-  const [initializedPlayer, setInitializedPlayer] = useState<typeof player>();
-  const isPlayerInitialized = initializedPlayer === player;
+  const [resolvedPlayer, setResolvedPlayer] = useState<{
+    player: typeof player;
+    native: NativePlayer;
+  }>();
+  const nativePlayer =
+    resolvedPlayer?.player === player ? resolvedPlayer.native : undefined;
   const didNotifyPlayerViewReady = useRef<typeof player | undefined>(undefined);
   const currentPlayer = useRef<typeof player | undefined>(player);
   currentPlayer.current = player;
@@ -93,11 +98,15 @@ export function PlayerView({
   useEffect(() => {
     let cancelled = false;
     currentPlayer.current = player;
-    void player.initialize().then(() => {
+    async function resolvePlayer() {
+      const native = await player.native;
       if (!cancelled) {
-        setInitializedPlayer(player);
+        setResolvedPlayer({ player, native });
       }
-    });
+    }
+    // Creation failures remain available through the public Player APIs.
+    // A view waiting for that Player must not add unhandled rejections.
+    void resolvePlayer().catch(() => {});
 
     return () => {
       cancelled = true;
@@ -112,7 +121,7 @@ export function PlayerView({
   }, [player, fullscreenBridge, customMessageHandlerBridge]);
 
   useEffect(() => {
-    if (!isPlayerInitialized || !nativeView.current) {
+    if (!nativePlayer || !nativeView.current) {
       return;
     }
 
@@ -121,7 +130,7 @@ export function PlayerView({
     if (viewRef) {
       viewRef.current = nativeView.current;
     }
-  }, [isPlayerInitialized, viewRef, nativeView]);
+  }, [nativePlayer, viewRef, nativeView]);
 
   // Compare the actions by content, so passing a new array with the same actions on every render
   // does not trigger a native update each time.
@@ -130,24 +139,22 @@ export function PlayerView({
       ? JSON.stringify(pictureInPictureActions)
       : undefined;
   useEffect(() => {
-    if (isPlayerInitialized && pictureInPictureActionsJson != null) {
-      void RNPlayerViewManagerModule.updatePictureInPictureActions(
-        player.nativeId,
+    if (nativePlayer && pictureInPictureActionsJson != null) {
+      void nativeView.current?.updatePictureInPictureActions(
         JSON.parse(pictureInPictureActionsJson) as PictureInPictureAction[]
       );
     }
-  }, [isPlayerInitialized, player.nativeId, pictureInPictureActionsJson]);
+  }, [nativePlayer, pictureInPictureActionsJson]);
 
   useEffect(() => {
-    if (isPlayerInitialized && isPictureInPictureEnabled != null) {
-      void RNPlayerViewManagerModule.setIsPictureInPictureEnabled(
-        player.nativeId,
+    if (nativePlayer && isPictureInPictureEnabled != null) {
+      void nativeView.current?.setIsPictureInPictureEnabled(
         isPictureInPictureEnabled
       );
     }
-  }, [isPlayerInitialized, player.nativeId, isPictureInPictureEnabled]);
+  }, [nativePlayer, isPictureInPictureEnabled]);
 
-  if (!isPlayerInitialized) {
+  if (!nativePlayer) {
     return null;
   }
 
@@ -155,16 +162,16 @@ export function PlayerView({
     <NativePlayerView
       ref={nativeView}
       style={nativeViewStyle}
+      player={nativePlayer}
       config={nativePlayerViewConfig}
       isFullscreenRequested={isFullscreenRequested}
       isPictureInPictureRequested={isPictureInPictureRequested}
       scalingMode={scalingMode}
       fullscreenHandler={fullscreenBridge.current?.native}
       customMessageHandler={customMessageHandlerBridge.current?.native}
-      onBmpPlayerViewReady={(event) => {
+      onBmpPlayerViewReady={() => {
         if (
           currentPlayer.current !== player ||
-          event.nativeEvent.playerId !== player.nativeId ||
           didNotifyPlayerViewReady.current === player
         ) {
           return;
@@ -173,16 +180,26 @@ export function PlayerView({
         if (viewRef) {
           viewRef.current = nativeView.current;
         }
+        if (pictureInPictureActionsJson != null) {
+          void nativeView.current?.updatePictureInPictureActions(
+            JSON.parse(pictureInPictureActionsJson)
+          );
+        }
+        if (isPictureInPictureEnabled != null) {
+          void nativeView.current?.setIsPictureInPictureEnabled(
+            isPictureInPictureEnabled
+          );
+        }
         didNotifyPlayerViewReady.current = player;
         onPlayerViewReady?.();
       }}
+      onBmpPictureInPictureAvailabilityChanged={proxy(
+        props.onPictureInPictureAvailabilityChanged
+      )}
       onBmpFullscreenEnabled={proxy(props.onFullscreenEnabled)}
       onBmpFullscreenDisabled={proxy(props.onFullscreenDisabled)}
       onBmpFullscreenEnter={proxy(props.onFullscreenEnter)}
       onBmpFullscreenExit={proxy(props.onFullscreenExit)}
-      onBmpPictureInPictureAvailabilityChanged={proxy(
-        props.onPictureInPictureAvailabilityChanged
-      )}
       onBmpPictureInPictureEnter={proxy(props.onPictureInPictureEnter)}
       onBmpPictureInPictureEntered={proxy(props.onPictureInPictureEntered)}
       onBmpPictureInPictureExit={proxy(props.onPictureInPictureExit)}
