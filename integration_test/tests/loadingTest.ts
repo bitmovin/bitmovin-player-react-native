@@ -26,22 +26,26 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
       async () => {
         const world = PlayerTestWorld.shared;
         const acknowledge = world.onPlayerViewReady;
+        let loading!: Promise<void>;
         world.onPlayerViewReady = (player) => {
           acknowledge(player);
-          player.load(Sources.artOfMotionHls);
+          loading = player.load(Sources.artOfMotionHls);
         };
         try {
           await startPlayerTest({}, async () => {
             // Observe before the native mount can acknowledge readiness. This crosses
             // the real Expo bridge; no synthetic readiness event is injected.
             // Ready can arrive before SourceLoaded on iOS.
-            await expectEvents(
-              EventBag(
-                EventType.SourceLoad,
-                EventType.SourceLoaded,
-                EventType.Ready
-              )
-            );
+            await Promise.all([
+              expectEvents(
+                EventBag(
+                  EventType.SourceLoad,
+                  EventType.SourceLoaded,
+                  EventType.Ready
+                )
+              ),
+              callPlayer(() => loading),
+            ]);
           });
         } finally {
           world.onPlayerViewReady = acknowledge;
@@ -54,8 +58,8 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
     spec.describe(`loading a ${label} source`, () => {
       spec.it('emits ReadyEvent event', async () => {
         await startPlayerTest({}, async () => {
-          await callPlayerAndExpectEvent((player) => {
-            player.load(sourceConfig);
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.load(sourceConfig);
           }, EventType.Ready);
           await callPlayer(async (player) => {
             const duration = await player.getDuration();
@@ -71,8 +75,8 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
       spec.it('emits SourceLoad and SourceLoaded events', async () => {
         await startPlayerTest({}, async () => {
           await callPlayerAndExpectEvents(
-            (player) => {
-              player.load(sourceConfig);
+            async (player) => {
+              await player.load(sourceConfig);
             },
             EventSequence(EventType.SourceLoad, EventType.SourceLoaded)
           );
@@ -81,8 +85,8 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
       spec.it('emits DownloadFinished events', async () => {
         await startPlayerTest({}, async () => {
           await callPlayerAndExpectEvents(
-            (player) => {
-              player.load(sourceConfig);
+            async (player) => {
+              await player.load(sourceConfig);
             },
             EventBag(
               FilteredEvent<DownloadFinishedEvent>(
@@ -103,8 +107,8 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
       spec.it('validates DownloadFinished event properties', async () => {
         await startPlayerTest({}, async () => {
           const downloadEvent: DownloadFinishedEvent =
-            await callPlayerAndExpectEvent((player) => {
-              player.load(sourceConfig);
+            await callPlayerAndExpectEvent(async (player) => {
+              await player.load(sourceConfig);
             }, EventType.DownloadFinished);
 
           expect(

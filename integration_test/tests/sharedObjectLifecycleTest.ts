@@ -44,8 +44,8 @@ export default (spec: TestScope) => {
         await startPlayerTest({}, async () => {
           await loadSourceConfig(Sources.artOfMotionHls);
           await callPlayer(remountPlayerView);
-          await callPlayerAndExpectEvent((player) => {
-            player.play();
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.play();
           }, EventType.Playing);
         });
       }
