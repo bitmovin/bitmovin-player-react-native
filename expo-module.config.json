@@ -1,7 +1,11 @@
 {
-  "platforms": ["apple", "android"],
+  "platforms": [
+    "apple",
+    "android"
+  ],
   "apple": {
     "modules": [
+      "NativeCallbacksModule",
       "DebugModule",
       "AudioSessionModule",
       "BitmovinCastManagerModule",
@@ -18,10 +22,13 @@
       "OfflineModule",
       "RNPlayerViewManager"
     ],
-    "appDelegateSubscribers": ["AppLifecycleDelegate"]
+    "appDelegateSubscribers": [
+      "AppLifecycleDelegate"
+    ]
   },
   "android": {
     "modules": [
+      "com.bitmovin.player.reactnative.NativeCallbacksModule",
       "com.bitmovin.player.reactnative.DebugModule",
       "com.bitmovin.player.reactnative.BitmovinCastManagerModule",
       "com.bitmovin.player.reactnative.PlayerModule",
