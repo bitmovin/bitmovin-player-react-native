@@ -37,6 +37,7 @@ public class RNPlayerView: ExpoView {
         }
     }
 
+    var pendingPlayerInfo: [String: Any]?
     private var customMessageHandler: SharedCustomMessage?
     private var playerId: NativeId?
     private var fullscreenHandler: SharedFullscreen?

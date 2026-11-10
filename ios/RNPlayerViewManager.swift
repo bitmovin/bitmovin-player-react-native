@@ -38,7 +38,11 @@ public class RNPlayerViewManager: Module {
         }.runOnQueue(.main)
 
         View(RNPlayerView.self) {
-            Prop("config") { [weak self] (view: RNPlayerView, playerInfo: [String: Any]?) in
+            Prop("config") { (view: RNPlayerView, playerInfo: [String: Any]?) in
+                view.pendingPlayerInfo = playerInfo
+            }
+            OnViewDidUpdateProps { [weak self] (view: RNPlayerView) in
+                let playerInfo = view.pendingPlayerInfo
                 let playerId = playerInfo?["playerId"] as? NativeId
                 let playerViewConfigWrapper = RCTConvert
                     .rnPlayerViewConfig(playerInfo?["playerViewConfig"] as? [String: Any])
