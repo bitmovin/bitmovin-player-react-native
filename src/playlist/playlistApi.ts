@@ -18,13 +18,13 @@ export class PlaylistApi {
   /**
    * The native player id that this playlist api is attached to.
    */
-  readonly nativeId: string;
+  readonly playerNativeId: string;
 
   private readonly player: Player;
 
   constructor(player: Player) {
     this.player = player;
-    this.nativeId = player.nativeId;
+    this.playerNativeId = player.nativeId;
   }
 
   /**
@@ -35,7 +35,8 @@ export class PlaylistApi {
    * Sources that were not created through a {@link Source} instance (e.g. offline content) are not included.
    */
   getSources = async (): Promise<Source[]> => {
-    const nativeIds = (await PlaylistModule?.sources(this.nativeId)) ?? [];
+    const nativeIds =
+      (await PlaylistModule?.sources(this.playerNativeId)) ?? [];
     return nativeIds.flatMap((nativeId) => {
       const source = SourceRegistry.get(nativeId);
       return source ? [source] : [];
@@ -53,7 +54,7 @@ export class PlaylistApi {
   add = async (source: Source, index?: number): Promise<void> => {
     SourceRegistry.own(this.player, [source]);
     await source.initialize();
-    return PlaylistModule?.add(this.nativeId, source.nativeId, index);
+    return PlaylistModule?.add(this.playerNativeId, source.nativeId, index);
   };
 
   /**
@@ -65,7 +66,10 @@ export class PlaylistApi {
    * if there is no active playback session or if the `source` is the active source.
    */
   remove = async (source: Source): Promise<void> => {
-    const removal = PlaylistModule?.remove(this.nativeId, source.nativeId);
+    const removal = PlaylistModule?.remove(
+      this.playerNativeId,
+      source.nativeId
+    );
     await SourceRegistry.release(
       this.player,
       Promise.resolve(removal).then((isRemoved) =>
@@ -84,7 +88,7 @@ export class PlaylistApi {
    * {@link Source} instance (e.g. offline content).
    */
   removeAt = async (index: number): Promise<Source | undefined> => {
-    const removal = PlaylistModule?.removeAt(this.nativeId, index);
+    const removal = PlaylistModule?.removeAt(this.playerNativeId, index);
     return SourceRegistry.release(
       this.player,
       Promise.resolve(removal).then((nativeId) =>
@@ -101,6 +105,6 @@ export class PlaylistApi {
    * active source and a live stream (use {@link Player.timeShift} instead).
    */
   seek = async (source: Source, time: number): Promise<void> => {
-    return PlaylistModule?.seek(this.nativeId, source.nativeId, time);
+    return PlaylistModule?.seek(this.playerNativeId, source.nativeId, time);
   };
 }
