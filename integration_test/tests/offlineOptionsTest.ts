@@ -12,7 +12,7 @@ export default (spec: TestScope) => {
     spec.it('delivers options requested through a manager alias', async () => {
       const identifier = `cavy-options-${Date.now()}`;
       const config = {
-        nativeId: identifier,
+        nativeId: `${identifier}-binding`,
         identifier,
         sourceConfig: Sources.artOfMotionHls,
       };
@@ -24,7 +24,9 @@ export default (spec: TestScope) => {
         const available = new Promise<OnOptionsAvailableEvent>(
           (resolve, reject) => {
             removeListener = manager.addListener({
-              onOptionsAvailable: resolve,
+              onOptionsAvailable: (event) => {
+                if (event.options) resolve(event);
+              },
               onError: (event) => reject(new Error(event.message)),
             });
             timeout = setTimeout(
