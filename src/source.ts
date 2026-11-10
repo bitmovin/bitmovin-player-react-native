@@ -261,6 +261,10 @@ export class Source extends NativeInstance<SourceConfig> {
    * Sources are not destroyed when they are removed from a player, e.g. via {@link PlaylistApi.remove},
    * {@link Player.unload} or a later load, so that they can be loaded again. {@link Player.destroy} destroys the
    * sources it owns.
+   *
+   * Only destroy a source that is not loaded into a player or part of its playlist. Remove it first, e.g. via
+   * {@link PlaylistApi.remove}, otherwise the player keeps playing it, but it can no longer be resolved or
+   * controlled from JS.
    */
   destroy = () => {
     if (this.isDestroyed) {
