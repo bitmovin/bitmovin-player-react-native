@@ -135,8 +135,8 @@ export class Player {
   /**
    * Loads a new {@link Source} from `sourceConfig` into the player.
    */
-  load = async (sourceConfig: SourceConfig): Promise<void> => {
-    await this.loadSource(new Source(sourceConfig));
+  load = (sourceConfig: SourceConfig): Promise<void> => {
+    return this.loadSource(new Source(sourceConfig));
   };
 
   /**
@@ -177,14 +177,14 @@ export class Player {
    * Starts or resumes playback after being paused. Has no effect if the player is already playing.
    */
   play = async (): Promise<void> => {
-    await (await this.native).play();
+    return (await this.native).play();
   };
 
   /**
    * Pauses the video if it is playing. Has no effect if the player is already paused.
    */
   pause = async (): Promise<void> => {
-    await (await this.native).pause();
+    return (await this.native).pause();
   };
 
   /**
@@ -195,7 +195,7 @@ export class Player {
    * @param time - The time to seek to in seconds.
    */
   seek = async (time: number): Promise<void> => {
-    await (await this.native).seek(time);
+    return (await this.native).seek(time);
   };
 
   /**
@@ -210,21 +210,21 @@ export class Player {
    * @param offset - Target offset from the live edge in seconds.
    */
   timeShift = async (offset: number): Promise<void> => {
-    await (await this.native).timeShift(offset);
+    return (await this.native).timeShift(offset);
   };
 
   /**
    * Mutes the player if an audio track is available. Has no effect if the player is already muted.
    */
   mute = async (): Promise<void> => {
-    await (await this.native).mute();
+    return (await this.native).mute();
   };
 
   /**
    * Unmutes the player if it is muted. Has no effect if the player is already unmuted.
    */
   unmute = async (): Promise<void> => {
-    await (await this.native).unmute();
+    return (await this.native).unmute();
   };
 
   /**
@@ -233,7 +233,7 @@ export class Player {
    * @param volume - The volume level to set.
    */
   setVolume = async (volume: number): Promise<void> => {
-    await (await this.native).setVolume(volume);
+    return (await this.native).setVolume(volume);
   };
 
   /**
@@ -335,7 +335,7 @@ export class Player {
       );
       return;
     }
-    await (await this.native).showAirPlayTargetPicker();
+    return (await this.native).showAirPlayTargetPicker();
   };
 
   /**
@@ -396,7 +396,7 @@ export class Player {
    * @platform iOS, Android
    */
   scheduleAd = async (adItem: AdItem): Promise<void> => {
-    await (await this.native).scheduleAd(adItem);
+    return (await this.native).scheduleAd(adItem);
   };
 
   /**
@@ -408,7 +408,7 @@ export class Player {
    * @platform iOS, Android
    */
   skipAd = async (): Promise<void> => {
-    await (await this.native).skipAd();
+    return (await this.native).skipAd();
   };
 
   /**
@@ -444,7 +444,7 @@ export class Player {
    * Can be set to `null` for no limitation.
    */
   setMaxSelectableBitrate = async (bitrate: number | null): Promise<void> => {
-    await (await this.native).setMaxSelectableBitrate(bitrate || -1);
+    return (await this.native).setMaxSelectableBitrate(bitrate || -1);
   };
 
   /**
@@ -487,7 +487,7 @@ export class Player {
    * @platform iOS, Android
    */
   castVideo = async (): Promise<void> => {
-    await (await this.native).castVideo();
+    return (await this.native).castVideo();
   };
 
   /**
@@ -496,7 +496,7 @@ export class Player {
    * @platform iOS, Android
    */
   castStop = async (): Promise<void> => {
-    await (await this.native).castStop();
+    return (await this.native).castStop();
   };
 
   /**
@@ -528,7 +528,7 @@ export class Player {
       );
       return;
     }
-    await (await this.native).setVideoQuality(qualityId);
+    return (await this.native).setVideoQuality(qualityId);
   };
 
   /**
@@ -548,7 +548,7 @@ export class Player {
    * @param playbackSpeed - The playback speed to set.
    */
   setPlaybackSpeed = async (playbackSpeed: number): Promise<void> => {
-    await (await this.native).setPlaybackSpeed(playbackSpeed);
+    return (await this.native).setPlaybackSpeed(playbackSpeed);
   };
 
   /**

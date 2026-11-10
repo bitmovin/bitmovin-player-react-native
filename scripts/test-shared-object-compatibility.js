@@ -136,7 +136,7 @@ test('Player aliases share eager native creation', async (t) => {
   const player = new Player({ nativeId: 'shared' });
   const alias = new Player({ nativeId: 'shared' });
   assert.equal(player.isInitialized, false);
-  await new Promise(setImmediate);
+  await player.initialize();
   assert.equal(creations.length, 1);
   assert.equal(Object.hasOwn(creations[0].config, 'nativeId'), false);
   assert.equal(player.config.nativeId, 'shared');
@@ -285,9 +285,11 @@ test('play awaits native completion and propagates failures', async (t) => {
       finish = resolve;
     });
   let completed = false;
-  const playing = player.play().then(() => {
+  async function play() {
+    await player.play();
     completed = true;
-  });
+  }
+  const playing = play();
   await new Promise(setImmediate);
   assert.equal(completed, false);
   finish();

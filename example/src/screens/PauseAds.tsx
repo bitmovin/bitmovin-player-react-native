@@ -79,10 +79,6 @@ export default function PauseAds() {
     [onEvent]
   );
 
-  const skipPauseAd = useCallback(async () => {
-    await player.skipAd();
-  }, [player]);
-
   return (
     <View style={styles.container}>
       <PlayerView
@@ -98,7 +94,7 @@ export default function PauseAds() {
       <View style={styles.actionsContainer}>
         <Button
           title="Skip pause ad"
-          onPress={skipPauseAd}
+          onPress={player.skipAd}
           disabled={!isPauseAdVisible}
         />
       </View>

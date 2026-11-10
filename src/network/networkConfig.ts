@@ -77,7 +77,7 @@ export interface NetworkConfig {
    *
    * @example
    * ```
-   *  const requestCallback = (type: HttpRequestType, request: HttpRequest) => {
+   *  const requestCallback = async (type: HttpRequestType, request: HttpRequest) => {
    *    // Access current properties
    *
    *    console.log(JSON.stringify(type));
@@ -88,7 +88,7 @@ export interface NetworkConfig {
    *    request.headers['New-Header'] = 'val';
    *    request.method = 'GET';
    *
-   *    // Return the processed request via a Promise
+   *    // Return the processed request
    *
    *    const processed: HttpRequest = {
    *      body: request.body,
@@ -96,7 +96,7 @@ export interface NetworkConfig {
    *      method: request.method,
    *      url: request.url,
    *    };
-   *    return Promise.resolve(processed);
+   *    return processed;
    *  };
    *
    *  const player = usePlayer({
@@ -122,7 +122,7 @@ export interface NetworkConfig {
    *
    * @example
    * ```
-   *  const responseCallback = (type: HttpRequestType, response: HttpResponse) => {
+   *  const responseCallback = async (type: HttpRequestType, response: HttpResponse) => {
    *    // Access response properties
    *
    *    console.log(JSON.stringify(type));
@@ -133,7 +133,7 @@ export interface NetworkConfig {
    *    response.headers['New-Header'] = 'val';
    *    response.url = response.request.url; // remove eventual redirect changes
    *
-   *    // Return the processed response via a Promise
+   *    // Return the processed response
    *
    *    const processed: HttpResponse = {
    *      body: response.body,
@@ -142,7 +142,7 @@ export interface NetworkConfig {
    *      status: response.status,
    *      url: response.url,
    *    };
-   *    return Promise.resolve(processed);
+   *    return processed;
    *  };
    *
    *  // Properly attach the callback to the config

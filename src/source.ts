@@ -225,7 +225,7 @@ export class Source {
    * @param metadata metadata to be set.
    */
   setMetadata = async (metadata: Record<string, any> | null): Promise<void> => {
-    await (await this.native).setMetadata(metadata);
+    return (await this.native).setMetadata(metadata);
   };
 
   /**

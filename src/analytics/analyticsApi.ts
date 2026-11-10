@@ -14,7 +14,7 @@ export class AnalyticsApi {
    * Does not change the configured custom data of the collector or source.
    */
   sendCustomDataEvent = async (customData: CustomDataConfig) => {
-    await (await this.nativePlayer).sendCustomDataEvent(customData);
+    return (await this.nativePlayer).sendCustomDataEvent(customData);
   };
 
   /**

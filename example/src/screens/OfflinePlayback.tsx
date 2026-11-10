@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Platform,
   ScrollView,
@@ -81,13 +81,16 @@ export default function OfflinePlayback() {
   const [usedStorage, setUsedStorage] = useState<number>(0);
   const [isLoadedSourceOffline, setIsLoadedSourceOffline] =
     useState<boolean>(false);
+  useEffect(() => {
+    async function updateUsedStorage() {
+      if (!offlineContentManager) return;
+      const usedStorageInBytes = await offlineContentManager.usedStorage();
+      setUsedStorage(usedStorageInBytes / 1024 / 1024);
+    }
+    void updateUsedStorage().catch(console.error);
+  }, [downloadState, progress, offlineContentManager]);
+
   const stateLabel = useMemo(() => {
-    void offlineContentManager
-      ?.usedStorage()
-      .then((usedStorageInBytes) => {
-        setUsedStorage(usedStorageInBytes / 1024 / 1024);
-      })
-      .catch(console.error);
     switch (downloadState) {
       case OfflineState.Downloading:
         return `Downloading: ${progress.toFixed(2)}%`;
@@ -100,7 +103,7 @@ export default function OfflinePlayback() {
       default:
         return 'Unknown state';
     }
-  }, [downloadState, progress, offlineContentManager]);
+  }, [downloadState, progress]);
 
   const onEvent = useCallback((event: any) => {
     prettyPrint(`EVENT`, event);
@@ -165,19 +168,16 @@ export default function OfflinePlayback() {
           },
         });
 
-      newOfflineContentManager
-        .initialize()
-        .then(() => {
-          setOfflineContentManager(newOfflineContentManager);
-          void newOfflineContentManager
-            .state()
-            .then((state) => {
-              setDownloadState(state);
-            })
-            .catch(console.error);
-          newOfflineContentManager.getOptions().catch(console.error);
-        })
-        .catch(console.error);
+      async function updateDownloadState() {
+        setDownloadState(await newOfflineContentManager.state());
+      }
+      async function initializeOffline() {
+        await newOfflineContentManager.initialize();
+        setOfflineContentManager(newOfflineContentManager);
+        void updateDownloadState().catch(console.error);
+        return newOfflineContentManager.getOptions();
+      }
+      void initializeOffline().catch(console.error);
 
       return () => {
         removeOfflineContentManagerListener();
