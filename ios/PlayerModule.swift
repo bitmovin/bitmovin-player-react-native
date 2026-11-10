@@ -30,6 +30,17 @@ public class PlayerModule: Module {
             return owner
         }.runOnQueue(.main)
         Class("Player", SharedPlayer.self) {
+            AsyncFunction("loadOfflineContent") { (owner: SharedPlayer, offline: SharedOffline, options: [String: Any]?) -> Bool in // swiftlint:disable:this line_length
+                #if os(iOS)
+                guard let config = offline.offlineContentManager.createOfflineSourceConfig(
+                    restrictedToAssetCache: options?["restrictedToAssetCache"] as? Bool ?? true
+                ) else { return false }
+                owner.player.load(sourceConfig: config)
+                return true
+                #else
+                return false
+                #endif
+            }.runOnQueue(.main)
             AsyncFunction("isMediaControlsEnabled") { (owner: SharedPlayer) -> Bool? in
                 owner.player.nowPlaying.isEnabled
             }.runOnQueue(.main)
@@ -204,20 +215,6 @@ public class PlayerModule: Module {
         }.runOnQueue(.main)
         AsyncFunction("getThumbnail") { (nativeId: NativeId, time: Double) -> [String: Any]? in
             RCTConvert.toJson(thumbnail: PlayerRegistry.getPlayer(nativeId: nativeId)?.thumbnail(forTime: time))
-        }.runOnQueue(.main)
-        AsyncFunction("loadOfflineContent") { [weak self] (nativeId: NativeId, bridgeId: String, options: [String: Any]?) in // swiftlint:disable:this line_length
-            #if os(iOS)
-            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
-                  let offlineModule = self?.appContext?.moduleRegistry.get(OfflineModule.self),
-                  let offlineContentManagerBridge = offlineModule.retrieve(bridgeId) else { return }
-            let optionsDictionary = options ?? [:]
-            let restrictedToAssetCache = optionsDictionary["restrictedToAssetCache"] as? Bool ?? true
-            let offlineSourceConfig = offlineContentManagerBridge.offlineContentManager.createOfflineSourceConfig(
-                restrictedToAssetCache: restrictedToAssetCache
-            )
-            guard let offlineSourceConfig else { return }
-            player.load(sourceConfig: offlineSourceConfig)
-            #endif
         }.runOnQueue(.main)
         AsyncFunction("scheduleAd") { (nativeId: NativeId, adItemJson: [String: Any]) in
             guard let adItem = RCTConvert.adItem(adItemJson) else { return }

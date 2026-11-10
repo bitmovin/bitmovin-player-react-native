@@ -1,5 +1,7 @@
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
+import type { NativeOffline } from '../offline/offlineModule';
+import type { OfflineSourceOptions } from '../offline';
 import type { BufferLevels } from '../bufferApi';
 import type { NativeCallback } from '../native/nativeCallbacks';
 import { requireNativeModule } from 'expo-modules-core';
@@ -39,6 +41,10 @@ export type PlayerModuleEvents = {
 
 /** @internal Shared handle used by migrated Player APIs. */
 export interface NativePlayer extends SharedObject {
+  loadOfflineContent(
+    offline: NativeOffline,
+    options?: OfflineSourceOptions
+  ): Promise<boolean>;
   isMediaControlsEnabled(): Promise<boolean | null>;
   setMediaControlsEnabled(enabled: boolean): Promise<void>;
   sendCustomDataEvent(customData: Record<string, any>): Promise<void>;
@@ -279,15 +285,6 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
    * Get the native id of the active source.
    */
   source(nativeId: string): Promise<string | null>;
-
-  /**
-   * Load offline content into the player.
-   */
-  loadOfflineContent(
-    nativeId: string,
-    offlineContentId: string,
-    options?: Record<string, any>
-  ): Promise<void>;
 
   /**
    * Get current audio track.

@@ -10,7 +10,6 @@
       "SourceModule",
       "PlaylistModule",
       "CustomMessageHandlerModule",
-      "DrmModule",
       "FullscreenHandlerModule",
       "OfflineModule",
       "RNPlayerViewManager"
@@ -26,7 +25,6 @@
       "com.bitmovin.player.reactnative.SourceModule",
       "com.bitmovin.player.reactnative.PlaylistModule",
       "com.bitmovin.player.reactnative.CustomMessageHandlerModule",
-      "com.bitmovin.player.reactnative.DrmModule",
       "com.bitmovin.player.reactnative.FullscreenHandlerModule",
       "com.bitmovin.player.reactnative.OfflineModule",
       "com.bitmovin.player.reactnative.RNPlayerViewManager"

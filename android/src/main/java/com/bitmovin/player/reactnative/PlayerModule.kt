@@ -62,6 +62,13 @@ class PlayerModule : Module() {
         }.runOnQueue(Queues.MAIN)
 
         Class(SharedPlayer::class) {
+            AsyncFunction("loadOfflineContent") { shared: SharedPlayer, offline: OfflineContentManagerBridge,
+                options: Map<String, Any>?, ->
+                val config = offline.offlineContentManager.offlineSourceConfig ?: return@AsyncFunction false
+                shared.player.load(config)
+                true
+            }.runOnQueue(Queues.MAIN)
+
             AsyncFunction("sendCustomDataEvent") { shared: SharedPlayer, json: Map<String, Any?> ->
                 checkNotNull(shared.player.analytics) { "Analytics is disabled" }
                     .sendCustomDataEvent(json.toAnalyticsCustomData())
@@ -341,17 +348,6 @@ class PlayerModule : Module() {
             val player = PlayerRegistry.getPlayer(nativeId)
             return@AsyncFunction player?.getThumbnail(time)?.toJson()
         }
-        AsyncFunction("loadOfflineContent") { nativeId: NativeId, offlineContentManagerBridgeId: String,
-            options: Map<String, Any>?, ->
-            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
-            val offlineContentManagerBridge = appContext.registry.getModule<OfflineModule>()
-                ?.getOfflineContentManagerBridge(offlineContentManagerBridgeId)
-
-            offlineContentManagerBridge?.offlineContentManager?.offlineSourceConfig?.let {
-                player.load(it)
-            }
-        }.runOnQueue(Queues.MAIN)
-
         AsyncFunction("scheduleAd") { nativeId: NativeId, adItemJson: Map<String, Any> ->
             val player = PlayerRegistry.getPlayer(nativeId)
             val adItem = adItemJson.toAdItem()

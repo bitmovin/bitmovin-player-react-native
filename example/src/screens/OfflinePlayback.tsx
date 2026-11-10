@@ -208,10 +208,10 @@ export default function OfflinePlayback() {
           !isLoadedSourceOffline && (
             <Action
               text={'Load offline content'}
-              onPress={() => {
+              onPress={async () => {
                 if (offlineContentManager != null) {
                   onEvent('Loading the offline video');
-                  player.loadOfflineContent(offlineContentManager);
+                  await player.loadOfflineContent(offlineContentManager);
                   setIsLoadedSourceOffline(true);
                 }
               }}

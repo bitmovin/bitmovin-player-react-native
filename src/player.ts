@@ -1,3 +1,4 @@
+import type { NativeOffline } from './offline/offlineModule';
 import type { EventSubscription } from 'expo-modules-core';
 import { Platform } from 'react-native';
 import PlayerModule, { type NativePlayer } from './modules/playerModule';
@@ -66,6 +67,14 @@ export class Player extends NativeInstance<PlayerConfig> {
   private onImaBeforeInitializationSubscription?: EventSubscription;
   private initialization?: Promise<void>;
   private sharedPlayer?: Promise<NativePlayer>;
+  private static readonly loadedOffline = new WeakMap<
+    NativePlayer,
+    NativeOffline
+  >();
+
+  private clearLoadedOffline = async (): Promise<void> => {
+    if (this.sharedPlayer) Player.loadedOffline.delete(await this.sharedPlayer);
+  };
 
   /** @internal */
   get native(): Promise<NativePlayer> {
@@ -139,7 +148,8 @@ export class Player extends NativeInstance<PlayerConfig> {
   destroy = () => {
     if (!this.isDestroyed) {
       // Remove the listeners only after the native destroy, so they still receive the `destroy` event.
-      void PlayerModule.destroy(this.nativeId).finally(() => {
+      void PlayerModule.destroy(this.nativeId).finally(async () => {
+        await this.clearLoadedOffline();
         this.eventListeners.removeAll();
       });
       this.onShouldLoadAdItemSubscription?.remove();
@@ -193,15 +203,17 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Loads the downloaded content from {@link OfflineContentManager} into the player.
    */
-  loadOfflineContent = (
+  loadOfflineContent = async (
     offlineContentManager: OfflineContentManager,
     options?: OfflineSourceOptions
-  ) => {
-    void PlayerModule.loadOfflineContent(
-      this.nativeId,
-      offlineContentManager.nativeId,
-      options
-    );
+  ): Promise<void> => {
+    const [native, offline] = await Promise.all([
+      this.native,
+      offlineContentManager.native,
+    ]);
+    if (await native.loadOfflineContent(offline, options)) {
+      Player.loadedOffline.set(native, offline);
+    }
   };
 
   /**
@@ -210,7 +222,8 @@ export class Player extends NativeInstance<PlayerConfig> {
   loadSource = (source: Source) => {
     void source
       .initialize()
-      .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId));
+      .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId))
+      .then(this.clearLoadedOffline);
   };
 
   /**
@@ -243,13 +256,15 @@ export class Player extends NativeInstance<PlayerConfig> {
     validatePlaylistConfig(playlistConfig);
     void Promise.all(
       playlistConfig.sources.map((source) => source.initialize())
-    ).then(() =>
-      PlayerModule.loadPlaylist(
-        this.nativeId,
-        playlistConfig.sources.map((source) => source.nativeId),
-        playlistConfig.options
+    )
+      .then(() =>
+        PlayerModule.loadPlaylist(
+          this.nativeId,
+          playlistConfig.sources.map((source) => source.nativeId),
+          playlistConfig.options
+        )
       )
-    );
+      .then(this.clearLoadedOffline);
   };
 
   /**
@@ -298,7 +313,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Unloads all {@link Source}s from the player.
    */
   unload = () => {
-    void PlayerModule.unload(this.nativeId);
+    void PlayerModule.unload(this.nativeId).then(this.clearLoadedOffline);
   };
 
   /**
