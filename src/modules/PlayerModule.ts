@@ -129,21 +129,3 @@ declare class PlayerModule extends NativeModule {
 }
 
 export default requireNativeModule<PlayerModule>('PlayerModule');
-
-/** @internal */
-export function retainLoadedSource(
-  player: NativePlayer,
-  source: NativeSource | undefined
-): void {
-  player.loadedSources = source ? [source] : [];
-  player.loadedOffline = undefined;
-}
-
-/** @internal */
-export function retainLoadedOfflineContent(
-  player: NativePlayer,
-  offline: NativeOffline
-): void {
-  player.loadedOffline = offline;
-  player.loadedSources = [];
-}

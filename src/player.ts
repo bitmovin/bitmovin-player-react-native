@@ -1,9 +1,5 @@
 import { Platform } from 'react-native';
-import PlayerModule, {
-  type NativePlayer,
-  retainLoadedOfflineContent,
-  retainLoadedSource,
-} from './modules/PlayerModule';
+import PlayerModule, { type NativePlayer } from './modules/PlayerModule';
 import { legacyPlayerRegistry } from './nativeInstanceRegistry';
 import type { SourceConfig } from './source';
 import { Source } from './source';
@@ -124,7 +120,8 @@ export class Player {
       return;
     }
     await native.destroy();
-    retainLoadedSource(native, undefined);
+    native.loadedSources = [];
+    native.loadedOffline = undefined;
   };
 
   /**
@@ -144,7 +141,8 @@ export class Player {
     const offline = await offlineContentManager.native;
     const native = await this.native;
     if (await native.loadOfflineContent(offline, options)) {
-      retainLoadedOfflineContent(native, offline);
+      native.loadedOffline = offline;
+      native.loadedSources = [];
     }
   };
 
@@ -156,7 +154,8 @@ export class Player {
     const nativeSource = await source.native;
     const native = await this.native;
     await native.loadSource(nativeSource);
-    retainLoadedSource(native, nativeSource);
+    native.loadedSources = [nativeSource];
+    native.loadedOffline = undefined;
   };
 
   /**
@@ -165,7 +164,8 @@ export class Player {
   unload = async (): Promise<void> => {
     const native = await this.native;
     await native.unload();
-    retainLoadedSource(native, undefined);
+    native.loadedSources = [];
+    native.loadedOffline = undefined;
   };
 
   /**
