@@ -63,6 +63,145 @@ class PlayerModule : Module() {
         }.runOnQueue(Queues.MAIN)
 
         Class(SharedPlayer::class) {
+            AsyncFunction("play") { shared: SharedPlayer -> shared.player.play() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("pause") { shared: SharedPlayer -> shared.player.pause() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("mute") { shared: SharedPlayer -> shared.player.mute() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("unmute") { shared: SharedPlayer -> shared.player.unmute() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("seek") { shared: SharedPlayer, time: Double ->
+                shared.player.seek(time)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("timeShift") { shared: SharedPlayer, offset: Double ->
+                shared.player.timeShift(offset)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setVolume") { shared: SharedPlayer, volume: Double ->
+                shared.player.volume = volume.toInt()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getVolume") { shared: SharedPlayer ->
+                shared.player.volume.toDouble()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("currentTime") { shared: SharedPlayer, mode: String? ->
+                val player = shared.player
+                when (mode) {
+                    "relative" -> player.currentTime + player.playbackTimeOffsetToRelativeTime
+                    "absolute" -> player.currentTime + player.playbackTimeOffsetToAbsoluteTime
+                    else -> player.currentTime
+                }
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isPlaying") { shared: SharedPlayer -> shared.player.isPlaying }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isPaused") { shared: SharedPlayer -> shared.player.isPaused }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("duration") { shared: SharedPlayer -> shared.player.duration }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isMuted") { shared: SharedPlayer -> shared.player.isMuted }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("unload") { shared: SharedPlayer -> shared.player.unload() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getTimeShift") { shared: SharedPlayer -> shared.player.timeShift }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isLive") { shared: SharedPlayer -> shared.player.isLive }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getMaxTimeShift") { shared: SharedPlayer ->
+                shared.player.maxTimeShift
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getPlaybackSpeed") { shared: SharedPlayer ->
+                shared.player.playbackSpeed.toDouble()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setPlaybackSpeed") { shared: SharedPlayer, playbackSpeed: Double ->
+                shared.player.playbackSpeed = playbackSpeed.toFloat()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isAd") { shared: SharedPlayer -> shared.player.isAd }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setMaxSelectableBitrate") { shared: SharedPlayer, maxBitrate: Double ->
+                shared.player.setMaxSelectableVideoBitrate(maxBitrate.toInt())
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isAirPlayActive") { _: SharedPlayer ->
+                // AirPlay is iOS-only, return null on Android
+                false
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isAirPlayAvailable") { _: SharedPlayer ->
+                // AirPlay is iOS-only, return null on Android
+                false
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("showAirPlayTargetPicker") { _: SharedPlayer ->
+                // AirPlay is iOS-only, no-op on Android
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isCastAvailable") { shared: SharedPlayer ->
+                shared.player.isCastAvailable
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isCasting") { shared: SharedPlayer -> shared.player.isCasting }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("castVideo") { shared: SharedPlayer -> shared.player.castVideo() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("castStop") { shared: SharedPlayer -> shared.player.castStop() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("skipAd") { shared: SharedPlayer -> shared.player.skipAd() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("canPlayAtPlaybackSpeed") { _: SharedPlayer, _: Double ->
+                // This method is iOS-only, return false on Android
+                false
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getAudioTrack") { shared: SharedPlayer ->
+                shared.player.source?.selectedAudioTrack?.toJson()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getAvailableAudioTracks") { shared: SharedPlayer ->
+                shared.player.source?.availableAudioTracks?.map { it.toJson() } ?: emptyList()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setAudioTrack") { shared: SharedPlayer, trackIdentifier: String ->
+                shared.player.source?.setAudioTrack(trackIdentifier)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getSubtitleTrack") { shared: SharedPlayer ->
+                shared.player.source?.selectedSubtitleTrack?.toJson()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getAvailableSubtitles") { shared: SharedPlayer ->
+                shared.player.source?.availableSubtitleTracks?.map { it.toJson() } ?: emptyList()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setSubtitleTrack") { shared: SharedPlayer, trackIdentifier: String? ->
+                shared.player.source?.setSubtitleTrack(trackIdentifier)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getVideoQuality") { shared: SharedPlayer ->
+                shared.player.videoQuality?.toJson()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getAvailableVideoQualities") { shared: SharedPlayer ->
+                shared.player.availableVideoQualities.map { it.toJson() }
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setVideoQuality") { shared: SharedPlayer, qualityId: String ->
+                shared.player.source?.setVideoQuality(qualityId)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getThumbnail") { shared: SharedPlayer, time: Double ->
+                shared.player.getThumbnail(time)?.toJson()
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("scheduleAd") { shared: SharedPlayer, adItemJson: Map<String, Any> ->
+                adItemJson.toAdItem()?.let { shared.player.scheduleAd(it) }
+            }.runOnQueue(Queues.MAIN)
+
             AsyncFunction("loadOfflineContent") { shared: SharedPlayer, offline: OfflineContentManagerBridge,
                 options: Map<String, Any>?, ->
                 val config = offline.offlineContentManager.offlineSourceConfig ?: return@AsyncFunction false
@@ -134,36 +273,6 @@ class PlayerModule : Module() {
 
         Constant("isGoogleImaEnabled") { ImaBeforeInitializationConfigurator.IS_GOOGLE_IMA_ENABLED }
 
-        AsyncFunction("play") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.play()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("pause") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.pause()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("mute") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.mute()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("unmute") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.unmute()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("seek") { nativeId: NativeId, time: Double ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.seek(time)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("timeShift") { nativeId: NativeId, offset: Double ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.timeShift(offset)
-        }.runOnQueue(Queues.MAIN)
-
         AsyncFunction("destroy") { nativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
             if (player != null) {
@@ -174,187 +283,6 @@ class PlayerModule : Module() {
             }
             eventRelay.offAll(nativeId, player)
             removedSourceReleaser.detach(nativeId, player)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("setVolume") { nativeId: NativeId, volume: Double ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.volume = volume.toInt()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getVolume") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.volume?.toDouble()
-        }
-
-        AsyncFunction("currentTime") { nativeId: NativeId, mode: String? ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction when {
-                player == null -> null
-                mode == "relative" -> player.currentTime + player.playbackTimeOffsetToRelativeTime
-                mode == "absolute" -> player.currentTime + player.playbackTimeOffsetToAbsoluteTime
-                else -> player.currentTime
-            }
-        }
-
-        AsyncFunction("isPlaying") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.isPlaying
-        }
-
-        AsyncFunction("isPaused") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.isPaused
-        }
-
-        AsyncFunction("duration") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.duration
-        }
-
-        AsyncFunction("isMuted") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.isMuted
-        }
-
-        AsyncFunction("unload") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.unload()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getTimeShift") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.timeShift
-        }
-
-        AsyncFunction("isLive") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.isLive
-        }
-
-        AsyncFunction("getMaxTimeShift") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.maxTimeShift
-        }
-
-        AsyncFunction("getPlaybackSpeed") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.playbackSpeed?.toDouble()
-        }
-
-        AsyncFunction("setPlaybackSpeed") { nativeId: NativeId, playbackSpeed: Double ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.playbackSpeed = playbackSpeed.toFloat()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("isAd") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.isAd
-        }
-
-        AsyncFunction("setMaxSelectableBitrate") { nativeId: NativeId, maxBitrate: Double ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.setMaxSelectableVideoBitrate(maxBitrate.toInt())
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("isAirPlayActive") { _: String ->
-            // AirPlay is iOS-only, return null on Android
-            false
-        }
-
-        AsyncFunction("isAirPlayAvailable") { _: String ->
-            // AirPlay is iOS-only, return null on Android
-            false
-        }
-
-        AsyncFunction("showAirPlayTargetPicker") { _: String ->
-            // AirPlay is iOS-only, no-op on Android
-        }
-
-        AsyncFunction("isCastAvailable") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.isCastAvailable
-        }
-
-        AsyncFunction("isCasting") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.isCasting
-        }
-
-        AsyncFunction("castVideo") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.castVideo()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("castStop") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.castStop()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("skipAd") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.skipAd()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("canPlayAtPlaybackSpeed") { _: String, _: Double ->
-            // This method is iOS-only, return false on Android
-            false
-        }
-
-        AsyncFunction("getAudioTrack") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.source?.selectedAudioTrack?.toJson()
-        }
-
-        AsyncFunction("getAvailableAudioTracks") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.source?.availableAudioTracks?.map { it.toJson() } ?: emptyList()
-        }
-
-        AsyncFunction("setAudioTrack") { nativeId: NativeId, trackIdentifier: String ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.source?.setAudioTrack(trackIdentifier)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getSubtitleTrack") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.source?.selectedSubtitleTrack?.toJson()
-        }
-
-        AsyncFunction("getAvailableSubtitles") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.source?.availableSubtitleTracks?.map { it.toJson() } ?: emptyList()
-        }
-
-        AsyncFunction("setSubtitleTrack") { nativeId: NativeId, trackIdentifier: String? ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.source?.setSubtitleTrack(trackIdentifier)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getVideoQuality") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.videoQuality?.toJson()
-        }
-
-        AsyncFunction("getAvailableVideoQualities") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.availableVideoQualities?.map { it.toJson() } ?: emptyList()
-        }
-
-        AsyncFunction("setVideoQuality") { nativeId: NativeId, qualityId: String ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.source?.setVideoQuality(qualityId)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getThumbnail") { nativeId: NativeId, time: Double ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.getThumbnail(time)?.toJson()
-        }
-        AsyncFunction("scheduleAd") { nativeId: NativeId, adItemJson: Map<String, Any> ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            val adItem = adItemJson.toAdItem()
-            if (player != null && adItem != null) {
-                player.scheduleAd(adItem)
-            }
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("setPreparedImaSettings") { id: Int, settings: Map<String, Any?>? ->

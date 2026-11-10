@@ -30,6 +30,116 @@ public class PlayerModule: Module {
             return owner
         }.runOnQueue(.main)
         Class("Player", SharedPlayer.self) {
+            AsyncFunction("play") { (owner: SharedPlayer) in owner.player.play() }.runOnQueue(.main)
+            AsyncFunction("pause") { (owner: SharedPlayer) in owner.player.pause() }.runOnQueue(.main)
+            AsyncFunction("mute") { (owner: SharedPlayer) in owner.player.mute() }.runOnQueue(.main)
+            AsyncFunction("unmute") { (owner: SharedPlayer) in owner.player.unmute() }.runOnQueue(.main)
+            AsyncFunction("seek") { (owner: SharedPlayer, time: Double) in
+                owner.player.seek(time: time)
+            }.runOnQueue(.main)
+            AsyncFunction("timeShift") { (owner: SharedPlayer, offset: Double) in
+                owner.player.timeShift = offset
+            }.runOnQueue(.main)
+            AsyncFunction("setVolume") { (owner: SharedPlayer, volume: Int) in
+                owner.player.volume = volume
+            }.runOnQueue(.main)
+            AsyncFunction("getVolume") { (owner: SharedPlayer) -> Int? in owner.player.volume }.runOnQueue(.main)
+            AsyncFunction("currentTime") { (owner: SharedPlayer, mode: String?) -> Double? in
+                let player = owner.player
+                if let mode {
+                    return player.currentTime(RCTConvert.timeMode(mode))
+                }
+                return player.currentTime
+            }.runOnQueue(.main)
+            AsyncFunction("isPlaying") { (owner: SharedPlayer) -> Bool? in owner.player.isPlaying }.runOnQueue(.main)
+            AsyncFunction("isPaused") { (owner: SharedPlayer) -> Bool? in owner.player.isPaused }.runOnQueue(.main)
+            AsyncFunction("duration") { (owner: SharedPlayer) -> Double? in owner.player.duration }.runOnQueue(.main)
+            AsyncFunction("isMuted") { (owner: SharedPlayer) -> Bool? in owner.player.isMuted }.runOnQueue(.main)
+            AsyncFunction("unload") { (owner: SharedPlayer) in
+                owner.player.unload()
+            }.runOnQueue(.main)
+            AsyncFunction("getTimeShift") { (owner: SharedPlayer) -> Double? in
+                owner.player.timeShift
+            }.runOnQueue(.main)
+            AsyncFunction("isLive") { (owner: SharedPlayer) -> Bool? in owner.player.isLive }.runOnQueue(.main)
+            AsyncFunction("getMaxTimeShift") { (owner: SharedPlayer) -> Double? in
+                owner.player.maxTimeShift
+            }.runOnQueue(.main)
+            AsyncFunction("getPlaybackSpeed") { (owner: SharedPlayer) -> Float? in
+                owner.player.playbackSpeed
+            }.runOnQueue(.main)
+            AsyncFunction("setPlaybackSpeed") { (owner: SharedPlayer, playbackSpeed: Float) in
+                owner.player.playbackSpeed = playbackSpeed
+            }.runOnQueue(.main)
+            AsyncFunction("isAd") { (owner: SharedPlayer) -> Bool? in owner.player.isAd }.runOnQueue(.main)
+            AsyncFunction("setMaxSelectableBitrate") { (owner: SharedPlayer, maxSelectableBitrate: Int) in
+                owner.player.maxSelectableBitrate = UInt(maxSelectableBitrate)
+            }.runOnQueue(.main)
+            AsyncFunction("isAirPlayActive") { (owner: SharedPlayer) -> Bool? in
+                #if os(iOS)
+                owner.player.isAirPlayActive
+                #else
+                nil
+                #endif
+            }.runOnQueue(.main)
+            AsyncFunction("isAirPlayAvailable") { (owner: SharedPlayer) -> Bool? in
+                #if os(iOS)
+                owner.player.allowsAirPlay
+                #else
+                nil
+                #endif
+            }.runOnQueue(.main)
+            AsyncFunction("showAirPlayTargetPicker") { (owner: SharedPlayer) in
+                #if os(iOS)
+                owner.player.showAirPlayTargetPicker()
+                #endif
+            }.runOnQueue(.main)
+            AsyncFunction("isCastAvailable") { (owner: SharedPlayer) -> Bool? in
+                owner.player.isCastAvailable
+            }.runOnQueue(.main)
+            AsyncFunction("isCasting") { (owner: SharedPlayer) -> Bool? in owner.player.isCasting }.runOnQueue(.main)
+            AsyncFunction("castVideo") { (owner: SharedPlayer) in owner.player.castVideo() }.runOnQueue(.main)
+            AsyncFunction("castStop") { (owner: SharedPlayer) in owner.player.castStop() }.runOnQueue(.main)
+            AsyncFunction("skipAd") { (owner: SharedPlayer) in owner.player.skipAd() }.runOnQueue(.main)
+            AsyncFunction("canPlayAtPlaybackSpeed") { (owner: SharedPlayer, playbackSpeed: Float) -> Bool? in
+                owner.player.canPlay(atPlaybackSpeed: playbackSpeed)
+            }.runOnQueue(.main)
+            AsyncFunction("getAudioTrack") { (owner: SharedPlayer) -> [String: Any]? in
+                RCTConvert.audioTrackJson(owner.player.audio)
+            }.runOnQueue(.main)
+            AsyncFunction("getAvailableAudioTracks") { (owner: SharedPlayer) -> [[String: Any]] in
+                owner.player
+                    .availableAudio.compactMap { RCTConvert.audioTrackJson($0) }
+            }.runOnQueue(.main)
+            AsyncFunction("setAudioTrack") { (owner: SharedPlayer, trackIdentifier: String) in
+                owner.player.setAudio(trackIdentifier: trackIdentifier)
+            }.runOnQueue(.main)
+            AsyncFunction("getSubtitleTrack") { (owner: SharedPlayer) -> [String: Any]? in
+                RCTConvert.subtitleTrackJson(owner.player.subtitle)
+            }.runOnQueue(.main)
+            AsyncFunction("getAvailableSubtitles") { (owner: SharedPlayer) -> [[String: Any]] in
+                owner.player
+                    .availableSubtitles
+                    .compactMap { RCTConvert.subtitleTrackJson($0) }
+            }.runOnQueue(.main)
+            AsyncFunction("setSubtitleTrack") { (owner: SharedPlayer, trackIdentifier: String?) in
+                owner.player.setSubtitle(trackIdentifier: trackIdentifier)
+            }.runOnQueue(.main)
+
+            AsyncFunction("getVideoQuality") { (owner: SharedPlayer) -> [String: Any]? in
+                RCTConvert.toJson(videoQuality: owner.player.videoQuality)
+            }.runOnQueue(.main)
+            AsyncFunction("getAvailableVideoQualities") { (owner: SharedPlayer) -> [[String: Any]] in
+                owner.player
+                    .availableVideoQualities.compactMap { RCTConvert.toJson(videoQuality: $0) }
+            }.runOnQueue(.main)
+            AsyncFunction("getThumbnail") { (owner: SharedPlayer, time: Double) -> [String: Any]? in
+                RCTConvert.toJson(thumbnail: owner.player.thumbnail(forTime: time))
+            }.runOnQueue(.main)
+            AsyncFunction("scheduleAd") { (owner: SharedPlayer, adItemJson: [String: Any]) in
+                guard let adItem = RCTConvert.adItem(adItemJson) else { return }
+                owner.player.scheduleAd(adItem: adItem)
+            }.runOnQueue(.main)
             AsyncFunction("loadOfflineContent") { (owner: SharedPlayer, offline: SharedOffline, options: [String: Any]?) -> Bool in // swiftlint:disable:this line_length
                 #if os(iOS)
                 guard let config = offline.offlineContentManager.createOfflineSourceConfig(
@@ -102,24 +212,6 @@ public class PlayerModule: Module {
         Constant("isGoogleImaEnabled") {
             NSClassFromString("IMAAdsLoader") != nil
         }
-        AsyncFunction("play") { (nativeId: NativeId) in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.play()
-        }.runOnQueue(.main)
-        AsyncFunction("pause") { (nativeId: NativeId) in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.pause()
-        }.runOnQueue(.main)
-        AsyncFunction("mute") { (nativeId: NativeId) in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.mute()
-        }.runOnQueue(.main)
-        AsyncFunction("unmute") { (nativeId: NativeId) in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.unmute()
-        }.runOnQueue(.main)
-        AsyncFunction("seek") { (nativeId: NativeId, time: Double) in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.seek(time: time)
-        }.runOnQueue(.main)
-        AsyncFunction("timeShift") { (nativeId: NativeId, offset: Double) in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.timeShift = offset
-        }.runOnQueue(.main)
         AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
             if let owner = PlayerRegistry.getSharedPlayer(nativeId: nativeId) {
                 owner.closeCallbacks()
@@ -131,128 +223,6 @@ public class PlayerModule: Module {
             self?.eventRelay.offAll(nativeId: nativeId)
             self?.appContext?.moduleRegistry.get(RNPlayerViewManager.self)?
                 .discardPendingPictureInPictureValues(playerId: nativeId)
-        }.runOnQueue(.main)
-        AsyncFunction("setVolume") { (nativeId: NativeId, volume: Int) in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.volume = volume
-        }.runOnQueue(.main)
-        AsyncFunction("unload") { (nativeId: NativeId) in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.unload()
-        }.runOnQueue(.main)
-        AsyncFunction("setPlaybackSpeed") { (nativeId: NativeId, playbackSpeed: Float) in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.playbackSpeed = playbackSpeed
-        }.runOnQueue(.main)
-        AsyncFunction("setMaxSelectableBitrate") { (nativeId: NativeId, maxSelectableBitrate: Int) in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.maxSelectableBitrate = UInt(maxSelectableBitrate)
-        }.runOnQueue(.main)
-        AsyncFunction("getVolume") { (nativeId: NativeId) -> Int? in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.volume
-        }.runOnQueue(.main)
-        AsyncFunction("currentTime") { (nativeId: NativeId, mode: String?) -> Double? in
-            let player = PlayerRegistry.getPlayer(nativeId: nativeId)
-            if let mode {
-                return player?.currentTime(RCTConvert.timeMode(mode))
-            }
-            return player?.currentTime
-        }.runOnQueue(.main)
-        AsyncFunction("isPlaying") { (nativeId: NativeId) -> Bool? in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.isPlaying
-        }.runOnQueue(.main)
-        AsyncFunction("isPaused") { (nativeId: NativeId) -> Bool? in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.isPaused
-        }.runOnQueue(.main)
-        AsyncFunction("duration") { (nativeId: NativeId) -> Double? in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.duration
-        }.runOnQueue(.main)
-        AsyncFunction("isMuted") { (nativeId: NativeId) -> Bool? in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.isMuted
-        }.runOnQueue(.main)
-        AsyncFunction("getTimeShift") { (nativeId: NativeId) -> Double? in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.timeShift
-        }.runOnQueue(.main)
-        AsyncFunction("isLive") { (nativeId: NativeId) -> Bool? in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.isLive
-        }.runOnQueue(.main)
-        AsyncFunction("getMaxTimeShift") { (nativeId: NativeId) -> Double? in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.maxTimeShift
-        }.runOnQueue(.main)
-        AsyncFunction("getPlaybackSpeed") { (nativeId: NativeId) -> Float? in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.playbackSpeed
-        }.runOnQueue(.main)
-        AsyncFunction("isAd") { (nativeId: NativeId) -> Bool? in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.isAd
-        }.runOnQueue(.main)
-        AsyncFunction("canPlayAtPlaybackSpeed") { (nativeId: NativeId, playbackSpeed: Float) -> Bool? in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.canPlay(atPlaybackSpeed: playbackSpeed)
-        }.runOnQueue(.main)
-        AsyncFunction("getAudioTrack") { (nativeId: NativeId) -> [String: Any]? in
-            RCTConvert.audioTrackJson(PlayerRegistry.getPlayer(nativeId: nativeId)?.audio)
-        }.runOnQueue(.main)
-        AsyncFunction("getAvailableAudioTracks") { (nativeId: NativeId) -> [[String: Any]] in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?
-                .availableAudio.compactMap { RCTConvert.audioTrackJson($0) } ?? []
-        }.runOnQueue(.main)
-        AsyncFunction("setAudioTrack") { (nativeId: NativeId, trackIdentifier: String) in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.setAudio(trackIdentifier: trackIdentifier)
-        }.runOnQueue(.main)
-        AsyncFunction("getSubtitleTrack") { (nativeId: NativeId) -> [String: Any]? in
-            RCTConvert.subtitleTrackJson(PlayerRegistry.getPlayer(nativeId: nativeId)?.subtitle)
-        }.runOnQueue(.main)
-        AsyncFunction("getAvailableSubtitles") { (nativeId: NativeId) -> [[String: Any]] in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?
-                .availableSubtitles
-                .compactMap { RCTConvert.subtitleTrackJson($0) } ?? []
-        }.runOnQueue(.main)
-        AsyncFunction("setSubtitleTrack") { (nativeId: NativeId, trackIdentifier: String?) in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.setSubtitle(trackIdentifier: trackIdentifier)
-        }.runOnQueue(.main)
-
-        AsyncFunction("getVideoQuality") { (nativeId: NativeId) -> [String: Any]? in
-            RCTConvert.toJson(videoQuality: PlayerRegistry.getPlayer(nativeId: nativeId)?.videoQuality)
-        }.runOnQueue(.main)
-        AsyncFunction("getAvailableVideoQualities") { (nativeId: NativeId) -> [[String: Any]] in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?
-                .availableVideoQualities.compactMap { RCTConvert.toJson(videoQuality: $0) } ?? []
-        }.runOnQueue(.main)
-        AsyncFunction("getThumbnail") { (nativeId: NativeId, time: Double) -> [String: Any]? in
-            RCTConvert.toJson(thumbnail: PlayerRegistry.getPlayer(nativeId: nativeId)?.thumbnail(forTime: time))
-        }.runOnQueue(.main)
-        AsyncFunction("scheduleAd") { (nativeId: NativeId, adItemJson: [String: Any]) in
-            guard let adItem = RCTConvert.adItem(adItemJson) else { return }
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.scheduleAd(adItem: adItem)
-        }.runOnQueue(.main)
-        AsyncFunction("isAirPlayActive") { (nativeId: NativeId) -> Bool? in
-            #if os(iOS)
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.isAirPlayActive
-            #else
-            nil
-            #endif
-        }.runOnQueue(.main)
-        AsyncFunction("isAirPlayAvailable") { (nativeId: NativeId) -> Bool? in
-            #if os(iOS)
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.allowsAirPlay
-            #else
-            nil
-            #endif
-        }.runOnQueue(.main)
-        AsyncFunction("showAirPlayTargetPicker") { (nativeId: NativeId) in
-            #if os(iOS)
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.showAirPlayTargetPicker()
-            #endif
-        }.runOnQueue(.main)
-        AsyncFunction("isCastAvailable") { (nativeId: NativeId) -> Bool? in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.isCastAvailable
-        }.runOnQueue(.main)
-        AsyncFunction("isCasting") { (nativeId: NativeId) -> Bool? in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.isCasting
-        }.runOnQueue(.main)
-        AsyncFunction("castVideo") { (nativeId: NativeId) in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.castVideo()
-        }.runOnQueue(.main)
-        AsyncFunction("castStop") { (nativeId: NativeId) in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.castStop()
-        }.runOnQueue(.main)
-        AsyncFunction("skipAd") { (nativeId: NativeId) in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.skipAd()
         }.runOnQueue(.main)
         AsyncFunction("setPreparedImaSettings") { [weak self] (id: Int, settings: [String: Any]?) in
             self?.imaSettingsWaiter.complete(id: id, with: settings ?? [:])
