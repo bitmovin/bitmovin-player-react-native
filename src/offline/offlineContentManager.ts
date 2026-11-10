@@ -61,13 +61,7 @@ export class OfflineContentManager {
     );
     this.nativeId = instance.nativeId;
     this.native = instance.native;
-    void this.native.then(
-      (native) => {
-        this.isInitialized = true;
-        this.observeEvents(native.events);
-      },
-      () => {}
-    );
+    void this.initialize().catch(() => {});
   }
 
   /** User-defined compatibility ID, or a generated UUIDv4. */
@@ -87,7 +81,9 @@ export class OfflineContentManager {
 
   /** Waits for the native manager creation started by the constructor. */
   initialize = async (): Promise<void> => {
-    await this.native;
+    const native = await this.native;
+    this.isInitialized = true;
+    this.observeEvents(native.events);
   };
 
   private async createNativeOffline(): Promise<NativeOffline> {

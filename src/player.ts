@@ -38,12 +38,7 @@ export class Player {
     );
     this.nativeId = instance.nativeId;
     this.native = instance.native;
-    void this.native.then(
-      () => {
-        this.isInitialized = true;
-      },
-      () => {}
-    );
+    void this.initialize().catch(() => {});
     this.analytics = config.analyticsConfig
       ? new AnalyticsApi(this.native)
       : undefined;
@@ -90,6 +85,7 @@ export class Player {
    */
   initialize = async (): Promise<void> => {
     await this.native;
+    this.isInitialized = true;
   };
 
   private async createNativePlayer() {

@@ -24,7 +24,5 @@ class NativeOwner<Owner extends SharedObject, Native extends SharedObject> {
 /** Keeps loaded Source callbacks reachable across Player aliases. @internal */
 export const playerSourceOwner = new NativeOwner<NativePlayer, NativeSource>();
 /** Keeps offline Source callbacks reachable through the manager's JS backend. @internal */
-export const playerOfflineOwner = new NativeOwner<
-  NativePlayer,
-  NativeOffline
->();
+// prettier-ignore
+export const playerOfflineOwner = new NativeOwner<NativePlayer, NativeOffline>();
