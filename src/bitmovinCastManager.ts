@@ -71,7 +71,7 @@ export const BitmovinCastManager = {
     if (Platform.OS === 'ios') {
       return;
     }
-    return BitmovinCastManagerModule.updateContext?.();
+    await BitmovinCastManagerModule.updateContext?.();
   },
 
   /**
@@ -88,7 +88,7 @@ export const BitmovinCastManager = {
     if (Platform.OS === 'ios' && Platform.isTV) {
       return;
     }
-    return BitmovinCastManagerModule.sendMessage(
+    await BitmovinCastManagerModule.sendMessage(
       message,
       messageNamespace || undefined
     );

@@ -175,7 +175,7 @@ export default function OfflinePlayback() {
         await newOfflineContentManager.initialize();
         setOfflineContentManager(newOfflineContentManager);
         void updateDownloadState().catch(console.error);
-        return newOfflineContentManager.getOptions();
+        await newOfflineContentManager.getOptions();
       }
       void initializeOffline().catch(console.error);
 
