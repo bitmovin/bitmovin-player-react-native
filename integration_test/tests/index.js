@@ -18,6 +18,7 @@ const testRegistrations = [
     androidAndIos,
     () => require('./captionMetadataTest').default
   ),
+  testSuite('drm', ['android'], () => require('./drmCallbacksTest').default),
   testSuite('error', androidAndIos, () => require('./errorTest').default),
   testSuite('events', androidAndIos, () => require('./eventsTest').default),
   testSuite('loading', androidAndIos, () => require('./loadingTest').default),

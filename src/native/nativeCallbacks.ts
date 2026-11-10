@@ -70,7 +70,11 @@ export class NativeCallbacks {
   }
 
   private attach<T extends SharedObject>(native: T): T {
-    return Object.defineProperty(native, callbackOwner, { value: this });
+    // Legacy Source factories can return the existing canonical handle while modules migrate.
+    if (!Object.prototype.hasOwnProperty.call(native, callbackOwner)) {
+      Object.defineProperty(native, callbackOwner, { value: this });
+    }
+    return native;
   }
 
   private weak(): NativeCallback {

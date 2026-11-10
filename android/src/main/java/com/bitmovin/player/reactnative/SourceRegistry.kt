@@ -31,9 +31,15 @@ object SourceRegistry {
     /**
      * @return The instance id of this registration.
      */
-    fun register(nativeId: NativeId, source: Source, owner: Any, appContext: AppContext): Int {
+    fun register(
+        nativeId: NativeId,
+        source: Source,
+        owner: Any,
+        appContext: AppContext,
+        callbacks: CallbackScope,
+    ): Int {
         val instanceId = nextInstanceId.getAndIncrement()
-        sources[nativeId] = Entry(SharedSource(appContext, source), owner, instanceId)
+        sources[nativeId] = Entry(SharedSource(appContext, source, instanceId, callbacks), owner, instanceId)
         return instanceId
     }
 

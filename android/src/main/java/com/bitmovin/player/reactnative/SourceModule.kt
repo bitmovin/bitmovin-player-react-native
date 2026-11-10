@@ -11,6 +11,8 @@ import com.bitmovin.player.reactnative.converter.toSourceConfig
 import com.bitmovin.player.reactnative.util.NonFiniteSanitizer
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.functions.Queues
+import expo.modules.kotlin.jni.JavaScriptFunction
+import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
@@ -51,6 +53,8 @@ class SourceModule : Module() {
         }.runOnQueue(Queues.MAIN)
 
         Class(SharedSource::class) {
+            Property("legacyInstanceId") { shared: SharedSource -> shared.legacyInstanceId }
+
             AsyncFunction("isAttachedToPlayer") { shared: SharedSource ->
                 shared.source.isAttachedToPlayer
             }.runOnQueue(Queues.MAIN)
@@ -102,59 +106,50 @@ class SourceModule : Module() {
             eventRelay.off(nativeId, SourceRegistry.getSource(nativeId), eventName)
         }.runOnQueue(Queues.MAIN)
 
-        AsyncFunction("initializeWithConfig") { nativeId: NativeId, drmNativeId: NativeId?,
-            config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?, ->
-            initializeSource(nativeId, drmNativeId, config, sourceRemoteControlConfig, null)
+        AsyncFunction("initializeWithConfig") { nativeId: NativeId, config: Map<String, Any>?,
+            remote: Map<String, Any>?, callback: JavaScriptFunction<JavaScriptValue>?, ->
+            initializeSource(nativeId, config, remote, null, callback)
         }.runOnQueue(Queues.MAIN)
 
-        AsyncFunction("initializeWithAnalyticsConfig") { nativeId: NativeId, drmNativeId: NativeId?,
-            config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?,
-            analyticsSourceMetadata: Map<String, Any>?, ->
-            initializeSource(nativeId, drmNativeId, config, sourceRemoteControlConfig, analyticsSourceMetadata)
+        AsyncFunction("initializeWithAnalyticsConfig") { nativeId: NativeId, config: Map<String, Any>?,
+            remote: Map<String, Any>?, analytics: Map<String, Any>?, callback: JavaScriptFunction<JavaScriptValue>?, ->
+            initializeSource(nativeId, config, remote, analytics, callback)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("destroy") { nativeId: NativeId ->
             releaseSource(nativeId)
         }.runOnQueue(Queues.MAIN)
-
-
     }
 
     /**
      * Creates the native [Source] of [nativeId] unless it already exists.
      *
-     * @return The instance id of the new native [Source], e.g. created again after it was released, or `null` if it
-     * already existed.
+     * @return The canonical shared source, creating it when necessary.
      */
     private fun initializeSource(
         nativeId: NativeId,
-        drmNativeId: NativeId?,
         config: Map<String, Any>?,
         sourceRemoteControlConfig: Map<String, Any>?,
         analyticsSourceMetadata: Map<String, Any>?,
-    ): Int? {
-        val existingSource = SourceRegistry.getSource(nativeId)
+        callback: JavaScriptFunction<JavaScriptValue>?,
+    ): SharedSource {
+        val existingSource = SourceRegistry.getSharedSource(nativeId)
         if (existingSource != null) {
-            appContext.registry.getModule<PlayerModule>()?.keepSource(existingSource)
-            return null
+            appContext.registry.getModule<PlayerModule>()?.keepSource(existingSource.source)
+            return existingSource
         }
 
-        val sourceConfig = config?.toSourceConfig()
-            ?: throw SourceException.InvalidSourceConfig()
-
-        // Get DRM config if provided
-        sourceConfig.drmConfig = appContext.registry.getModule<DrmModule>()?.getConfig(drmNativeId)
-
-        val sourceMetadata = analyticsSourceMetadata?.toAnalyticsSourceMetadata()
-        try {
+        val callbacks = CallbackScope(appContext, callback)
+        return callbacks.createSharedObject {
+            val sourceConfig = config?.toSourceConfig(callbacks) ?: throw SourceException.InvalidSourceConfig()
+            val sourceMetadata = analyticsSourceMetadata?.toAnalyticsSourceMetadata()
             val source = if (sourceMetadata != null) {
                 Source.create(sourceConfig, sourceMetadata)
             } else {
                 Source.create(sourceConfig)
             }
-            return SourceRegistry.register(nativeId, source, owner = this, appContext = appContext)
-        } catch (e: Exception) {
-            throw SourceException.SourceCreationFailed(e.message ?: "Unknown error")
+            SourceRegistry.register(nativeId, source, owner = this, appContext = appContext, callbacks = callbacks)
+            checkNotNull(SourceRegistry.getSharedSource(nativeId))
         }
     }
 
@@ -175,6 +170,4 @@ class SourceModule : Module() {
 
 sealed class SourceException(message: String) : CodedException(message) {
     class InvalidSourceConfig : SourceException("Invalid source configuration")
-    class SourceCreationFailed(reason: String) : SourceException("Could not create source: $reason")
-    class SourceNotInitialized(nativeId: NativeId) : SourceException("Source $nativeId is not initialized")
 }

@@ -8,7 +8,7 @@ import { OfflineEventType } from './offlineContentManagerListener';
 import type { OfflineContentConfig } from './offlineContentConfig';
 import type { OfflineDownloadRequest } from './offlineDownloadRequest';
 import type { OfflineState } from './offlineState';
-import { Drm } from '../drm';
+import { LegacyDrm } from '../drm/legacyDrm';
 import OfflineModule from './offlineModule';
 
 const handleBitmovinNativeOfflineEvent = (
@@ -53,7 +53,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
   private eventSubscription?: EventSubscription;
   private listeners: Set<OfflineContentManagerListener> =
     new Set<OfflineContentManagerListener>();
-  private drm?: Drm;
+  private drm?: LegacyDrm;
 
   /**
    * Allocates the native `OfflineManager` instance and its resources natively.
@@ -73,7 +73,7 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
       );
 
       if (this.config.sourceConfig.drmConfig) {
-        this.drm = new Drm(this.config.sourceConfig.drmConfig);
+        this.drm = new LegacyDrm(this.config.sourceConfig.drmConfig);
         await this.drm.initialize();
       }
 

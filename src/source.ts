@@ -1,6 +1,6 @@
 import type { CmcdConfig } from './cmcdConfig';
 import type { DrmConfig } from './drm';
-import { Drm } from './drm';
+import { SourceDrmApi } from './drm/sourceDrmApi';
 import type { NativeInstanceConfig } from './nativeInstance';
 import NativeInstance from './nativeInstance';
 import type { SideLoadedSubtitleTrack } from './subtitleTrack';
@@ -10,6 +10,7 @@ import SourceModule, { type NativeSource } from './modules/sourceModule';
 import type { SourceEventMap } from './eventMap';
 import { EventListeners } from './utils/eventListeners';
 import { SourceRegistry } from './utils/sourceRegistry';
+import { NativeConfigSerializer } from './native/nativeConfigSerializer';
 
 /**
  * Types of media that can be handled by the player.
@@ -166,12 +167,9 @@ export interface SourceRemoteControlConfig {
  */
 export class Source extends NativeInstance<SourceConfig> {
   /**
-   * Provides access to DRM runtime APIs for this source.
-   * Use `drm.fairplay` to access {@link FairplayDrmApi} for FairPlay-specific APIs such as {@link FairplayDrmApi.renewExpiringLicense}.
-   *
-   * `undefined` if the source was created without a {@link DrmConfig}.
+   * Provides DRM runtime APIs for this Source. Read `config.drmConfig` for configuration.
    */
-  drm?: Drm;
+  readonly drm: SourceDrmApi = new SourceDrmApi(() => this.native);
   /**
    * The remote control config for this source.
    * This is only supported on iOS.
@@ -232,35 +230,28 @@ export class Source extends NativeInstance<SourceConfig> {
 
   private initializeNative = async (): Promise<void> => {
     const sourceMetadata = this.config?.analyticsSourceMetadata;
-    if (this.config?.drmConfig && !this.drm) {
-      const drm = new Drm(this.config.drmConfig, this.nativeId);
-      try {
-        await drm.initialize();
-      } catch (error) {
-        // Release its subscriptions, so that a later initialization starts over.
-        void drm.destroy();
-        throw error;
-      }
-      this.drm = drm;
-    }
-    const instanceId = sourceMetadata
-      ? await SourceModule.initializeWithAnalyticsConfig(
-          this.nativeId,
-          this.drm?.nativeId,
-          this.config,
-          this.remoteControl || undefined,
-          sourceMetadata
-        )
-      : await SourceModule.initializeWithConfig(
-          this.nativeId,
-          this.drm?.nativeId,
-          this.config,
-          this.remoteControl || undefined
-        );
-    const isCreated = typeof instanceId === 'number';
-    if (isCreated) {
-      this.nativeInstanceId = instanceId;
-    }
+    const serializer = new NativeConfigSerializer();
+    const native = await serializer.dispatcher.createAsync((callback) =>
+      sourceMetadata
+        ? SourceModule.initializeWithAnalyticsConfig(
+            this.nativeId,
+            serializer.serialize(this.config),
+            this.remoteControl || undefined,
+            sourceMetadata,
+            callback
+          )
+        : SourceModule.initializeWithConfig(
+            this.nativeId,
+            serializer.serialize(this.config),
+            this.remoteControl || undefined,
+            callback
+          )
+    );
+    const instanceId = native.legacyInstanceId;
+    const isCreated =
+      SourceRegistry.get(this.nativeId)?.nativeInstanceId !== instanceId;
+    this.nativeInstanceId = instanceId;
+    this.nativeSource = Promise.resolve(native);
     SourceRegistry.register(this);
     this.isInitialized = true;
     this.isDestroyed = false;
@@ -293,8 +284,6 @@ export class Source extends NativeInstance<SourceConfig> {
     this.nativeSource = undefined;
     SourceRegistry.unregister(this);
     this.isInitialized = false;
-    void this.drm?.destroy();
-    this.drm = undefined;
   };
 
   /**
@@ -309,8 +298,6 @@ export class Source extends NativeInstance<SourceConfig> {
       this.nativeInstanceId = undefined;
       this.nativeSource = undefined;
       void SourceModule.destroy(this.nativeId);
-      void this.drm?.destroy();
-      this.drm = undefined;
       this.eventListeners.removeAll();
       this.isDestroyed = true;
       this.isInitialized = false;

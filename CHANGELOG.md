@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Read DRM configuration from `source.config.drmConfig`. `source.drm` is now an always-present, readonly runtime API, including for clear content. `Drm` is configuration only and no longer has initialization, destruction, or binding IDs
+- Android: Source DRM callbacks now use the same 250 ms synchronous deadline as iOS
+
 ### Fixed
 
 - iOS: Preserve metadata set before loading a Source

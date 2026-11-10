@@ -28,13 +28,18 @@ internal enum SourceRegistry {
      - Returns: The instance id of this registration.
      */
     @discardableResult
-    static func register(_ source: Source, nativeId: NativeId, owner: AnyObject) -> Int {
+    static func register(
+        _ source: Source,
+        nativeId: NativeId,
+        owner: AnyObject,
+        callback: CallbackScope?
+    ) -> Int {
         lock.lock()
         defer { lock.unlock() }
         let instanceId = nextInstanceId
         nextInstanceId += 1
         sources[nativeId] = Entry(
-            sharedSource: SharedSource(source: source),
+            sharedSource: SharedSource(source: source, legacyInstanceId: instanceId, callback: callback),
             owner: ObjectIdentifier(owner),
             instanceId: instanceId
         )

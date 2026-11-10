@@ -1,12 +1,20 @@
 import BitmovinPlayer
 import ExpoModulesCore
 
-/// Shared handle used by source APIs while SourceModule still controls creation and release.
 public final class SharedSource: SharedObject {
     let source: Source
+    let legacyInstanceId: Int
+    let fairplayRequests: SourceFairplayRequests
+    private let callback: CallbackScope?
 
-    init(source: Source) {
+    init(source: Source, legacyInstanceId: Int, callback: CallbackScope?) {
         self.source = source
+        self.legacyInstanceId = legacyInstanceId
+        self.callback = callback
+        fairplayRequests = SourceFairplayRequests.attached(to: source)
         super.init()
     }
+
+    deinit { callback?.close() }
+    override public func sharedObjectWillRelease() { callback?.close() }
 }

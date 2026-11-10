@@ -1,14 +1,10 @@
 import BitmovinPlayer
-import Combine
 import ExpoModulesCore
+import ExpoModulesJSI
 
 public class SourceModule: Module {
     /// In-memory mapping from `nativeId`s to `SourceConfig` instances for casting.
     private var castSourceConfigs: Registry<SourceConfig> = [:]
-    /// Registry retaining native `FairplayContentKeyRequest` instances keyed by source nativeId + skdUri.
-    private let fairplayRegistry = FairplayContentKeyRequestRegistry()
-    /// Combine cancellables for FairPlay license acquired events, keyed by source nativeId.
-    private var fairplayCancellables: [NativeId: AnyCancellable] = [:]
     private lazy var eventRelay = EventRelay<Source>(
         subscribers: PlayerEventTypes.source
     ) { [weak self] nativeId, eventName, event in
@@ -29,6 +25,11 @@ public class SourceModule: Module {
             return owner
         }.runOnQueue(.main)
         Class("Source", SharedSource.self) {
+            Property("legacyInstanceId") { (owner: SharedSource) -> Int in owner.legacyInstanceId }
+            AsyncFunction("drmFairplayRenewExpiringLicense") { (owner: SharedSource, skdUri: String) in
+                guard let request = owner.fairplayRequests.request(for: skdUri) else { return }
+                owner.source.drm.fairplay.renewExpiringLicense(for: request)
+            }.runOnQueue(.main)
             AsyncFunction("isAttachedToPlayer") { (owner: SharedSource) -> Bool in
                 owner.source.isAttachedToPlayer
             }.runOnQueue(.main)
@@ -65,8 +66,6 @@ public class SourceModule: Module {
                 // Only this module's sources, not those of a new module instance, e.g. after a reload.
                 SourceRegistry.unregisterAll(owner: self)
                 castSourceConfigs.removeAll()
-                fairplayCancellables.values.forEach { $0.cancel() }
-                fairplayCancellables.removeAll()
             }
         }
 
@@ -79,32 +78,22 @@ public class SourceModule: Module {
         AsyncFunction("off") { [weak self] (nativeId: NativeId, eventName: String) in
             self?.eventRelay.off(nativeId: nativeId, eventName: eventName)
         }.runOnQueue(.main)
-        AsyncFunction("initializeWithConfig") { [weak self] (nativeId: NativeId, drmNativeId: NativeId?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?) -> Int? in // swiftlint:disable:this line_length
-            self?.createSource(
-                nativeId: nativeId,
-                drmNativeId: drmNativeId,
-                config: config,
-                sourceRemoteControlConfig: sourceRemoteControlConfig
+        AsyncFunction("initializeWithConfig") { (nativeId: NativeId, config: [String: Any]?, remote: [String: Any]?, callback: JavaScriptValue?) -> SharedSource in // swiftlint:disable:this line_length
+            try self.createSource(
+                nativeId: nativeId, config: config, sourceRemoteControlConfig: remote, callbackValue: callback
             )
         }.runOnQueue(.main)
-        AsyncFunction("initializeWithAnalyticsConfig") { [weak self] (nativeId: NativeId, drmNativeId: NativeId?, config: [String: Any]?, sourceRemoteControlConfig: [String: Any]?, analyticsSourceMetadata: [String: Any]?) -> Int? in // swiftlint:disable:this line_length
-            self?.createSource(
+        AsyncFunction("initializeWithAnalyticsConfig") { (nativeId: NativeId, config: [String: Any]?, remote: [String: Any]?, analytics: [String: Any]?, callback: JavaScriptValue?) -> SharedSource in // swiftlint:disable:this line_length
+            try self.createSource(
                 nativeId: nativeId,
-                drmNativeId: drmNativeId,
                 config: config,
-                sourceRemoteControlConfig: sourceRemoteControlConfig,
-                analyticsSourceMetadata: analyticsSourceMetadata
+                sourceRemoteControlConfig: remote,
+                callbackValue: callback,
+                analyticsSourceMetadata: analytics
             )
         }.runOnQueue(.main)
         AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
             self?.releaseSource(nativeId: nativeId)
-        }.runOnQueue(.main)
-        AsyncFunction("drmFairplayRenewExpiringLicense") { [weak self] (nativeId: NativeId, skdUri: String) in
-            guard let source = self?.retrieve(nativeId),
-                  let contentKeyRequest = self?.fairplayRegistry.retrieve(nativeId: nativeId, skdUri: skdUri) else {
-                return
-            }
-            source.drm.fairplay.renewExpiringLicense(for: contentKeyRequest)
         }.runOnQueue(.main)
     }
 
@@ -126,25 +115,24 @@ public class SourceModule: Module {
     /**
      Creates and registers the source with the given `nativeId`.
 
-     - Returns: The instance id of the newly created source, or `nil` if it already exists or `config` is invalid.
+     - Returns: The canonical shared source, creating it when necessary.
      */
     private func createSource(
         nativeId: NativeId,
-        drmNativeId: NativeId?,
         config: [String: Any]?,
         sourceRemoteControlConfig: [String: Any]?,
+        callbackValue: JavaScriptValue?,
         analyticsSourceMetadata: [String: Any]? = nil
-    ) -> Int? {
-        if let existingSource = retrieve(nativeId) {
+    ) throws -> SharedSource {
+        if let existing = SourceRegistry.sharedSource(nativeId: nativeId) {
             // Keep the source if its release is pending, e.g. because it is added again right after it was removed.
-            appContext?.moduleRegistry.get(PlayerModule.self)?.keepSource(existingSource)
-            return nil
+            appContext?.moduleRegistry.get(PlayerModule.self)?.keepSource(existing.source)
+            return existing
         }
-        // Get DRM config if provided
-        let drmModule = appContext?.moduleRegistry.get(DrmModule.self)
-        let drmConfig = drmNativeId.flatMap { drmModule?.retrieve($0) }
-        guard let sourceConfig = RCTConvert.sourceConfig(config, drmConfig: drmConfig) else {
-            return nil
+        let callback = try callbackValue.map { try CallbackScope(callback: $0, context: appContext) }
+        guard let sourceConfig = RCTConvert.sourceConfig(config, callback: callback) else {
+            callback?.close()
+            throw Exception(name: "InvalidSourceConfig", description: "Invalid source configuration")
         }
         // Add analytics metadata if provided
         let sourceMetadata = RCTConvert.analyticsSourceMetadata(analyticsSourceMetadata)
@@ -155,20 +143,18 @@ public class SourceModule: Module {
         } else {
             source = SourceFactory.createSource(from: sourceConfig)
         }
-        let instanceId = SourceRegistry.register(source, nativeId: nativeId, owner: self)
-        // Attach Combine listener to populate the FairPlay registry when a license is acquired
-        fairplayCancellables[nativeId] = source.events
-            .on(FairplayLicenseAcquiredEvent.self)
-            .sink { [weak self] event in
-                self?.fairplayRegistry.store(nativeId: nativeId, contentKeyRequest: event.contentKeyRequest)
-            }
+        SourceRegistry.register(source, nativeId: nativeId, owner: self, callback: callback)
         // Store cast source config if provided
 #if os(iOS)
         if let remoteConfig = RCTConvert.sourceRemoteControlConfig(sourceRemoteControlConfig) {
             castSourceConfigs[nativeId] = remoteConfig.castSourceConfig
         }
 #endif
-        return instanceId
+        guard let owner = SourceRegistry.sharedSource(nativeId: nativeId) else {
+            callback?.close()
+            throw Exception(name: "SourceNotInitialized", description: "Source registration failed")
+        }
+        return owner
     }
 
     /**
@@ -182,9 +168,6 @@ public class SourceModule: Module {
         eventRelay.offAll(nativeId: nativeId)
         let removed = SourceRegistry.unregister(nativeId: nativeId)
         castSourceConfigs.removeValue(forKey: nativeId)
-        fairplayCancellables[nativeId]?.cancel()
-        fairplayCancellables.removeValue(forKey: nativeId)
-        fairplayRegistry.removeAll(nativeId: nativeId)
         if let removed {
             sendEvent("onSourceReleased", ["nativeId": nativeId, "instanceId": removed.instanceId])
         }

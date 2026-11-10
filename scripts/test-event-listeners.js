@@ -140,8 +140,8 @@ const moduleListeners = new Map();
 let nextInstanceId = 0;
 
 // Models native creating the source on the first initialization and after
-// `release` only, and reporting the instance id of a created source, as the
-// Android bridge does. DRM configs are recorded in `calls`.
+// `release` only, returning the canonical shared source and its generation marker.
+// This models JS registration only, not native callback completion.
 function sourceFixture(
   t,
   config = { url: 'https://example.com/a.m3u8', type: 'hls' }
@@ -151,29 +151,28 @@ function sourceFixture(
   );
   const calls = [];
   let instanceId;
+  let owner;
+  let serializedConfig;
+  let callback;
   nativeModules.SourceModule = {
     addListener: (name, listener) => {
       moduleListeners.set(name, listener);
       return { remove: () => {} };
     },
-    initializeWithConfig: async (nativeId) => {
+    initializeWithConfig: async (nativeId, config, remote, dispatch) => {
       calls.push(['initializeWithConfig', nativeId]);
       // Let the other initialize call run while this one is in progress.
       await new Promise(setImmediate);
-      if (instanceId !== undefined) {
-        return null;
-      }
+      if (owner) return owner;
       instanceId = nextInstanceId++;
-      return instanceId;
+      owner = { legacyInstanceId: instanceId };
+      serializedConfig = config;
+      callback = dispatch;
+      return owner;
     },
     on: async (nativeId, eventName) => calls.push(['on', nativeId, eventName]),
     off: async () => {},
     destroy: async () => {},
-  };
-  nativeModules.DrmModule = {
-    addListener: () => ({ remove: () => {} }),
-    initializeWithConfig: async () => calls.push(['drm.initialize']),
-    destroy: async () => calls.push(['drm.destroy']),
   };
   const { Source } = require(path.join(root, 'source'));
   const { SourceRegistry } = require(path.join(root, 'utils/sourceRegistry'));
@@ -182,12 +181,12 @@ function sourceFixture(
   t.after(() => {
     source.destroy();
     delete nativeModules.SourceModule;
-    delete nativeModules.DrmModule;
   });
   // Releases the native source, as a player removing it does.
   const release = () => {
     const released = instanceId;
     instanceId = undefined;
+    owner = undefined;
     return released;
   };
   // Emits `onSourceReleased` for the released native source.
@@ -196,7 +195,15 @@ function sourceFixture(
       nativeId: source.nativeId,
       instanceId: released,
     });
-  return { source, calls, release, emitRelease, SourceRegistry };
+  return {
+    source,
+    calls,
+    release,
+    emitRelease,
+    SourceRegistry,
+    dispatchLicense: (license) =>
+      callback(serializedConfig.drmConfig.widevine.prepareLicense, [license]),
+  };
 }
 
 test('initializes a source natively once for overlapping initialize calls', async (t) => {
@@ -351,19 +358,15 @@ test('ignores the release of a native source that was created again since', asyn
 });
 
 test('handles a release that arrives during an initialization once it finished', async (t) => {
-  const { source, calls, release, emitRelease, SourceRegistry } = sourceFixture(
-    t,
-    {
-      url: 'https://example.com/a.mpd',
-      type: 'dash',
-      drmConfig: { widevine: { licenseUrl: 'https://example.com/license' } },
-    }
-  );
+  const { source, release, emitRelease, SourceRegistry } = sourceFixture(t, {
+    url: 'https://example.com/a.mpd',
+    type: 'dash',
+    drmConfig: { widevine: { licenseUrl: 'https://example.com/license' } },
+  });
   await source.initialize();
   const released = release();
 
-  // The initialization creates the source again with the existing DRM config, so
-  // the late release must not release that DRM config.
+  // The late release must not retire the new source generation.
   const initialization = source.initialize();
   emitRelease(released);
   await initialization;
@@ -371,53 +374,28 @@ test('handles a release that arrives during an initialization once it finished',
 
   assert.equal(SourceRegistry.get(source.nativeId), source);
   assert.equal(source.isInitialized, true);
-  assert.deepEqual(
-    calls.filter(([call]) => call.startsWith('drm.')),
-    [['drm.initialize']]
-  );
+  assert.ok(source.drm.fairplay);
 });
 
-test('releases the DRM of a released source and creates it again', async (t) => {
-  const { source, calls, release, emitRelease } = sourceFixture(t, {
+test('dispatches source DRM callbacks from the configuration', async (t) => {
+  const { source, dispatchLicense } = sourceFixture(t, {
     url: 'https://example.com/a.mpd',
     type: 'dash',
-    drmConfig: { widevine: { licenseUrl: 'https://example.com/license' } },
+    drmConfig: {
+      widevine: {
+        licenseUrl: 'https://example.com/license',
+        prepareLicense: (license) => license + '-prepared',
+      },
+    },
   });
   await source.initialize();
-  const drm = source.drm;
-
-  emitRelease(release());
-  await source.initialize();
-
-  assert.deepEqual(
-    calls.filter(([call]) => call.startsWith('drm.')),
-    [['drm.initialize'], ['drm.destroy'], ['drm.initialize']]
+  assert.equal(dispatchLicense('license'), 'license-prepared');
+  assert.ok(
+    source.drm.fairplay,
+    'runtime APIs are separate from configuration'
   );
-  assert.notEqual(source.drm, drm);
-});
-
-test('initializes the DRM again after its initialization failed', async (t) => {
-  const { nativeModules } = require(
-    path.join(root, 'node_modules/expo-modules-core')
+  assert.equal(
+    source.config.drmConfig.widevine.licenseUrl,
+    'https://example.com/license'
   );
-  const { source, calls } = sourceFixture(t, {
-    url: 'https://example.com/a.mpd',
-    type: 'dash',
-    drmConfig: { widevine: { licenseUrl: 'https://example.com/license' } },
-  });
-  const initialize = nativeModules.DrmModule.initializeWithConfig;
-  nativeModules.DrmModule.initializeWithConfig = async () => {
-    calls.push(['drm.initialize']);
-    throw new Error('DRM initialization failed');
-  };
-
-  await assert.rejects(source.initialize(), /DRM initialization failed/);
-  nativeModules.DrmModule.initializeWithConfig = initialize;
-  await source.initialize();
-
-  assert.deepEqual(
-    calls.filter(([call]) => call.startsWith('drm.')),
-    [['drm.initialize'], ['drm.destroy'], ['drm.initialize']]
-  );
-  assert.ok(source.drm, 'DRM of the source');
 });

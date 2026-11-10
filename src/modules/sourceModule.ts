@@ -4,6 +4,7 @@ import { requireNativeModule } from 'expo-modules-core';
 import type { LoadingState, SourceRemoteControlConfig } from '../source';
 import type { Thumbnail } from '../thumbnail';
 import type { NativeEventPayload } from '../utils/eventListeners';
+import type { NativeCallback } from '../native/nativeCallbacks';
 
 export type SourceModuleEvents = {
   onSourceEvent: (payload: NativeEventPayload) => void;
@@ -16,6 +17,8 @@ export type SourceModuleEvents = {
 
 /** @internal Shared handle used by migrated Source APIs. */
 export interface NativeSource extends SharedObject {
+  readonly legacyInstanceId: number;
+  drmFairplayRenewExpiringLicense(skdUri: string): Promise<void>;
   isAttachedToPlayer(): Promise<boolean>;
   isActive(): Promise<boolean>;
   duration(): Promise<number>;
@@ -40,48 +43,36 @@ declare class SourceModule extends NativeModule<SourceModuleEvents> {
   off(nativeId: string, eventName: string): Promise<void>;
 
   /**
-   * Initializes a source with the given nativeId, optional DRM nativeId, configuration object,
+   * Initializes a source with the given nativeId, configuration object,
    * and remote control object.
    *
-   * Resolves the instance id of the newly created native source, e.g. created again after it was released, or
-   * nothing if it already existed.
+   * Resolves the canonical native source, creating it if necessary.
    */
   initializeWithConfig(
     nativeId: string,
-    drmNativeId?: string,
     config?: Record<string, any>,
-    remoteControl?: SourceRemoteControlConfig
-  ): Promise<number | null>;
+    remoteControl?: SourceRemoteControlConfig,
+    callback?: NativeCallback
+  ): Promise<NativeSource>;
 
   /**
-   * Initializes a source with the given nativeId, optional DRM nativeId, configuration object,
+   * Initializes a source with the given nativeId, configuration object,
    * remote control object, and analytics source metadata.
    *
-   * Resolves the instance id of the newly created native source, e.g. created again after it was released, or
-   * nothing if it already existed.
+   * Resolves the canonical native source, creating it if necessary.
    */
   initializeWithAnalyticsConfig(
     nativeId: string,
-    drmNativeId?: string,
     config?: Record<string, any>,
     remoteControl?: SourceRemoteControlConfig,
-    analyticsSourceMetadata?: Record<string, any>
-  ): Promise<number | null>;
+    analyticsSourceMetadata?: Record<string, any>,
+    callback?: NativeCallback
+  ): Promise<NativeSource>;
 
   /**
    * Destroys the source with the given nativeId.
    */
   destroy(nativeId: string): Promise<void>;
-
-  /**
-   * Renews an expiring FairPlay license for the given content key request.
-   *
-   * @platform iOS, tvOS
-   */
-  drmFairplayRenewExpiringLicense(
-    nativeId: string,
-    skdUri: string
-  ): Promise<void>;
 }
 
 export default requireNativeModule<SourceModule>('SourceModule');

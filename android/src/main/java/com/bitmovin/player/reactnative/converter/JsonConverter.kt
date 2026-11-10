@@ -33,6 +33,8 @@ import com.bitmovin.player.api.buffer.BufferType
 import com.bitmovin.player.api.casting.RemoteControlConfig
 import com.bitmovin.player.api.decoder.DecoderPriorityProvider.DecoderContext
 import com.bitmovin.player.api.decoder.MediaCodecInfo
+import com.bitmovin.player.api.drm.PrepareLicenseCallback
+import com.bitmovin.player.api.drm.PrepareMessageCallback
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
@@ -85,6 +87,7 @@ import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.api.ui.SurfaceType
 import com.bitmovin.player.api.ui.UiConfig
+import com.bitmovin.player.reactnative.CallbackScope
 import com.bitmovin.player.reactnative.PictureInPictureAction
 import com.bitmovin.player.reactnative.PictureInPictureConfig
 import com.bitmovin.player.reactnative.RNBufferLevels
@@ -270,10 +273,11 @@ private fun String.toAdSourceType(): AdSourceType? = when (this) {
     else -> null
 }
 
-fun Map<String, Any?>.toSourceConfig(): SourceConfig? {
+fun Map<String, Any?>.toSourceConfig(callbacks: CallbackScope? = null): SourceConfig? {
     val url = getString("url") ?: return null
     val type = getString("type")?.toSourceType() ?: return null
     return SourceConfig(url, type).apply {
+        if (callbacks != null) drmConfig = getMap("drmConfig")?.toWidevineConfig(callbacks)
         withString("title") { title = it }
         withString("description") { description = it }
         withString("poster") { posterSource = it }
@@ -596,6 +600,23 @@ fun Map<String, Any?>.toWidevineConfig(): WidevineConfig? = getMap("widevine")?.
         withBoolean("shouldKeepDrmSessionsAlive") { shouldKeepDrmSessionsAlive = it }
         withMap("httpHeaders") { httpHeaders = it.mapValues { entry -> entry.value as String }.toMutableMap() }
     }
+}
+
+fun Map<String, Any?>.toWidevineConfig(callbacks: CallbackScope): WidevineConfig? {
+    val config = toWidevineConfig() ?: return null
+    val widevine = getMap("widevine") ?: return config
+    (widevine["prepareMessage"] as? String)?.let { token ->
+        config.prepareMessageCallback = PrepareMessageCallback { callbacks.prepare(token, it) }
+    }
+    (widevine["prepareLicense"] as? String)?.let { token ->
+        config.prepareLicenseCallback = PrepareLicenseCallback { callbacks.prepare(token, it) }
+    }
+    return config
+}
+
+private fun CallbackScope.prepare(token: String, data: ByteArray): ByteArray {
+    val result = call(token, listOf(Base64.encodeToString(data, Base64.NO_WRAP)))
+    return Base64.decode(result as? String ?: "", Base64.NO_WRAP)
 }
 
 fun String.toThumbnailTrack(): ThumbnailTrack = ThumbnailTrack(this)
