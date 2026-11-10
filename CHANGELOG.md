@@ -4,6 +4,10 @@
 
 ### Changed
 
+- Android: Decoder priority callbacks use the Player's callback owner instead of a separate configuration lifecycle and binding ID. Calls have a 250 ms deadline and use the SDK decoder order when the callback fails or misses the deadline
+
+### Changed
+
 - `Network` is configuration only. HTTP preprocessing uses callbacks owned by its Player instead of a separate configuration lifecycle and binding ID
 
 ### Changed

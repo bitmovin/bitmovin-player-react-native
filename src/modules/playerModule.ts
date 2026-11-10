@@ -246,7 +246,6 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
   initializeWithConfig(
     nativeId: string,
     config?: Record<string, any>,
-    decoderNativeId?: string,
     callback?: NativeCallback
   ): Promise<NativePlayer>;
 
@@ -257,7 +256,6 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
     nativeId: string,
     analyticsConfig: Record<string, any>,
     config?: Record<string, any>,
-    decoderNativeId?: string,
     callback?: NativeCallback
   ): Promise<NativePlayer>;
 

@@ -29,7 +29,6 @@
       "com.bitmovin.player.reactnative.DrmModule",
       "com.bitmovin.player.reactnative.FullscreenHandlerModule",
       "com.bitmovin.player.reactnative.OfflineModule",
-      "com.bitmovin.player.reactnative.DecoderConfigModule",
       "com.bitmovin.player.reactnative.RNPlayerViewManager"
     ]
   }

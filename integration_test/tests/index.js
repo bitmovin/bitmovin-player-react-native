@@ -18,6 +18,11 @@ const testRegistrations = [
     androidAndIos,
     () => require('./captionMetadataTest').default
   ),
+  testSuite(
+    'decoder',
+    ['android'],
+    () => require('./decoderConfigTest').default
+  ),
   testSuite('drm', ['android'], () => require('./drmCallbacksTest').default),
   testSuite('error', androidAndIos, () => require('./errorTest').default),
   testSuite('events', androidAndIos, () => require('./eventsTest').default),

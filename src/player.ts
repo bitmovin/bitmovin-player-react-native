@@ -14,7 +14,6 @@ import type { AdBreak, AdItem, ImaSettings } from './advertising';
 import { BufferApi } from './bufferApi';
 import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
-import { DecoderConfigBridge } from './decoder';
 import type { PlaylistConfig } from './playlist';
 import { PlaylistApi } from './playlist';
 import { validatePlaylistConfig } from './playlist/validatePlaylistConfig';
@@ -62,7 +61,6 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   playlist: PlaylistApi = new PlaylistApi(this.nativeId);
 
-  private decoderConfig?: DecoderConfigBridge;
   private onShouldLoadAdItemSubscription?: EventSubscription;
   private onShouldPlayAdBreakSubscription?: EventSubscription;
   private onImaBeforeInitializationSubscription?: EventSubscription;
@@ -97,28 +95,30 @@ export class Player extends NativeInstance<PlayerConfig> {
       this.ensureShouldLoadAdItemListener();
       this.ensureShouldPlayAdBreakListener();
       this.ensureImaBeforeInitializationListener();
-      await this.maybeInitDecoderConfig();
       const analyticsConfig = this.config?.analyticsConfig;
       const serializer = new NativeConfigSerializer();
       const config = { ...this.config };
       if (this.config?.networkConfig) {
         config.networkConfig = serializer.serialize(this.config.networkConfig);
       }
+      if (this.config?.playbackConfig?.decoderConfig) {
+        config.playbackConfig = {
+          ...this.config.playbackConfig,
+          decoderConfig: serializer.serialize(
+            this.config.playbackConfig.decoderConfig
+          ),
+        };
+      }
+
       const native = await serializer.dispatcher.createAsync((callback) =>
         analyticsConfig
           ? PlayerModule.initializeWithAnalyticsConfig(
               this.nativeId,
               analyticsConfig,
               config,
-              this.decoderConfig?.nativeId,
               callback
             )
-          : PlayerModule.initializeWithConfig(
-              this.nativeId,
-              config,
-              this.decoderConfig?.nativeId,
-              callback
-            )
+          : PlayerModule.initializeWithConfig(this.nativeId, config, callback)
       );
       // Every initialized alias keeps the canonical peer and its configuration callbacks alive.
       this.sharedPlayer = Promise.resolve(native);
@@ -142,7 +142,6 @@ export class Player extends NativeInstance<PlayerConfig> {
       void PlayerModule.destroy(this.nativeId).finally(() => {
         this.eventListeners.removeAll();
       });
-      void this.decoderConfig?.destroy();
       this.onShouldLoadAdItemSubscription?.remove();
       this.onShouldPlayAdBreakSubscription?.remove();
       this.onImaBeforeInitializationSubscription?.remove();
@@ -787,19 +786,5 @@ export class Player extends NativeInstance<PlayerConfig> {
         playbackSpeed
       )) ?? false
     );
-  };
-
-  private maybeInitDecoderConfig = () => {
-    if (this.config?.playbackConfig?.decoderConfig == null) {
-      return;
-    }
-    if (Platform.OS === 'ios') {
-      return;
-    }
-
-    this.decoderConfig = new DecoderConfigBridge(
-      this.config.playbackConfig.decoderConfig
-    );
-    this.decoderConfig.initialize();
   };
 }

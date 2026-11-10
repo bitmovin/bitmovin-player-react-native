@@ -16,6 +16,7 @@ import com.bitmovin.player.api.playlist.PlaylistOptions
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toBufferTypeOrThrow
+import com.bitmovin.player.reactnative.converter.toDecoderConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
@@ -372,13 +373,13 @@ class PlayerModule : Module() {
         }
 
         AsyncFunction("initializeWithConfig") { nativeId: NativeId, config: Map<String, Any>?,
-            decoderNativeId: NativeId?, callback: JavaScriptFunction<JavaScriptValue>?, ->
-            initializePlayer(nativeId, config, decoderNativeId, null, callback)
+            callback: JavaScriptFunction<JavaScriptValue>?, ->
+            initializePlayer(nativeId, config, null, callback)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("initializeWithAnalyticsConfig") { nativeId: NativeId, analyticsConfigJson: Map<String, Any>,
-            config: Map<String, Any>?, decoderNativeId: NativeId?, callback: JavaScriptFunction<JavaScriptValue>?, ->
-            initializePlayer(nativeId, config, decoderNativeId, analyticsConfigJson, callback)
+            config: Map<String, Any>?, callback: JavaScriptFunction<JavaScriptValue>?, ->
+            initializePlayer(nativeId, config, analyticsConfigJson, callback)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("loadSource") { nativeId: NativeId, sourceNativeId: NativeId ->
@@ -411,7 +412,6 @@ class PlayerModule : Module() {
     private fun initializePlayer(
         nativeId: NativeId,
         config: Map<String, Any>?,
-        decoderNativeId: NativeId?,
         analyticsConfigJson: Map<String, Any>?,
         callback: JavaScriptFunction<JavaScriptValue>?,
     ): SharedPlayer {
@@ -443,9 +443,7 @@ class PlayerModule : Module() {
 
             config?.getMap("networkConfig")?.let { playerConfig.networkConfig = it.toNetworkConfig(callbacks) }
 
-            val decoderConfig = decoderNativeId?.let {
-                appContext.registry.getModule<DecoderConfigModule>()?.getDecoderConfig(it)
-            }
+            val decoderConfig = config?.getMap("playbackConfig")?.getMap("decoderConfig").toDecoderConfig(callbacks)
             if (decoderConfig != null) {
                 playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = decoderConfig)
             }

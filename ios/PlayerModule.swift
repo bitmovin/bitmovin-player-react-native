@@ -263,10 +263,10 @@ public class PlayerModule: Module {
         AsyncFunction("setShouldLoadAdItem") { [weak self] (id: Int, shouldLoad: Bool) in
             self?.shouldLoadAdItemWaiter.complete(id: id, with: shouldLoad)
         }
-        AsyncFunction("initializeWithConfig") { (nativeId: NativeId, config: [String: Any]?, _: String?, callback: JavaScriptValue?) -> SharedPlayer in // swiftlint:disable:this line_length
+        AsyncFunction("initializeWithConfig") { (nativeId: NativeId, config: [String: Any]?, callback: JavaScriptValue?) -> SharedPlayer in // swiftlint:disable:this line_length
             try self.initializePlayer(nativeId: nativeId, config: config, callbackValue: callback)
         }.runOnQueue(.main)
-        AsyncFunction("initializeWithAnalyticsConfig") { (nativeId: NativeId, analytics: [String: Any]?, config: [String: Any]?, _: String?, callback: JavaScriptValue?) -> SharedPlayer in // swiftlint:disable:this line_length
+        AsyncFunction("initializeWithAnalyticsConfig") { (nativeId: NativeId, analytics: [String: Any]?, config: [String: Any]?, callback: JavaScriptValue?) -> SharedPlayer in // swiftlint:disable:this line_length
             try self.initializePlayer(
                 nativeId: nativeId, config: config, callbackValue: callback, analyticsConfigJson: analytics
             )
