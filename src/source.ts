@@ -158,7 +158,7 @@ export class Source {
 
   private async createNative(): Promise<NativeSource> {
     const serializer = new NativeConfigSerializer();
-    const native = await serializer.dispatcher.create((callback) =>
+    const native = await serializer.dispatcher.createAsync((callback) =>
       SourceModule.create(
         serializer.serialize(this.config),
         serializer.serialize(this.config.analyticsSourceMetadata),

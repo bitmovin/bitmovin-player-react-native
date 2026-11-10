@@ -96,7 +96,7 @@ export class Player {
       capture: 'advertisingConfig',
     });
     delete config.nativeId;
-    return serializer.dispatcher.create((callback) =>
+    return serializer.dispatcher.createAsync((callback) =>
       PlayerModule.create(
         config,
         serializer.serialize(this.config.analyticsConfig),

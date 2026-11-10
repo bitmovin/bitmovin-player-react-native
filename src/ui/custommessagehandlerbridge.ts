@@ -10,8 +10,9 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
   /** @internal */
   native?: NativeCustomMessage;
   private customMessageHandler?: CustomMessageHandler;
-  private readonly callbacks = new NativeCallbacks(
-    (operation, [message, data]) => {
+
+  constructor() {
+    this.native = new NativeCallbacks((operation, [message, data]) => {
       if (operation === 'synchronousMessage') {
         return this.customMessageHandler?.receivedSynchronousMessage(
           message,
@@ -25,11 +26,7 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
         );
       }
       return null;
-    }
-  );
-
-  constructor() {
-    this.native = CustomMessageHandlerModule.create(this.callbacks.weak());
+    }).create((callback) => CustomMessageHandlerModule.create(callback));
   }
 
   setCustomMessageHandler(customMessageHandler: CustomMessageHandler) {

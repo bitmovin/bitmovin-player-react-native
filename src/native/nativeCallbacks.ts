@@ -21,11 +21,8 @@ export type NativeCallback = (
 const callbackOwner = Symbol('callbackOwner');
 
 /**
- * Dispatches native requests to JavaScript: SDK decisions return synchronously,
- * while network hooks resolve a native completion object after awaiting the result.
- * Native receives only a weak forwarder. The JS owner must retain this instance;
- * create() attaches it to the returned SharedObject's JS peer, while UI bridges
- * retain it directly and pass weak() to their synchronous native factories.
+ * Dispatches native calls to JavaScript and delivers their results.
+ * Wraps synchronous and asynchronous SharedObject factories with weak callbacks.
  * @internal
  */
 export class NativeCallbacks {
@@ -33,7 +30,7 @@ export class NativeCallbacks {
     private readonly invoke: (operation: string, args: any[]) => any
   ) {}
 
-  readonly callback: NativeCallback = (
+  private readonly callback: NativeCallback = (
     operation,
     args,
     completion,
@@ -62,16 +59,22 @@ export class NativeCallbacks {
     }
   };
 
-  weak(): NativeCallback {
-    return NativeCallbacks.forward(new WeakRef(this));
+  create<T extends SharedObject>(create: (callback: NativeCallback) => T): T {
+    return this.attach(create(this.weak()));
   }
 
-  async create<T extends SharedObject>(
+  async createAsync<T extends SharedObject>(
     create: (callback: NativeCallback) => Promise<T>
   ): Promise<T> {
-    const native = await create(this.weak());
-    Object.defineProperty(native, callbackOwner, { value: this });
-    return native;
+    return this.attach(await create(this.weak()));
+  }
+
+  private attach<T extends SharedObject>(native: T): T {
+    return Object.defineProperty(native, callbackOwner, { value: this });
+  }
+
+  private weak(): NativeCallback {
+    return NativeCallbacks.forward(new WeakRef(this));
   }
 
   private async complete(

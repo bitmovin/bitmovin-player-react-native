@@ -91,7 +91,7 @@ export class OfflineContentManager {
     try {
       const config = serializer.serialize(this.config);
       delete config.nativeId;
-      native = await serializer.dispatcher.create((callback) =>
+      native = await serializer.dispatcher.createAsync((callback) =>
         OfflineModule.create(config, events, callback)
       );
       const created = Object.defineProperty(native, 'events', {

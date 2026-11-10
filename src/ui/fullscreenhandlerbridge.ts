@@ -9,16 +9,15 @@ export class FullscreenHandlerBridge {
   /** @internal */
   readonly native: NativeFullscreen;
   fullscreenHandler?: FullscreenHandler;
-  private readonly callbacks = new NativeCallbacks((operation) => {
-    if (operation === 'enterFullscreen')
-      this.fullscreenHandler?.enterFullscreen();
-    if (operation === 'exitFullscreen')
-      this.fullscreenHandler?.exitFullscreen();
-    return this.fullscreenHandler?.isFullscreenActive ?? false;
-  });
 
   constructor() {
-    this.native = FullscreenHandlerModule.create(this.callbacks.weak());
+    this.native = new NativeCallbacks((operation) => {
+      if (operation === 'enterFullscreen')
+        this.fullscreenHandler?.enterFullscreen();
+      if (operation === 'exitFullscreen')
+        this.fullscreenHandler?.exitFullscreen();
+      return this.fullscreenHandler?.isFullscreenActive ?? false;
+    }).create((callback) => FullscreenHandlerModule.create(callback));
   }
 
   setFullscreenHandler(fullscreenHandler: FullscreenHandler | undefined) {
