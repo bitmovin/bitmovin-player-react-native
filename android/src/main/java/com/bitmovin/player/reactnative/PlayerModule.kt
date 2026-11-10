@@ -63,6 +63,29 @@ class PlayerModule : Module() {
         }.runOnQueue(Queues.MAIN)
 
         Class(SharedPlayer::class) {
+            AsyncFunction("getPlaylistSourceIds") { owner: SharedPlayer ->
+                owner.player.playlist.sources.mapNotNull { SourceRegistry.getNativeId(it) }
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("playlistAdd") { shared: SharedPlayer, source: SharedSource, index: Int? ->
+                if (index == null) {
+                    shared.player.playlist.add(source.source)
+                } else {
+                    shared.player.playlist.add(source.source, index)
+                }
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("playlistRemove") { shared: SharedPlayer, source: SharedSource ->
+                shared.player.playlist.remove(source.source)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("playlistRemoveAt") { shared: SharedPlayer, index: Int ->
+                shared.player.playlist.remove(index)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("playlistSeek") { shared: SharedPlayer, source: SharedSource, time: Double ->
+                shared.player.playlist.seek(source.source, time)
+            }.runOnQueue(Queues.MAIN)
+
             AsyncFunction("play") { shared: SharedPlayer -> shared.player.play() }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("pause") { shared: SharedPlayer -> shared.player.pause() }.runOnQueue(Queues.MAIN)

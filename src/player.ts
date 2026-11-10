@@ -60,7 +60,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * The {@link PlaylistApi} for interactions regarding the playlist of the playback session.
    */
-  playlist: PlaylistApi = new PlaylistApi(this.nativeId);
+  playlist: PlaylistApi = new PlaylistApi(() => this.native);
 
   private onShouldLoadAdItemSubscription?: EventSubscription;
   private onShouldPlayAdBreakSubscription?: EventSubscription;

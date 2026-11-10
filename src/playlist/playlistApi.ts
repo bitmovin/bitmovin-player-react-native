@@ -1,4 +1,4 @@
-import PlaylistModule from '../modules/PlaylistModule';
+import type { NativePlayer } from '../modules/playerModule';
 import type { Source } from '../source';
 import { SourceRegistry } from '../utils/sourceRegistry';
 
@@ -12,14 +12,8 @@ import { SourceRegistry } from '../utils/sourceRegistry';
  * Accessible through {@link Player.playlist}.
  */
 export class PlaylistApi {
-  /**
-   * The native player id that this playlist api is attached to.
-   */
-  readonly nativeId: string;
-
-  constructor(playerId: string) {
-    this.nativeId = playerId;
-  }
+  /** @internal */
+  constructor(private readonly native: () => Promise<NativePlayer>) {}
 
   /**
    * Gets the {@link Source}s currently in the playback session. Exactly one source is always active in a
@@ -29,7 +23,7 @@ export class PlaylistApi {
    * Sources that were not created through a {@link Source} instance (e.g. offline content) are not included.
    */
   getSources = async (): Promise<Source[]> => {
-    const nativeIds = await PlaylistModule.sources(this.nativeId);
+    const nativeIds = await (await this.native()).getPlaylistSourceIds();
     return nativeIds.flatMap((nativeId) => {
       const source = SourceRegistry.get(nativeId);
       return source ? [source] : [];
@@ -49,8 +43,7 @@ export class PlaylistApi {
    * unsupported type.
    */
   add = async (source: Source, index?: number): Promise<void> => {
-    await source.initialize();
-    await PlaylistModule.add(this.nativeId, source.nativeId, index);
+    await (await this.native()).playlistAdd(await source.native, index);
   };
 
   /**
@@ -61,7 +54,7 @@ export class PlaylistApi {
    * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
    */
   remove = async (source: Source): Promise<void> => {
-    await PlaylistModule.remove(this.nativeId, source.nativeId);
+    await (await this.native()).playlistRemove(await source.native);
   };
 
   /**
@@ -72,7 +65,7 @@ export class PlaylistApi {
    * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
    */
   removeAt = async (index: number): Promise<void> => {
-    await PlaylistModule.removeAt(this.nativeId, index);
+    await (await this.native()).playlistRemoveAt(index);
   };
 
   /**
@@ -84,6 +77,6 @@ export class PlaylistApi {
    * On iOS and tvOS, no `PlayerWarning` is emitted.
    */
   seek = async (source: Source, time: number): Promise<void> => {
-    return PlaylistModule.seek(this.nativeId, source.nativeId, time);
+    await (await this.native()).playlistSeek(await source.native, time);
   };
 }

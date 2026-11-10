@@ -20,7 +20,7 @@ public class PlayerModule: Module {
         self?.appContext?.moduleRegistry.get(SourceModule.self)?.releaseSource(nativeId: nativeId)
     }
 
-    // swiftlint:disable:next function_body_length
+    // swiftlint:disable:next function_body_length cyclomatic_complexity
     public func definition() -> ModuleDefinition {
         Name("PlayerModule")
         AsyncFunction("getSharedPlayer") { (nativeId: NativeId) -> SharedPlayer in
@@ -30,6 +30,33 @@ public class PlayerModule: Module {
             return owner
         }.runOnQueue(.main)
         Class("Player", SharedPlayer.self) {
+            AsyncFunction("getPlaylistSourceIds") { (owner: SharedPlayer) -> [NativeId] in
+                owner.player.playlist.sources.compactMap { SourceRegistry.nativeId(of: $0) }
+            }.runOnQueue(.main)
+            AsyncFunction("playlistAdd") { (owner: SharedPlayer, source: SharedSource, index: Int?) in
+                try ensurePlaylistSourceType(source.source)
+                guard !source.source.isAttachedToPlayer else {
+                    throw Exception(
+                        name: "SourceAlreadyAttached", description: "Source is already attached to a player"
+                    )
+                }
+                if let index {
+                    owner.player.playlist.add(source: source.source, at: index)
+                } else {
+                    owner.player.playlist.add(source: source.source)
+                }
+            }.runOnQueue(.main)
+            AsyncFunction("playlistRemove") { (owner: SharedPlayer, source: SharedSource) in
+                if let index = owner.player.playlist.sources.firstIndex(where: { $0 === source.source }) {
+                    owner.player.playlist.remove(sourceAt: index)
+                }
+            }.runOnQueue(.main)
+            AsyncFunction("playlistRemoveAt") { (owner: SharedPlayer, index: Int) in
+                owner.player.playlist.remove(sourceAt: index)
+            }.runOnQueue(.main)
+            AsyncFunction("playlistSeek") { (owner: SharedPlayer, source: SharedSource, time: Double) in
+                owner.player.playlist.seek(source: source.source, time: time)
+            }.runOnQueue(.main)
             AsyncFunction("play") { (owner: SharedPlayer) in owner.player.play() }.runOnQueue(.main)
             AsyncFunction("pause") { (owner: SharedPlayer) in owner.player.pause() }.runOnQueue(.main)
             AsyncFunction("mute") { (owner: SharedPlayer) in owner.player.mute() }.runOnQueue(.main)
@@ -438,5 +465,15 @@ public class PlayerModule: Module {
             guard let updated = wait() else { return }
             RCTConvert.applyImaSettings(settings, from: updated)
         }
+    }
+}
+
+// The SDK can fail fatally or unload the active session before rejecting unsupported sources.
+private func ensurePlaylistSourceType(_ source: Source) throws {
+    guard [.hls, .progressive, .movpkg].contains(source.sourceConfig.type) else {
+        throw Exception(
+            name: "UnsupportedPlaylistSource",
+            description: "iOS playlists support only HLS, progressive and movpkg sources"
+        )
     }
 }

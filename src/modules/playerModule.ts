@@ -1,5 +1,6 @@
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
+import type { NativeSource } from './sourceModule';
 import type { NativeOffline } from '../offline/offlineModule';
 import type { OfflineSourceOptions } from '../offline';
 import type { BufferLevels } from '../bufferApi';
@@ -41,6 +42,11 @@ export type PlayerModuleEvents = {
 
 /** @internal Shared handle used by migrated Player APIs. */
 export interface NativePlayer extends SharedObject {
+  getPlaylistSourceIds(): Promise<string[]>;
+  playlistAdd(source: NativeSource, index?: number): Promise<void>;
+  playlistRemove(source: NativeSource): Promise<void>;
+  playlistRemoveAt(index: number): Promise<void>;
+  playlistSeek(source: NativeSource, time: number): Promise<void>;
   play(): Promise<void>;
 
   pause(): Promise<void>;
