@@ -6,6 +6,11 @@ function testSuite(name, platforms, load) {
 }
 
 const testRegistrations = [
+  testSuite(
+    'decoder',
+    ['android'],
+    () => require('./decoderConfigTest').default
+  ),
   testSuite('drm', ['android'], () => require('./drmCallbacksTest').default),
   testSuite(
     'source',
