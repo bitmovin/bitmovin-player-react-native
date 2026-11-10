@@ -49,29 +49,41 @@ export class PlaylistApi {
    * @returns a promise that rejects if the `source` is already attached to a player or was destroyed.
    */
   add = async (source: Source, index?: number): Promise<void> => {
-    await source.initialize();
     this.knownSources.set(source.nativeId, source);
-    return PlaylistModule?.add(this.nativeId, source.nativeId, index);
+    await source.initialize();
+    await PlaylistModule?.add(this.nativeId, source.nativeId, index);
+    // A removal of this source that native ran before this addition can resolve after the first `set`.
+    this.knownSources.set(source.nativeId, source);
   };
 
   /**
    * Removes the `source` from the active playback session.
+   * A removed `source` is not destroyed with the player. Destroy it via {@link Source.destroy} once it is no
+   * longer needed.
    *
    * Has no effect if the `source` is not part of the playback session. Has no effect and emits a `PlayerWarning`
    * if there is no active playback session or if the `source` is the active source.
    */
   remove = async (source: Source): Promise<void> => {
-    return PlaylistModule?.remove(this.nativeId, source.nativeId);
+    if (await PlaylistModule?.remove(this.nativeId, source.nativeId)) {
+      this.knownSources.delete(source.nativeId);
+    }
   };
 
   /**
-   * Removes the source at `index` from the active playback session.
+   * Removes the source at `index` from the active playback session, like {@link PlaylistApi.remove}.
    *
    * Has no effect if `index` is < 0 or >= the number of sources. Has no effect and emits a `PlayerWarning` if
    * there is no active playback session or if the source at `index` is the active source.
    */
   removeAt = async (index: number): Promise<void> => {
-    return PlaylistModule?.removeAt(this.nativeId, index);
+    const removedNativeId = await PlaylistModule?.removeAt(
+      this.nativeId,
+      index
+    );
+    if (removedNativeId) {
+      this.knownSources.delete(removedNativeId);
+    }
   };
 
   /**

@@ -26,13 +26,18 @@ class PlaylistModule : Module() {
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("remove") { nativeId: NativeId, sourceNativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
-            val source = SourceRegistry.getSource(sourceNativeId) ?: return@AsyncFunction
+            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction false
+            val source = SourceRegistry.getSource(sourceNativeId) ?: return@AsyncFunction false
+            val isInPlaylist = source in player.playlist.sources
             player.playlist.remove(source)
+            isInPlaylist && source !in player.playlist.sources
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("removeAt") { nativeId: NativeId, index: Int ->
-            PlayerRegistry.getPlayer(nativeId)?.playlist?.remove(index)
+            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction null
+            val source = player.playlist.sources.getOrNull(index) ?: return@AsyncFunction null
+            player.playlist.remove(index)
+            if (source in player.playlist.sources) null else SourceRegistry.getNativeId(source)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("seek") { nativeId: NativeId, sourceNativeId: NativeId, time: Double ->
