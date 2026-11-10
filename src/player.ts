@@ -100,10 +100,10 @@ export class Player extends NativeInstance<PlayerConfig> {
       await this.maybeInitDecoderConfig();
       const analyticsConfig = this.config?.analyticsConfig;
       const serializer = new NativeConfigSerializer();
-      const config = {
-        ...this.config,
-        networkConfig: serializer.serialize(this.config?.networkConfig),
-      };
+      const config = { ...this.config };
+      if (this.config?.networkConfig) {
+        config.networkConfig = serializer.serialize(this.config.networkConfig);
+      }
       const native = await serializer.dispatcher.createAsync((callback) =>
         analyticsConfig
           ? PlayerModule.initializeWithAnalyticsConfig(
