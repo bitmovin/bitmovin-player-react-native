@@ -175,10 +175,10 @@ function BasicAdsPlayer({
   }, []);
 
   const onSourceLoaded = useCallback(
-    (event: Event) => {
+    async (event: Event) => {
       onEvent(event);
       // Dinamically schedule an ad to play after the video
-      void player.scheduleAd({
+      await player.scheduleAd({
         position: 'post',
         sources: [
           {
@@ -192,12 +192,11 @@ function BasicAdsPlayer({
   );
 
   const onAdStarted = useCallback(
-    (event: Event) => {
+    async (event: Event) => {
       onEvent(event);
       // Check if an ad is playing right now
-      void player.isAd().then((isAd) => {
-        prettyPrint('is Ad playing?', isAd);
-      });
+      const isAd = await player.isAd();
+      prettyPrint('is Ad playing?', isAd);
     },
     [player, onEvent]
   );

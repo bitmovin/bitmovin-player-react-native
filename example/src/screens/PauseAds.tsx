@@ -79,8 +79,8 @@ export default function PauseAds() {
     [onEvent]
   );
 
-  const skipPauseAd = useCallback(() => {
-    void player.skipAd();
+  const skipPauseAd = useCallback(async () => {
+    await player.skipAd();
   }, [player]);
 
   return (
