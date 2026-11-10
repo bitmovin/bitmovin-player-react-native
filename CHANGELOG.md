@@ -16,6 +16,7 @@
 - Android: `Source.loadingState()` returning the state name instead of a `LoadingState` value
 - Android: `onPlayerActive` not being emitted
 - iOS: Data race in `NetworkConfig` HTTP request and response preprocessing now that the native SDK invokes the callbacks on a background thread
+- A source destroyed while it was initializing, e.g. by `Player.destroy()` right after `Player.load()`, being created natively afterwards and keeping its DRM config
 
 ### Changed
 
