@@ -1,4 +1,4 @@
-import type { NativePlayer } from '../modules/PlayerModule';
+import type { NativePlayer } from '../modules/playerModule';
 import type { CustomDataConfig } from './config';
 
 /**

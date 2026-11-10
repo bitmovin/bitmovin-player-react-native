@@ -5,12 +5,12 @@ import { useKeepAwake } from 'expo-keep-awake';
 import type { NativePlayerViewConfig, NativePlayerViewRef } from './native';
 import { NativePlayerView } from './native';
 import { useProxy } from '../../hooks/useProxy';
-import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
-import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
+import { FullscreenHandlerBridge } from '../../ui/fullscreenHandlerBridge';
+import { CustomMessageHandlerBridge } from '../../ui/customMessageHandlerBridge';
 import type { PlayerViewProps } from './properties';
 import type { PictureInPictureAction } from './pictureInPictureAction';
 import { addPlatformToMetadataEvent } from '../../utils/metadataPlatform';
-import type { NativePlayer } from '../../modules/PlayerModule';
+import type { NativePlayer } from '../../modules/playerModule';
 
 /**
  * Base style that initializes the native view frame when no width/height prop has been set.

@@ -3,7 +3,7 @@ import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
 import type { NativeCallback } from '../native/nativeCallbacks';
 import type { NativeOffline } from '../offline/offlineModule';
-import type { NativeSource } from './SourceModule';
+import type { NativeSource } from './sourceModule';
 import type { BufferLevels } from '../bufferApi';
 
 export type PlayerModuleEvents = Record<string, never>;

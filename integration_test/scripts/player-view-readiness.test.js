@@ -109,8 +109,8 @@ const playerViewContext = vm.createContext({
     if (name === 'expo-keep-awake') return { useKeepAwake() {} };
     if (name === './native') return { NativePlayerView: 'ProbePlayerView' };
     if (name.endsWith('/useProxy')) return { useProxy: () => (x) => x };
-    if (name.endsWith('/fullscreenhandlerbridge')) return {};
-    if (name.endsWith('/custommessagehandlerbridge')) return {};
+    if (name.endsWith('/fullscreenHandlerBridge')) return {};
+    if (name.endsWith('/customMessageHandlerBridge')) return {};
     if (name.endsWith('/metadataPlatform')) return {};
     throw new Error('Unexpected PlayerView dependency: ' + name);
   },

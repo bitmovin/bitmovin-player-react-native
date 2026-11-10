@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import type { FairplayContentKeyRequest } from '../events';
-import type { NativeSource } from '../modules/SourceModule';
+import type { NativeSource } from '../modules/sourceModule';
 
 /**
  * Provides FairPlay-specific DRM runtime APIs for an active {@link Source}.

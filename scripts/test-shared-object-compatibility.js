@@ -16,8 +16,8 @@ before(() => {
     [
       'player.ts',
       'source.ts',
-      'ui/fullscreenhandlerbridge.ts',
-      'ui/custommessagehandlerbridge.ts',
+      'ui/fullscreenHandlerBridge.ts',
+      'ui/customMessageHandlerBridge.ts',
     ].map((name) => path.resolve(__dirname, '../src', name)),
     {
       rootDir: path.resolve(__dirname, '../src'),
@@ -108,10 +108,10 @@ function fixture(t) {
     Player,
     Source,
     FullscreenHandlerBridge: require(
-      path.join(directory, 'ui/fullscreenhandlerbridge.js')
+      path.join(directory, 'ui/fullscreenHandlerBridge.js')
     ).FullscreenHandlerBridge,
     CustomMessageHandlerBridge: require(
-      path.join(directory, 'ui/custommessagehandlerbridge.js')
+      path.join(directory, 'ui/customMessageHandlerBridge.js')
     ).CustomMessageHandlerBridge,
     modules,
     calls,

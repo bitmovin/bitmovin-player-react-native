@@ -1,4 +1,4 @@
-import type { NativePlayer } from './modules/PlayerModule';
+import type { NativePlayer } from './modules/playerModule';
 
 /**
  * Represents different types of media.

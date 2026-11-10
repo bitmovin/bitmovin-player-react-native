@@ -4,7 +4,7 @@ import { SourceDrmApi } from './drm/sourceDrmApi';
 import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
-import SourceModule, { type NativeSource } from './modules/SourceModule';
+import SourceModule, { type NativeSource } from './modules/sourceModule';
 import { NativeConfigSerializer } from './native/nativeConfigSerializer';
 
 /**

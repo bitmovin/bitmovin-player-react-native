@@ -1,4 +1,4 @@
-import type { FullscreenHandler } from './fullscreenhandler';
+import type { FullscreenHandler } from './fullscreenHandler';
 import FullscreenHandlerModule, {
   type NativeFullscreen,
 } from './fullscreenHandlerModule';

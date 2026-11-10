@@ -29,7 +29,7 @@ export type { BufferApi, BufferLevel, BufferLevels } from './bufferApi';
 export type { MediaControlsApi } from './mediaControlsApi';
 export * from './network';
 export * from './mediaControlConfig';
-export * from './debug';
+export * from './debugConfig';
 export * from './decoder/decoderConfig';
 export * from './mediaTrackRole';
 export * from './subtitleFormat';

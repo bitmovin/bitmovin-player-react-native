@@ -1,2 +1,2 @@
 export * from './config';
-export type { AnalyticsApi } from './player';
+export type { AnalyticsApi } from './analyticsApi';

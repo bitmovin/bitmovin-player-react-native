@@ -1,4 +1,4 @@
-import type { NativeSource } from '../modules/SourceModule';
+import type { NativeSource } from '../modules/sourceModule';
 import { FairplayDrmApi } from './fairplayDrmApi';
 
 /** Provides DRM runtime operations for a {@link Source}, independent of its DRM configuration. */

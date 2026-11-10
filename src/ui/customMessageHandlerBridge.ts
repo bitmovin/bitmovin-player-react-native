@@ -1,5 +1,5 @@
-import type { CustomMessageHandler } from './custommessagehandler';
-import type { CustomMessageSender } from './custommessagesender';
+import type { CustomMessageHandler } from './customMessageHandler';
+import type { CustomMessageSender } from './customMessageSender';
 import CustomMessageHandlerModule, {
   type NativeCustomMessage,
 } from './customMessageHandlerModule';

@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import PlayerModule, { type NativePlayer } from './modules/PlayerModule';
+import PlayerModule, { type NativePlayer } from './modules/playerModule';
 import { legacyPlayerRegistry } from './nativeInstanceRegistry';
 import type { SourceConfig } from './source';
 import { Source } from './source';
@@ -7,7 +7,7 @@ import type { AudioTrack } from './audioTrack';
 import type { SubtitleTrack } from './subtitleTrack';
 import type { OfflineContentManager, OfflineSourceOptions } from './offline';
 import type { Thumbnail } from './thumbnail';
-import { AnalyticsApi } from './analytics/player';
+import { AnalyticsApi } from './analytics/analyticsApi';
 import type { PlayerConfig } from './playerConfig';
 import type { AdItem } from './advertising';
 import { BufferApi } from './bufferApi';

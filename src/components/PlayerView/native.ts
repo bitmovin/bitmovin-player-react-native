@@ -4,7 +4,7 @@ import type { NativePlayerViewEvents } from './nativeEvents';
 import type { ScalingMode } from '../../styleConfig';
 import type { PlayerViewConfig } from './playerViewConfig';
 import type { RefObject } from 'react';
-import type { NativePlayer } from '../../modules/PlayerModule';
+import type { NativePlayer } from '../../modules/playerModule';
 import type { NativeFullscreen } from '../../ui/fullscreenHandlerModule';
 import type { NativeCustomMessage } from '../../ui/customMessageHandlerModule';
 import type { PictureInPictureAction } from './pictureInPictureAction';

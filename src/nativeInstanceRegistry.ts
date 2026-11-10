@@ -1,6 +1,6 @@
 import * as Crypto from 'expo-crypto';
 import type { SharedObject } from 'expo-modules-core/types';
-import type { NativePlayer } from './modules/PlayerModule';
+import type { NativePlayer } from './modules/playerModule';
 import type { NativeOffline } from './offline/offlineModule';
 
 export interface NativeInstanceConfig {
