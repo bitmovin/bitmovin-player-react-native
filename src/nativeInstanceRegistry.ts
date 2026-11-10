@@ -55,5 +55,4 @@ export class NativeInstanceRegistry<T extends SharedObject> {
 /** @internal */
 export const legacyPlayerRegistry = new NativeInstanceRegistry<NativePlayer>();
 /** @internal */
-export const legacyOfflineRegistry =
-  new NativeInstanceRegistry<NativeOffline>();
+export const legacyOfflineRegistry = new NativeInstanceRegistry<NativeOffline>();
