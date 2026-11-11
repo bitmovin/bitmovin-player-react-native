@@ -47,6 +47,10 @@ export function PlayerView({
     viewRef?.current || null
   );
 
+  const [mountedView, setMountedView] = useState<NativePlayerViewRef | null>(
+    null
+  );
+
   // Native events proxy helper.
   const proxy = useProxy();
   // Style resulting from merging `baseStyle` and `props.style`.
@@ -117,7 +121,7 @@ export function PlayerView({
 
   useEffect(() => {
     const target = nativeView.current;
-    if (!nativePlayer || !target) return;
+    if (!nativePlayer || !target || mountedView !== target) return;
     let cancelled = false;
     // Method arguments cross Expo directly; public objects never become Fabric host props.
     void target
@@ -136,12 +140,24 @@ export function PlayerView({
           )
             notifyReady.current(target);
         },
-        () => {}
+        (error) => {
+          if (
+            !cancelled &&
+            nativeView.current === target &&
+            currentPlayer.current === player
+          ) {
+            console.warn(
+              'PlayerView could not attach its native bindings:',
+              error
+            );
+          }
+        }
       );
     return () => {
       cancelled = true;
     };
   }, [
+    mountedView,
     nativePlayer,
     player,
     fullscreenHandler,
@@ -328,6 +344,7 @@ export function PlayerView({
   return (
     <NativePlayerView
       ref={nativeView}
+      onLayout={() => setMountedView(nativeView.current)}
       style={nativeViewStyle}
       isFullscreenRequested={isFullscreenRequested}
       isPictureInPictureRequested={isPictureInPictureRequested}

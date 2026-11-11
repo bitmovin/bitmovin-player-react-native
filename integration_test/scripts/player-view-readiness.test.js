@@ -144,9 +144,14 @@ vm.runInContext(compiled, playerViewContext);
 const { PlayerView } = playerViewModule.exports;
 // Use the installed Fabric renderer so effects, refs and asynchronous initialization
 // run as they do in the app. Only the native mount and acknowledgment are controlled.
+const laidOutViews = new Set();
 async function flush() {
   for (let i = 0; i < 6; i++) {
     scheduler.unstable_flushAllWithoutAsserting();
+    if (committedView && !laidOutViews.has(committedView.tag)) {
+      laidOutViews.add(committedView.tag);
+      committedView.handle.memoizedProps.onLayout?.();
+    }
     await new Promise(setImmediate);
   }
 }
