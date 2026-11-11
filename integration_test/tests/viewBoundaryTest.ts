@@ -96,8 +96,15 @@ export default (spec: TestScope) => {
           await first.destroy();
           check(first.isDestroyed, 'Ordinary destroy field could not mutate');
         } finally {
-          await showBoundaryView();
-          await Promise.all([first.destroy(), second.destroy()]);
+          try {
+            await showBoundaryView();
+          } finally {
+            try {
+              await first.destroy();
+            } finally {
+              await second.destroy();
+            }
+          }
         }
       }
     );

@@ -12,17 +12,19 @@ function select(next: Selection): void {
   update?.(next);
 }
 export async function showBoundaryView(props?: PlayerViewProps): Promise<void> {
-  if (!props) {
-    await new Promise<void>((resolve) => select({ onCommit: resolve }));
-    return;
-  }
   let timeout: ReturnType<typeof setTimeout> | undefined;
   const ready = new Promise<void>((resolve, reject) => {
     timeout = setTimeout(
       () =>
-        reject(new Error('Public PlayerView did not acknowledge attachment')),
+        reject(
+          new Error('PlayerView test harness did not acknowledge its update')
+        ),
       15000
     );
+    if (!props) {
+      select({ onCommit: resolve });
+      return;
+    }
     select({
       props: {
         ...props,
@@ -35,6 +37,10 @@ export async function showBoundaryView(props?: PlayerViewProps): Promise<void> {
   });
   try {
     await ready;
+  } catch (error) {
+    // Never retain a failed test's SDK owners in the pending remount request.
+    select({});
+    throw error;
   } finally {
     clearTimeout(timeout);
   }
