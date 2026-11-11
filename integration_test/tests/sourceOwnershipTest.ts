@@ -24,7 +24,6 @@ export default (spec: TestScope) => {
           ...Sources.artOfMotionHls,
           metadata: { item: 'second' },
         });
-        await Promise.all([first.initialize(), second.initialize()]);
         await callPlayerAndExpectEvent(
           async (player) => {
             await Promise.all([
