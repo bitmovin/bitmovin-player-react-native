@@ -22,6 +22,12 @@ const testRegistrations = [
     () => require('./offlineOptionsTest').default
   ),
   testSuite(
+    'offline-source',
+    // The iOS SDK uses a stub download handler on simulators; Cavy cannot download there.
+    ['android'],
+    () => require('./offlinePeerInheritanceTest').default
+  ),
+  testSuite(
     'decoder',
     ['android'],
     () => require('./decoderConfigTest').default
