@@ -33,19 +33,25 @@ export const delay = (ms: number) =>
 /**
  * Loads via `load` and starts playback once the player is ready, as `play` has no effect before.
  */
-export const playWhenReady = async (player: Player, load: () => void) => {
+export const playWhenReady = async (
+  player: Player,
+  load: () => void | Promise<void>
+) => {
   let isReady = false;
   const onReady = () => {
     isReady = true;
   };
   player.on('ready', onReady);
-  load();
-  const ready = await waitUntil(() => isReady);
-  player.off('ready', onReady);
-  if (!ready) {
-    throw new Error('Ready should be received');
+  try {
+    await load();
+    const ready = await waitUntil(() => isReady);
+    if (!ready) {
+      throw new Error('Ready should be received');
+    }
+    await player.play();
+  } finally {
+    player.off('ready', onReady);
   }
-  await player.play();
 };
 
 /**
