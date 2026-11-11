@@ -10,12 +10,13 @@ import expo.modules.kotlin.modules.ModuleDefinition
 class SourceModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("SourceModule")
-        AsyncFunction("create") { config: Map<String, Any>?,
-            analytics: Map<String, Any>?, callback: JavaScriptFunction<JavaScriptValue>?, ->
-            SharedSource.create(appContext, config, analytics, callback)
-        }.runOnQueue(Queues.MAIN)
-
-        Class(SharedSource::class) {
+        Class("Source", SharedSource::class) {
+            Constructor { config: Map<String, Any>?, analytics: Map<String, Any>?,
+                callback: JavaScriptFunction<JavaScriptValue>?, ->
+                SharedSource.create(appContext, config, analytics, callback)
+            }
+            Property("configSnapshot") { owner: SharedSource -> owner.configSnapshot }
+            AsyncFunction("initialize") { shared: SharedSource -> shared.initialize(); Unit }.runOnQueue(Queues.MAIN)
             AsyncFunction("isAttachedToPlayer") { shared: SharedSource ->
                 shared.source.isAttachedToPlayer
             }.runOnQueue(Queues.MAIN)
@@ -28,7 +29,7 @@ class SourceModule : Module() {
                 shared.source.loadingState.toJson()
             }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("getMetadata") { shared: SharedSource ->
+            AsyncFunction("metadata") { shared: SharedSource ->
                 shared.source.config.metadata
             }.runOnQueue(Queues.MAIN)
 

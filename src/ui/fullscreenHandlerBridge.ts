@@ -1,34 +1,27 @@
 import type { FullscreenHandler } from './fullscreenHandler';
-import FullscreenHandlerModule, {
-  type NativeFullscreen,
-} from './fullscreenHandlerModule';
+import { NativeFullscreen } from './fullscreenHandlerModule';
 import { NativeCallbacks } from '../native/nativeCallbacks';
-
-/** Takes care of JS/Native communication for a FullscreenHandler. */
-export class FullscreenHandlerBridge {
-  /** @internal */
-  readonly native: NativeFullscreen;
-  fullscreenHandler?: FullscreenHandler;
-
+const states = new WeakMap<
+  FullscreenHandlerBridge,
+  { handler?: FullscreenHandler }
+>();
+/** Adapts a user-supplied fullscreen interface to the native handler object. @internal */
+export class FullscreenHandlerBridge extends NativeFullscreen {
   constructor() {
-    this.native = new NativeCallbacks((operation) => {
-      if (operation === 'enterFullscreen')
-        this.fullscreenHandler?.enterFullscreen();
-      if (operation === 'exitFullscreen')
-        this.fullscreenHandler?.exitFullscreen();
-      return this.fullscreenHandler?.isFullscreenActive ?? false;
-    }).create((callback) => FullscreenHandlerModule.create(callback));
+    const state: { handler?: FullscreenHandler } = {};
+    const callbacks = new NativeCallbacks((operation) => {
+      if (operation === 'enterFullscreen') state.handler?.enterFullscreen();
+      if (operation === 'exitFullscreen') state.handler?.exitFullscreen();
+      return state.handler?.isFullscreenActive ?? false;
+    });
+    super(callbacks.callback);
+    callbacks.retain(this);
+    states.set(this, state);
   }
-
-  setFullscreenHandler(fullscreenHandler: FullscreenHandler | undefined) {
-    if (this.fullscreenHandler === fullscreenHandler) return;
-    this.fullscreenHandler = fullscreenHandler;
-    void this.native.setIsFullscreenActive(
-      fullscreenHandler?.isFullscreenActive ?? false
-    );
-  }
-
-  destroy() {
-    void this.native.destroy();
+  setFullscreenHandler(handler: FullscreenHandler | undefined): void {
+    const state = states.get(this)!;
+    if (state.handler === handler) return;
+    state.handler = handler;
+    void super.setIsFullscreenActive(handler?.isFullscreenActive ?? false);
   }
 }

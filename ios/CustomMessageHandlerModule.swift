@@ -5,10 +5,11 @@ import ExpoModulesJSI
 public class CustomMessageHandlerModule: Module {
     public func definition() -> ModuleDefinition {
         Name("CustomMessageHandlerModule")
-        Function("create") { (config: [String: String], callback: JavaScriptValue) in
+        Class("CustomMessageHandler", SharedCustomMessage.self) {
+            Constructor { (config: [String: String], callback: JavaScriptValue) in
             try SharedCustomMessage(config: config, callback: CallbackScope(callback: callback, context: appContext))
         }
-        Class("CustomMessageHandler", SharedCustomMessage.self) {
+
             AsyncFunction("sendMessage") { (owner: SharedCustomMessage, message: String, data: String?) in
 #if os(iOS)
                 owner.customMessageHandler.sendMessage(message, withData: data)

@@ -6,7 +6,6 @@ import type { NativePlayerViewConfig, NativePlayerViewRef } from './native';
 import { NativePlayerView } from './native';
 import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenHandlerBridge';
-import { CustomMessageHandlerBridge } from '../../ui/customMessageHandlerBridge';
 import type { PlayerViewProps } from './properties';
 import type { PictureInPictureAction } from './pictureInPictureAction';
 import type { NativePlayer } from '../../modules/playerModule';
@@ -60,18 +59,6 @@ export function PlayerView({
   }
   if (fullscreenBridge.current) {
     fullscreenBridge.current.setFullscreenHandler(fullscreenHandler);
-  }
-
-  const customMessageHandlerBridge: RefObject<
-    CustomMessageHandlerBridge | undefined
-  > = useRef(undefined);
-  if (customMessageHandler && !customMessageHandlerBridge.current) {
-    customMessageHandlerBridge.current = new CustomMessageHandlerBridge();
-  }
-  if (customMessageHandlerBridge.current && customMessageHandler) {
-    customMessageHandlerBridge.current.setCustomMessageHandler(
-      customMessageHandler
-    );
   }
 
   const nativePlayerViewConfig: NativePlayerViewConfig = {
@@ -205,7 +192,8 @@ export function PlayerView({
     let cancelled = false;
     currentPlayer.current = player;
     async function resolvePlayer() {
-      const native = await player.native;
+      await player.initialize();
+      const native = player;
       if (!cancelled) {
         setResolvedPlayer({ player, native });
       }
@@ -221,10 +209,8 @@ export function PlayerView({
       }
       fullscreenBridge.current?.destroy();
       fullscreenBridge.current = undefined;
-      customMessageHandlerBridge.current?.destroy();
-      customMessageHandlerBridge.current = undefined;
     };
-  }, [player, fullscreenBridge, customMessageHandlerBridge]);
+  }, [player, fullscreenBridge]);
 
   useEffect(() => {
     if (!nativePlayer || !nativeView.current) {
@@ -273,8 +259,8 @@ export function PlayerView({
       isFullscreenRequested={isFullscreenRequested}
       isPictureInPictureRequested={isPictureInPictureRequested}
       scalingMode={scalingMode}
-      fullscreenHandler={fullscreenBridge.current?.native}
-      customMessageHandler={customMessageHandlerBridge.current?.native}
+      fullscreenHandler={fullscreenBridge.current}
+      customMessageHandler={customMessageHandler}
       onBmpPlayerViewReady={() => {
         if (
           currentPlayer.current !== player ||

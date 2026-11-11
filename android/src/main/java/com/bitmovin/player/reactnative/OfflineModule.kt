@@ -17,58 +17,48 @@ class OfflineModule : Module() {
         events: SharedOfflineEvents,
         callback: JavaScriptFunction<JavaScriptValue>?,
     ): OfflineContentManagerBridge {
-        val identifier = config?.get("identifier") as? String
-            ?: throw CodedException("ERR_INVALID_ARGUMENT", "Invalid offline identifier", null)
         val callbacks = CallbackScope(appContext, callback)
-        return callbacks.createSharedObject {
-            val sourceConfig = config.getMap("sourceConfig")?.toSourceConfig(callbacks)
+        val identifier = config?.get("identifier") as? String
+        return OfflineContentManagerBridge(appContext, identifier ?: "", events, callbacks) { listener ->
+            if (identifier == null) throw CodedException("ERR_INVALID_ARGUMENT", "Invalid offline identifier", null)
+            val sourceConfig = config?.getMap("sourceConfig")?.toSourceConfig(callbacks)
                 ?: throw CodedException("ERR_INVALID_ARGUMENT", "Invalid source configuration", null)
             val context = checkNotNull(appContext.reactContext) { "ReactApplicationContext is not available" }
-            OfflineContentManagerBridge(
-                appContext,
-                context,
-                identifier,
-                sourceConfig,
-                appContext.cacheDirectory.path,
-                events,
-                callbacks,
+            com.bitmovin.player.api.offline.OfflineContentManager.getOfflineContentManager(
+                sourceConfig, appContext.cacheDirectory.path, identifier, listener, context,
             )
         }
     }
 
     override fun definition() = ModuleDefinition {
         Name("OfflineModule")
-        Function("createEvents") { SharedOfflineEvents(appContext) }
-        AsyncFunction("create") { config: Map<String, Any?>?, events: SharedOfflineEvents,
-            callback: JavaScriptFunction<JavaScriptValue>?, ->
-            create(config, events, callback)
-        }.runOnQueue(Queues.MAIN)
         Class("OfflineEvents", SharedOfflineEvents::class) {
             Constructor { SharedOfflineEvents(appContext) }
             Events("onBitmovinOfflineEvent")
         }
-        Class(OfflineContentManagerBridge::class) {
+        Class("OfflineContentManager", OfflineContentManagerBridge::class) {
             Property("events") { owner: OfflineContentManagerBridge -> owner.events }
 
-            // Expo requires a constructor even when creation uses the asynchronous factory.
-            Constructor { error("Use OfflineModule.create") }
+            Constructor { config: Map<String, Any?>?, events: SharedOfflineEvents,
+                callback: JavaScriptFunction<JavaScriptValue>?, -> create(config, events, callback) }
+            AsyncFunction("initialize", OfflineContentManagerBridge::initialize).runOnQueue(Queues.MAIN)
 
-            AsyncFunction("getState") { owner: OfflineContentManagerBridge -> owner.state.name }
-            AsyncFunction("getOptions", OfflineContentManagerBridge::getOptions)
+            AsyncFunction("state") { owner: OfflineContentManagerBridge -> owner.state.name }.runOnQueue(Queues.MAIN)
+            AsyncFunction("getOptions", OfflineContentManagerBridge::getOptions).runOnQueue(Queues.MAIN)
             AsyncFunction("download") { owner: OfflineContentManagerBridge, request: Map<String, Any?> ->
                 owner.process(request.toOfflineDownloadRequest())
-            }
-            AsyncFunction("resume", OfflineContentManagerBridge::resume)
-            AsyncFunction("suspend", OfflineContentManagerBridge::suspend)
-            AsyncFunction("cancelDownload", OfflineContentManagerBridge::cancelDownload)
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("resume", OfflineContentManagerBridge::resume).runOnQueue(Queues.MAIN)
+            AsyncFunction("suspend", OfflineContentManagerBridge::suspend).runOnQueue(Queues.MAIN)
+            AsyncFunction("cancelDownload", OfflineContentManagerBridge::cancelDownload).runOnQueue(Queues.MAIN)
             AsyncFunction("usedStorage") { owner: OfflineContentManagerBridge ->
                 owner.offlineContentManager.usedStorage.toDouble()
-            }
-            AsyncFunction("deleteAll", OfflineContentManagerBridge::deleteAll)
-            AsyncFunction("downloadLicense", OfflineContentManagerBridge::downloadLicense)
-            AsyncFunction("releaseLicense", OfflineContentManagerBridge::releaseLicense)
-            AsyncFunction("renewOfflineLicense", OfflineContentManagerBridge::renewOfflineLicense)
-            AsyncFunction("destroy", OfflineContentManagerBridge::release)
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("deleteAll", OfflineContentManagerBridge::deleteAll).runOnQueue(Queues.MAIN)
+            AsyncFunction("downloadLicense", OfflineContentManagerBridge::downloadLicense).runOnQueue(Queues.MAIN)
+            AsyncFunction("releaseLicense", OfflineContentManagerBridge::releaseLicense).runOnQueue(Queues.MAIN)
+            AsyncFunction("renewOfflineLicense", OfflineContentManagerBridge::renewOfflineLicense).runOnQueue(Queues.MAIN)
+            AsyncFunction("destroy", OfflineContentManagerBridge::release).runOnQueue(Queues.MAIN)
         }
     }
 }

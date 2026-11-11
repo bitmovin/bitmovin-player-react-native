@@ -12,35 +12,40 @@ import com.bitmovin.player.reactnative.extensions.getMap
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.jni.JavaScriptFunction
 import expo.modules.kotlin.jni.JavaScriptValue
-import expo.modules.kotlin.sharedobjects.SharedRef
+import expo.modules.kotlin.sharedobjects.SharedObject
 import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.EmptyCoroutineContext
 
 /** Owns one configured SDK player. Views retain this object, never the reverse. */
 class SharedPlayer private constructor(
     appContext: AppContext,
-    player: Player,
+    factory: () -> Player,
     private val callbacks: CallbackScope,
     val mediaSessionPlaybackManager: MediaSessionPlaybackManager,
-) : SharedRef<Player>(player, appContext) {
-    init { observePlayerEvents(player) }
+) : SharedObject(appContext) {
+    private val initialization = SharedObjectInitialization {
+        runCatching { factory().also { observePlayerEvents(it) } }.onFailure { callbacks.close() }.getOrThrow()
+    }
+
+    fun initialize(): Player = initialization.get()
 
     val player: Player
-        get() = ref
+        get() = initialize()
 
     fun destroy() {
         callbacks.close()
         try {
-            mediaSessionPlaybackManager.destroy(player)
+            initialization.initializedValue?.let { mediaSessionPlaybackManager.destroy(it) }
         } finally {
-            player.destroy()
+            initialization.initializedValue?.destroy()
+            initialization.cancel()
         }
     }
 
     override fun sharedObjectDidRelease() {
         callbacks.close()
         Dispatchers.Main.dispatch(EmptyCoroutineContext) {
-            if (!player.isDestroyed) destroy()
+            if (initialization.initializedValue?.isDestroyed != true) destroy()
         }
     }
 
@@ -53,7 +58,7 @@ class SharedPlayer private constructor(
             manager: MediaSessionPlaybackManager,
         ): SharedPlayer {
             val callbacks = CallbackScope(appContext, callback)
-            return callbacks.createSharedObject {
+            return SharedPlayer(appContext, {
                 val playerConfig = config?.toPlayerConfig(callbacks) ?: PlayerConfig()
                 val context = checkNotNull(appContext.reactContext?.applicationContext) {
                     "Application context is not available"
@@ -66,17 +71,16 @@ class SharedPlayer private constructor(
                         analytics.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata() ?: DefaultMetadata(),
                     )
                 } ?: Player.create(context, playerConfig)
-                val owner = SharedPlayer(appContext, player, callbacks, manager)
                 try {
                     if (config?.getMap("mediaControlConfig")?.toMediaControlConfig()?.isEnabled != false) {
                         manager.setupMediaSessionPlayback(player)
                     }
                 } catch (error: Throwable) {
-                    owner.destroy()
+                    player.destroy()
                     throw error
                 }
-                owner
-            }
+                player
+            }, callbacks, manager)
         }
     }
 }

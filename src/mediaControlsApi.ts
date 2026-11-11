@@ -1,4 +1,6 @@
-import type { NativePlayer } from './modules/playerModule';
+import { NativeMediaControls } from './modules/playerModule';
+import type { Player } from './player';
+import { retainPlayerApi } from './native/playerApiOwner';
 import { Platform } from 'react-native';
 
 /**
@@ -8,9 +10,12 @@ import { Platform } from 'react-native';
  *
  * @platform iOS, tvOS
  */
-export class MediaControlsApi {
+export class MediaControlsApi extends NativeMediaControls {
   /** @internal */
-  constructor(private readonly nativePlayer: Promise<NativePlayer>) {}
+  constructor(player: Player) {
+    super(player);
+    retainPlayerApi(this, player);
+  }
 
   /**
    * Indicates whether the Player publishes media control information and registers media command handlers.
@@ -34,7 +39,7 @@ export class MediaControlsApi {
       );
       return false;
     }
-    return (await (await this.nativePlayer).isMediaControlsEnabled()) ?? false;
+    return (await super.isEnabled()) ?? false;
   };
 
   /**
@@ -50,6 +55,6 @@ export class MediaControlsApi {
       );
       return;
     }
-    return (await this.nativePlayer).setMediaControlsEnabled(enabled);
+    return super.setEnabled(enabled);
   };
 }

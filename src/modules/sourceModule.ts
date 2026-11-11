@@ -10,6 +10,10 @@ export type SourceModuleEvents = SourceEvents;
 
 /** @internal */
 export interface NativeSource extends SharedObject<SourceModuleEvents> {
+  /** @internal */
+  initialize(): Promise<void>;
+  /** @internal */
+  readonly configSnapshot?: import('../source').SourceConfig;
   isAttachedToPlayer(): Promise<boolean>;
 
   isActive(): Promise<boolean>;
@@ -18,7 +22,7 @@ export interface NativeSource extends SharedObject<SourceModuleEvents> {
 
   loadingState(): Promise<LoadingState>;
 
-  getMetadata(): Promise<Record<string, any> | null>;
+  metadata(): Promise<Record<string, any> | null>;
 
   setMetadata(metadata: Record<string, any> | null): Promise<void>;
 
@@ -28,11 +32,13 @@ export interface NativeSource extends SharedObject<SourceModuleEvents> {
 }
 
 declare class SourceModule extends NativeModule {
-  create(
+  readonly Source: new (
     config: Record<string, any>,
-    analyticsSourceMetadata?: Record<string, any>,
-    callback?: NativeCallback
-  ): Promise<NativeSource>;
+    analytics: Record<string, any> | undefined,
+    callback: NativeCallback
+  ) => NativeSource;
 }
-
-export default requireNativeModule<SourceModule>('SourceModule');
+const module = requireNativeModule<SourceModule>('SourceModule');
+/** @internal */
+export const NativeSource = module.Source;
+export default module;

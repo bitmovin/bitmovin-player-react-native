@@ -10,9 +10,13 @@ export interface NativeFullscreen extends SharedObject {
 }
 
 declare class FullscreenHandlerModule extends NativeModule {
-  create(callback: NativeCallback): NativeFullscreen;
+  readonly FullscreenHandler: new (
+    callback: NativeCallback
+  ) => NativeFullscreen;
 }
-
-export default requireNativeModule<FullscreenHandlerModule>(
+const module = requireNativeModule<FullscreenHandlerModule>(
   'FullscreenHandlerModule'
 );
+/** @internal */
+export const NativeFullscreen = module.FullscreenHandler;
+export default module;

@@ -1,4 +1,6 @@
-import type { NativePlayer } from './modules/playerModule';
+import { NativeBuffer } from './modules/playerModule';
+import type { Player } from './player';
+import { retainPlayerApi } from './native/playerApiOwner';
 
 /**
  * Represents different types of media.
@@ -68,18 +70,19 @@ export interface BufferLevels {
  * Provides the means to configure buffer settings and to query the current buffer state.
  * Accessible through {@link Player.buffer}.
  */
-export class BufferApi {
+export class BufferApi extends NativeBuffer {
   /** @internal */
-  constructor(private readonly nativePlayer: Promise<NativePlayer>) {}
+  constructor(player: Player) {
+    super(player);
+    retainPlayerApi(this, player);
+  }
 
   /**
    * Gets the {@link BufferLevel|buffer level} from the Player
    * @param type The {@link BufferType} to return the level for.
    * @returns a {@link BufferLevels} that contains {@link BufferLevel} values for audio and video.
    */
-  getLevel = async (type: BufferType): Promise<BufferLevels> => {
-    return (await this.nativePlayer).getBufferLevel(type);
-  };
+  declare getLevel: (type: BufferType) => Promise<BufferLevels>;
 
   /**
    * Sets the target buffer level for the chosen buffer {@link BufferType} across all {@link MediaType} options.
@@ -87,7 +90,5 @@ export class BufferApi {
    * @param type The {@link BufferType} to set the target level for. On iOS and tvOS, only {@link BufferType.FORWARD_DURATION} is supported.
    * @param value The value to set. On iOS and tvOS when passing `0`, the player will choose an appropriate forward buffer duration suitable for most use-cases. On Android setting to `0` will have no effect.
    */
-  setTargetLevel = async (type: BufferType, value: number): Promise<void> => {
-    return (await this.nativePlayer).setBufferTargetLevel(type, value);
-  };
+  declare setTargetLevel: (type: BufferType, value: number) => Promise<void>;
 }

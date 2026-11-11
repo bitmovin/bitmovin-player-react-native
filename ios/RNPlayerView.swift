@@ -95,8 +95,7 @@ public class RNPlayerView: ExpoView {
     }
 
     internal func attachConfiguredPlayer() {
-        guard let owner = sharedPlayer, !owner.player.isDestroyed else { return }
-        let player = owner.player
+        guard let owner = sharedPlayer, let player = try? owner.player, !player.isDestroyed else { return }
         if let playerView, let currentPlayer = playerView.player, currentPlayer === player {
             // Player is already attached to the PlayerView
             return

@@ -10,7 +10,7 @@ export class SourceDrmApi {
   readonly fairplay: FairplayDrmApi;
 
   /** @internal */
-  constructor(source: Promise<NativeSource>) {
+  constructor(source: NativeSource) {
     this.fairplay = new FairplayDrmApi(source);
   }
 }

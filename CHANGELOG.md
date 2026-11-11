@@ -4,6 +4,9 @@
 
 ### Changed
 
+- Use native SharedObject instances directly for Player, Source, OfflineContentManager, CustomMessageHandler and owned runtime APIs.
+- Reuse the original Player and OfflineContentManager instances when constructing aliases with the same `nativeId`.
+- Return a native-submission Promise from `CustomMessageHandler.sendMessage`.
 - Source queries preserve the original Source object and configuration while it remains reachable. SDK-created sources are adopted on their first query
 
 #### Breaking changes

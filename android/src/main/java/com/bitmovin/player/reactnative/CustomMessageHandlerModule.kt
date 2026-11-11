@@ -8,10 +8,7 @@ import expo.modules.kotlin.modules.ModuleDefinition
 class CustomMessageHandlerModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("CustomMessageHandlerModule")
-        Function("create") { config: Map<String, String>, callback: JavaScriptFunction<JavaScriptValue>? ->
-            SharedCustomMessage(appContext, config, callback)
-        }
-        Class(SharedCustomMessage::class) {
+        Class("CustomMessageHandler", SharedCustomMessage::class) {
             Constructor { config: Map<String, String>, callback: JavaScriptFunction<JavaScriptValue>? ->
                 SharedCustomMessage(appContext, config, callback)
             }

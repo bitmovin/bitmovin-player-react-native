@@ -31,7 +31,7 @@ export class NativeCallbacks {
     private readonly invoke: (operation: string, args: any[]) => any
   ) {}
 
-  private readonly callback: NativeCallback = (
+  private readonly invokeCallback: NativeCallback = (
     operation,
     args,
     completion,
@@ -64,20 +64,20 @@ export class NativeCallbacks {
   }
 
   create<T extends SharedObject>(create: (callback: NativeCallback) => T): T {
-    return this.attach(create(this.weak()));
+    return this.retain(create(this.callback));
   }
 
   async createAsync<T extends SharedObject>(
     create: (callback: NativeCallback) => Promise<T>
   ): Promise<T> {
-    return this.attach(await create(this.weak()));
+    return this.retain(await create(this.callback));
   }
 
-  private attach<T extends SharedObject>(native: T): T {
+  retain<T extends object>(native: T): T {
     return Object.defineProperty(native, callbackOwner, { value: this });
   }
 
-  private weak(): NativeCallback {
+  get callback(): NativeCallback {
     return NativeCallbacks.forward(new WeakRef(this));
   }
 
@@ -101,7 +101,7 @@ export class NativeCallbacks {
     return (operation, args, completion, mutating, fallbackArgument) => {
       const callbacks = reference.deref();
       if (callbacks)
-        return callbacks.callback(
+        return callbacks.invokeCallback(
           operation,
           args,
           completion,

@@ -21,6 +21,8 @@ import expo.modules.kotlin.jni.JavaScriptFunction
 import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.kotlin.records.Record
+import expo.modules.kotlin.records.Field
 
 class PlayerModule : Module() {
     private val mediaSessionPlaybackManager by lazy { MediaSessionPlaybackManager(appContext) }
@@ -28,14 +30,15 @@ class PlayerModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("PlayerModule")
         Constant("isGoogleImaEnabled") { IS_GOOGLE_IMA_ENABLED }
-        AsyncFunction("create") { config: Map<String, Any>?, analytics: Map<String, Any>?,
-            callback: JavaScriptFunction<JavaScriptValue>?, ->
-            SharedPlayer.create(appContext, config, analytics, callback, mediaSessionPlaybackManager)
-        }.runOnQueue(Queues.MAIN)
-
-        Class(SharedPlayer::class) {
-            AsyncFunction("loadPlaylist") { shared: SharedPlayer, sources: List<SharedSource>,
-                options: Map<String, Any>?, ->
+        Class("Player", SharedPlayer::class) {
+            Constructor { config: Map<String, Any>?, analytics: Map<String, Any>?,
+                callback: JavaScriptFunction<JavaScriptValue>?, ->
+                SharedPlayer.create(appContext, config, analytics, callback, mediaSessionPlaybackManager)
+            }
+            AsyncFunction("initialize") { shared: SharedPlayer -> shared.initialize(); Unit }.runOnQueue(Queues.MAIN)
+            AsyncFunction("loadPlaylist") { shared: SharedPlayer, config: SharedPlaylistConfig ->
+                val sources = config.sources
+                val options = config.options
                 val nativeSources = sources.map { it.source }
                 ensureSourcesAvailable(shared.player, nativeSources)
                 shared.player.load(
@@ -53,64 +56,6 @@ class PlayerModule : Module() {
                 shared.player.source?.let { source ->
                     known.firstOrNull { it.source === source } ?: SharedSource(appContext, source)
                 }
-            }.runOnQueue(Queues.MAIN)
-            AsyncFunction("getPlaylistSources") { shared: SharedPlayer, known: List<SharedSource> ->
-                shared.player.playlist.sources.map { source ->
-                    known.firstOrNull { it.source === source } ?: SharedSource(appContext, source)
-                }
-            }.runOnQueue(Queues.MAIN)
-            AsyncFunction("playlistAdd") { shared: SharedPlayer, source: SharedSource, index: Int? ->
-                if (index == null) {
-                    shared.player.playlist.add(source.source)
-                } else {
-                    shared.player.playlist.add(source.source, index)
-                }
-            }.runOnQueue(Queues.MAIN)
-
-            AsyncFunction("playlistRemove") { shared: SharedPlayer, source: SharedSource ->
-                shared.player.playlist.remove(source.source)
-            }.runOnQueue(Queues.MAIN)
-
-            AsyncFunction("playlistRemoveAt") { shared: SharedPlayer, index: Int ->
-                shared.player.playlist.remove(index)
-            }.runOnQueue(Queues.MAIN)
-
-            AsyncFunction("playlistSeek") { shared: SharedPlayer, source: SharedSource, time: Double ->
-                shared.player.playlist.seek(source.source, time)
-            }.runOnQueue(Queues.MAIN)
-
-            AsyncFunction("playlistSeekTo") { shared: SharedPlayer, source: SharedSource, target: Map<String, Any> ->
-                val reference = target["startOffsetTimelineReference"]?.let {
-                    requireNotNull((it as? String)?.toTimelineReferencePoint()) {
-                        "Unknown timeline reference point"
-                    }
-                }
-                shared.player.playlist.seek(
-                    source.source,
-                    SeekTarget((target["offset"] as Number).toDouble(), reference),
-                )
-            }.runOnQueue(Queues.MAIN)
-
-            AsyncFunction("getBufferLevel") { shared: SharedPlayer, type: String ->
-                val buffer = shared.player.buffer
-                val bufferType = type.toBufferTypeOrThrow()
-                mapOf(
-                    "audio" to buffer.getLevel(bufferType, MediaType.Audio).toJson(),
-                    "video" to buffer.getLevel(bufferType, MediaType.Video).toJson(),
-                )
-            }.runOnQueue(Queues.MAIN)
-
-            AsyncFunction("setBufferTargetLevel") { shared: SharedPlayer, type: String, value: Double ->
-                shared.player.buffer.setTargetLevel(type.toBufferTypeOrThrow(), value)
-            }.runOnQueue(Queues.MAIN)
-
-            AsyncFunction("sendCustomDataEvent") { shared: SharedPlayer, json: Map<String, Any?> ->
-                checkNotNull(shared.player.analytics) { "Analytics is disabled" }
-                    .sendCustomDataEvent(json.toAnalyticsCustomData())
-            }.runOnQueue(Queues.MAIN)
-
-            AsyncFunction("getAnalyticsUserId") { shared: SharedPlayer ->
-                checkNotNull(shared.player.analytics) { "Analytics is disabled" }.userId
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("play") { shared: SharedPlayer -> shared.player.play() }.runOnQueue(Queues.MAIN)
@@ -139,9 +84,9 @@ class PlayerModule : Module() {
                 shared.player.volume.toDouble()
             }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("currentTime") { shared: SharedPlayer, mode: String? ->
+            AsyncFunction("getCurrentTime") { shared: SharedPlayer, mode: String? ->
                 val player = shared.player
-                when (mode) {
+                when (mode ?: "absolute") {
                     "relative" -> player.currentTime + player.playbackTimeOffsetToRelativeTime
                     "absolute" -> player.currentTime + player.playbackTimeOffsetToAbsoluteTime
                     else -> player.currentTime
@@ -152,7 +97,7 @@ class PlayerModule : Module() {
 
             AsyncFunction("isPaused") { shared: SharedPlayer -> shared.player.isPaused }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("duration") { shared: SharedPlayer -> shared.player.duration }.runOnQueue(Queues.MAIN)
+            AsyncFunction("getDuration") { shared: SharedPlayer -> shared.player.duration }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("isMuted") { shared: SharedPlayer -> shared.player.isMuted }.runOnQueue(Queues.MAIN)
 
@@ -266,6 +211,65 @@ class PlayerModule : Module() {
                 shared.player.load(sharedSource.source)
             }.runOnQueue(Queues.MAIN)
         }
+        Class("BufferApi", SharedBuffer::class) {
+            Constructor { owner: SharedPlayer -> SharedBuffer(owner) }
+            AsyncFunction("getLevel") { shared: SharedBuffer, type: String ->
+                val buffer = shared.player.buffer
+                val bufferType = type.toBufferTypeOrThrow()
+                mapOf(
+                    "audio" to buffer.getLevel(bufferType, MediaType.Audio).toJson(),
+                    "video" to buffer.getLevel(bufferType, MediaType.Video).toJson(),
+                )
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("setTargetLevel") { shared: SharedBuffer, type: String, value: Double ->
+                shared.player.buffer.setTargetLevel(type.toBufferTypeOrThrow(), value)
+            }.runOnQueue(Queues.MAIN)
+        }
+        Class("AnalyticsApi", SharedAnalytics::class) {
+            Constructor { owner: SharedPlayer -> SharedAnalytics(owner) }
+            AsyncFunction("sendCustomDataEvent") { shared: SharedAnalytics, json: Map<String, Any?> ->
+                checkNotNull(shared.player.analytics) { "Analytics is disabled" }
+                    .sendCustomDataEvent(json.toAnalyticsCustomData())
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("getUserId") { shared: SharedAnalytics ->
+                checkNotNull(shared.player.analytics) { "Analytics is disabled" }.userId
+            }.runOnQueue(Queues.MAIN)
+        }
+        Class("PlaylistApi", SharedPlaylist::class) {
+            Constructor { owner: SharedPlayer -> SharedPlaylist(owner) }
+            AsyncFunction("getSources") { shared: SharedPlaylist, known: List<SharedSource> ->
+                shared.player.playlist.sources.map { source ->
+                    known.firstOrNull { it.source === source } ?: SharedSource(appContext, source)
+                }
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("add") { shared: SharedPlaylist, source: SharedSource, index: Int? ->
+                if (index == null) {
+                    shared.player.playlist.add(source.source)
+                } else {
+                    shared.player.playlist.add(source.source, index)
+                }
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("remove") { shared: SharedPlaylist, source: SharedSource ->
+                shared.player.playlist.remove(source.source)
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("removeAt") { shared: SharedPlaylist, index: Int ->
+                shared.player.playlist.remove(index)
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("seek") { shared: SharedPlaylist, source: SharedSource, time: Double ->
+                shared.player.playlist.seek(source.source, time)
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("seekTo") { shared: SharedPlaylist, source: SharedSource, target: Map<String, Any> ->
+                val reference = target["startOffsetTimelineReference"]?.let {
+                    requireNotNull((it as? String)?.toTimelineReferencePoint()) {
+                        "Unknown timeline reference point"
+                    }
+                }
+                shared.player.playlist.seek(
+                    source.source,
+                    SeekTarget((target["offset"] as Number).toDouble(), reference),
+                )
+            }.runOnQueue(Queues.MAIN)
+        }
     }
 }
 
@@ -275,4 +279,9 @@ private fun ensureSourcesAvailable(player: Player, sources: List<Source>) {
     if (sources.any { source -> source.isAttachedToPlayer && sessionSources.none { it === source } }) {
         throw CodedException("ERR_SOURCE_ALREADY_ATTACHED", "Source is already attached to another player", null)
     }
+}
+
+class SharedPlaylistConfig : Record {
+    @Field val sources: List<SharedSource> = emptyList()
+    @Field val options: Map<String, Any>? = null
 }

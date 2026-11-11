@@ -5,47 +5,39 @@ import ExpoModulesJSI
 public class SourceModule: Module {
     public func definition() -> ModuleDefinition {
         Name("SourceModule")
-        AsyncFunction("create") { (config: [String: Any]?, analytics: [String: Any]?, callback: JavaScriptValue?) -> SharedSource in // swiftlint:disable:this line_length
-            let callback = try callback.map { try CallbackScope(callback: $0, context: appContext) }
-            guard let sourceConfig = RCTConvert.sourceConfig(config, callback: callback) else {
-                callback?.close()
-                throw Exception(name: "InvalidArgument", description: "Invalid source configuration")
-            }
-            let source: Source
-            if let metadata = RCTConvert.analyticsSourceMetadata(analytics) {
-                source = SourceFactory.createSource(from: sourceConfig, sourceMetadata: metadata)
-            } else {
-                source = SourceFactory.createSource(from: sourceConfig)
-            }
-            return SharedSource(source: source, callback: callback)
-        }.runOnQueue(.main)
         Class("Source", SharedSource.self) {
+            Constructor { (config: [String: Any]?, analytics: [String: Any]?, callback: JavaScriptValue?) in
+                try SharedSource(config: config, analytics: analytics,
+                    callback: callback.map { try CallbackScope(callback: $0, context: appContext) })
+            }
+            Property("configSnapshot") { (owner: SharedSource) in owner.configSnapshot }
+            AsyncFunction("initialize") { (owner: SharedSource) in try owner.initialize(); return () }.runOnQueue(.main)
             AsyncFunction("isAttachedToPlayer") { (owner: SharedSource) -> Bool in
-                owner.source.isAttachedToPlayer
+                (try owner.source).isAttachedToPlayer
             }.runOnQueue(.main)
-            AsyncFunction("isActive") { (owner: SharedSource) -> Bool in owner.source.isActive }.runOnQueue(.main)
-            AsyncFunction("duration") { (owner: SharedSource) -> Double in owner.source.duration }.runOnQueue(.main)
+            AsyncFunction("isActive") { (owner: SharedSource) -> Bool in (try owner.source).isActive }.runOnQueue(.main)
+            AsyncFunction("duration") { (owner: SharedSource) -> Double in (try owner.source).duration }.runOnQueue(.main)
             AsyncFunction("loadingState") { (owner: SharedSource) -> Int in
-                owner.source.loadingState.rawValue
+                (try owner.source).loadingState.rawValue
             }.runOnQueue(.main)
-            AsyncFunction("getMetadata") { (owner: SharedSource) -> [String: Any]? in
-                let source = owner.source
+            AsyncFunction("metadata") { (owner: SharedSource) -> [String: Any]? in
+                let source = (try owner.source)
                 if let metadata = source.metadata { return metadata }
                 let metadata = source.sourceConfig.metadata
                 return metadata.isEmpty ? nil : metadata
             }.runOnQueue(.main)
             AsyncFunction("setMetadata") { (owner: SharedSource, metadata: [String: Any]?) in
-                let source = owner.source
+                let source = (try owner.source)
                 source.sourceConfig.metadata = metadata ?? [:]
                 source.metadata = metadata as [String: AnyObject]?
             }.runOnQueue(.main)
             AsyncFunction("getThumbnail") { (owner: SharedSource, time: Double) -> [String: Any]? in
-                guard let thumbnail = owner.source.thumbnail(forTime: time) else { return nil }
+                guard let thumbnail = (try owner.source).thumbnail(forTime: time) else { return nil }
                 return RCTConvert.toJson(thumbnail: thumbnail)
             }.runOnQueue(.main)
             AsyncFunction("drmFairplayRenewExpiringLicense") { (owner: SharedSource, skdUri: String) in
-                guard let request = owner.fairplayRequests.request(for: skdUri) else { return }
-                owner.source.drm.fairplay.renewExpiringLicense(for: request)
+                guard let request = (try owner.fairplayRequests).request(for: skdUri) else { return }
+                (try owner.source).drm.fairplay.renewExpiringLicense(for: request)
             }.runOnQueue(.main)
         }
     }

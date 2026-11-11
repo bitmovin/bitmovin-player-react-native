@@ -1,0 +1,29 @@
+import ExpoModulesCore
+import Foundation
+
+/// SDK factories are synchronous on main; JavaScript starts them through AsyncFunction.
+internal final class SharedObjectInitialization<Value> {
+    private var factory: (() throws -> Value)?
+    private var result: Result<Value, Error>?
+
+    init(_ factory: @escaping () throws -> Value) { self.factory = factory }
+
+    func get() throws -> Value {
+        guard Thread.isMainThread else {
+            throw Exception(name: "InvalidThread", description: "SDK objects must be accessed on the main thread")
+        }
+        if let result { return try result.get() }
+        let result = Result { try factory!() }
+        self.result = result
+        factory = nil
+        return try result.get()
+    }
+
+    var initializedValue: Value? { try? result?.get() }
+
+    func cancel() {
+        guard result == nil else { return }
+        factory = nil
+        result = .failure(Exception(name: "DestroyedObject", description: "Destroyed before SDK initialization"))
+    }
+}

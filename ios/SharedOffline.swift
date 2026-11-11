@@ -4,47 +4,68 @@ import Foundation
 
 public final class SharedOffline: SharedObject {
     let events: SharedOfflineEvents
-#if os(iOS)
-    let offlineContentManager: OfflineContentManager
-    let bridge: OfflineContentManagerBridge
     private let callback: CallbackScope?
+#if os(iOS)
+    private struct Resource {
+        let manager: OfflineContentManager
+        let bridge: OfflineContentManagerBridge
+    }
+    private let initialization: SharedObjectInitialization<Resource>
+    var offlineContentManager: OfflineContentManager { get throws { try initialization.get().manager } }
+    var bridge: OfflineContentManagerBridge { get throws { try initialization.get().bridge } }
 
-    init(manager: OfflineContentManager, identifier: String, callback: CallbackScope?, events: SharedOfflineEvents) {
-        offlineContentManager = manager
+    init(config: [String: Any], callback: CallbackScope?, events: SharedOfflineEvents) {
         self.callback = callback
         self.events = events
-        bridge = OfflineContentManagerBridge(forManager: manager, events: events, identifier: identifier)
+        initialization = SharedObjectInitialization {
+            guard let identifier = config["identifier"] as? String,
+                  let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"], callback: callback) else {
+                throw Exception(name: "InvalidArgument", description: "Invalid offline identifier or source configuration")
+            }
+            let manager = try OfflineManager.sharedInstance().offlineContentManager(for: sourceConfig, id: identifier)
+            return Resource(manager: manager, bridge: OfflineContentManagerBridge(
+                forManager: manager, events: events, identifier: identifier
+            ))
+        }
         super.init()
     }
 #else
-    init(events: SharedOfflineEvents) {
+    init(config: [String: Any], callback: CallbackScope?, events: SharedOfflineEvents) {
+        self.callback = callback
         self.events = events
         super.init()
     }
 #endif
 
-    func destroy() {
+    func initialize() throws {
 #if os(iOS)
+        do { _ = try initialization.get() } catch { callback?.close(); throw error }
+#endif
+    }
+
+    func destroy() {
         callback?.close()
-        bridge.release()
+#if os(iOS)
+        initialization.initializedValue?.bridge.release()
+        initialization.cancel()
 #endif
     }
 
     deinit {
-#if os(iOS)
         callback?.close()
-        let manager = offlineContentManager
-        let bridge = bridge
+#if os(iOS)
+        guard let resource = initialization.initializedValue else { return }
         DispatchQueue.main.async {
-            bridge.release()
-            withExtendedLifetime(manager) {}
+            resource.bridge.release()
+            withExtendedLifetime(resource.manager) {}
         }
 #endif
     }
 
-    func download(_ request: [String: Any]?) {
+    func download(_ request: [String: Any]?) throws {
 #if os(iOS)
-        guard let request, let tracks = bridge.currentTrackSelection else { return }
+        let resource = try initialization.get()
+        guard let request, let tracks = resource.bridge.currentTrackSelection else { return }
         if let audioOptionIds = request["audioOptionIds"] as? [String], !audioOptionIds.isEmpty {
             tracks.audioTracks.forEach { $0.action = audioOptionIds.contains($0.label) ? .download : .none }
         }
@@ -53,7 +74,7 @@ public final class SharedOffline: SharedObject {
         }
         let config = DownloadConfig()
         config.minimumBitrate = request["minimumBitrate"] as? NSNumber
-        offlineContentManager.download(tracks: tracks, downloadConfig: config)
+        resource.manager.download(tracks: tracks, downloadConfig: config)
 #endif
     }
 }

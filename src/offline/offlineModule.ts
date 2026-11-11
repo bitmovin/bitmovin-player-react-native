@@ -18,13 +18,15 @@ export type NativeOfflineEvents = SharedObject<OfflineEvents>;
 /** @internal */
 export interface NativeOffline extends SharedObject {
   readonly events: NativeOfflineEvents;
-  getState(): Promise<string | null>;
+  /** @internal */
+  initialize(): Promise<void>;
+  state(): Promise<import('./offlineState').OfflineState>;
   getOptions(): Promise<void>;
   download(request: OfflineDownloadRequest): Promise<void>;
   resume(): Promise<void>;
   suspend(): Promise<void>;
   cancelDownload(): Promise<void>;
-  usedStorage(): Promise<number | null>;
+  usedStorage(): Promise<number>;
   deleteAll(): Promise<void>;
   downloadLicense(): Promise<void>;
   releaseLicense(): Promise<void>;
@@ -33,12 +35,16 @@ export interface NativeOffline extends SharedObject {
 }
 
 declare class OfflineModule extends NativeModule {
-  createEvents(): NativeOfflineEvents;
-  create(
+  readonly OfflineEvents: new () => NativeOfflineEvents;
+  readonly OfflineContentManager: new (
     config: { identifier: string; sourceConfig: SourceConfig },
     events: NativeOfflineEvents,
-    callback?: NativeCallback
-  ): Promise<NativeOffline>;
+    callback: NativeCallback
+  ) => NativeOffline;
 }
-
-export default requireNativeModule<OfflineModule>('OfflineModule');
+const module = requireNativeModule<OfflineModule>('OfflineModule');
+/** @internal */
+export const NativeOffline = module.OfflineContentManager;
+/** @internal */
+export const NativeOfflineEvents = module.OfflineEvents;
+export default module;

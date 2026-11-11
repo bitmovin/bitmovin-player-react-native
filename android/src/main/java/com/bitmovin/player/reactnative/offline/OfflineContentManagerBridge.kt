@@ -1,6 +1,5 @@
 package com.bitmovin.player.reactnative.offline
 
-import android.content.Context
 import com.bitmovin.player.api.deficiency.ErrorEvent
 import com.bitmovin.player.api.offline.OfflineContentManager
 import com.bitmovin.player.api.offline.OfflineContentManagerListener
@@ -11,33 +10,29 @@ import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.reactnative.CallbackScope
 import com.bitmovin.player.reactnative.SharedOfflineEvents
+import com.bitmovin.player.reactnative.SharedObjectInitialization
+import kotlinx.coroutines.Dispatchers
+import kotlin.coroutines.EmptyCoroutineContext
 import com.bitmovin.player.reactnative.converter.toJson
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.sharedobjects.SharedObject
 
 class OfflineContentManagerBridge(
     appContext: AppContext,
-    context: Context,
     private val identifier: String,
-    source: SourceConfig,
-    location: String,
     val events: SharedOfflineEvents,
     private val callbacks: CallbackScope,
+    factory: (OfflineContentManagerListener) -> OfflineContentManager,
 ) : SharedObject(appContext), OfflineContentManagerListener {
     private var contentOptions: OfflineContentOptions? = null
-    val offlineContentManager: OfflineContentManager = OfflineContentManager.getOfflineContentManager(
-        source,
-        location,
-        identifier,
-        this,
-        context,
-    )
-
-    // Explicit destruction and Expo collection must release the non-idempotent SDK manager only once.
-    private val cleanup by lazy {
-        callbacks.close()
-        offlineContentManager.release()
+    private val initialization = SharedObjectInitialization {
+        runCatching { factory(this) }.onFailure { callbacks.close() }.getOrThrow()
     }
+    private var isReleased = false
+    val offlineContentManager: OfflineContentManager
+        get() = initialization.get()
+
+    fun initialize() { initialization.get() }
 
     enum class OfflineEventType(val eventName: String) {
         ON_COMPLETED("onCompleted"),
@@ -51,7 +46,7 @@ class OfflineContentManagerBridge(
     }
 
     val state: OfflineOptionEntryState
-        get() = aggregateState(contentOptions)
+        get() { initialize(); return aggregateState(contentOptions) }
 
     fun getOptions() {
         offlineContentManager.getOptions()
@@ -64,6 +59,7 @@ class OfflineContentManagerBridge(
      * When no `minimumBitrate` is provided, the highest bitrate will be downloaded.
      */
     fun process(request: OfflineDownloadRequest) {
+        initialize()
         if (contentOptions != null) {
             val sortedVideoOptions = contentOptions!!.videoOptions.sortedBy { option -> option.bitrate }
             if (request.minimumBitrate == null) {
@@ -127,9 +123,18 @@ class OfflineContentManagerBridge(
         offlineContentManager.renewOfflineLicense()
     }
 
-    fun release() = cleanup
+    fun release() {
+        callbacks.close()
+        if (isReleased) return
+        isReleased = true
+        initialization.initializedValue?.release()
+        initialization.cancel()
+    }
 
-    override fun sharedObjectDidRelease() = release()
+    override fun sharedObjectDidRelease() {
+        callbacks.close()
+        Dispatchers.Main.dispatch(EmptyCoroutineContext) { release() }
+    }
 
     /**
      * Produces an aggregate state of the `OfflineOptionEntryState` for the `OfflineContentOptions`
