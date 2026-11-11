@@ -116,7 +116,10 @@ export class Player extends NativePlayer {
   set source(source: Source | undefined) {
     playerStates.get(this)!.source = source;
   }
-  /** Provides access to the native playlist. */
+  /**
+   * Provides access to the native playlist.
+   * @experimental
+   */
   get playlist(): PlaylistApi {
     return playerStates.get(this)!.playlist;
   }
@@ -211,6 +214,7 @@ export class Player extends NativePlayer {
   /**
    * Loads a playlist. Resolution means the SDK accepted the call; observe Ready for playback readiness.
    * The native SDK controls validation, preloading, replay and transitions.
+   * @experimental
    */
   loadPlaylist = async (config: PlaylistConfig): Promise<void> => {
     await super.loadPlaylist(config);

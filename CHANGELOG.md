@@ -41,7 +41,7 @@
 
 ### Added
 
-- Add native playlist loading, source queries, mutation, cross-source seeking, replay options, and playlist events
+- Add experimental native playlist loading, source queries, mutation, cross-source seeking, replay options, and playlist events
 
 - `Player.on` and `Source.on` for asynchronous subscriptions to native object events, including without a mounted `PlayerView`
 

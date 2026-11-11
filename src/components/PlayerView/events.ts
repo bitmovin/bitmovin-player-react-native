@@ -83,11 +83,20 @@ import type {
  * the events from `NativePlayerView` just removing RN's bubbling data.
  */
 export type PlayerViewEvents = {
-  /** Emitted by the native playlist. */
+  /**
+   * Emitted by the native playlist.
+   * @experimental
+   */
   onSourceAdded?: (event: SourceAddedEvent) => void;
-  /** Emitted by the native playlist. */
+  /**
+   * Emitted by the native playlist.
+   * @experimental
+   */
   onSourceRemoved?: (event: SourceRemovedEvent) => void;
-  /** Emitted by the native playlist. */
+  /**
+   * Emitted by the native playlist.
+   * @experimental
+   */
   onPlaylistTransition?: (event: PlaylistTransitionEvent) => void;
   /**
    * Event emitted when an ad break has finished.
