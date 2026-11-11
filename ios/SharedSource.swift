@@ -53,14 +53,23 @@ public final class SharedSource: SharedObject {
     private static func snapshot(_ config: SourceConfig) -> [String: Any]? {
         let type: String
         switch config.type {
-        case .hls: type = "hls"
-        case .dash: type = "dash"
-        case .progressive: type = "progressive"
-        default: return nil
+        case .hls:
+            type = "hls"
+        case .dash:
+            type = "dash"
+        case .progressive:
+            type = "progressive"
+        default:
+            return nil
         }
         let url = config.url
-        return ["url": url.absoluteString, "type": type, "title": config.title,
-                "description": config.sourceDescription, "metadata": config.metadata]
+        return [
+            "url": url.absoluteString,
+            "type": type,
+            "title": config.title,
+            "description": config.sourceDescription,
+            "metadata": config.metadata
+        ]
     }
 
     deinit {

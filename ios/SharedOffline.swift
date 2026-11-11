@@ -20,7 +20,10 @@ public final class SharedOffline: SharedObject {
         initialization = SharedObjectInitialization {
             guard let identifier = config["identifier"] as? String,
                   let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"], callback: callback) else {
-                throw Exception(name: "InvalidArgument", description: "Invalid offline identifier or source configuration")
+                throw Exception(
+                    name: "InvalidArgument",
+                    description: "Invalid offline identifier or source configuration"
+                )
             }
             let manager = try OfflineManager.sharedInstance().offlineContentManager(for: sourceConfig, id: identifier)
             return Resource(manager: manager, bridge: OfflineContentManagerBridge(

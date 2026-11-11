@@ -7,16 +7,23 @@ public class SourceModule: Module {
         Name("SourceModule")
         Class("Source", SharedSource.self) {
             Constructor { (config: [String: Any]?, analytics: [String: Any]?, callback: JavaScriptValue?) in
-                try SharedSource(config: config, analytics: analytics,
-                    callback: callback.map { try CallbackScope(callback: $0, context: appContext) })
+                try SharedSource(
+                    config: config,
+                    analytics: analytics,
+                    callback: callback.map { try CallbackScope(callback: $0, context: appContext) }
+                )
             }
             Property("configSnapshot") { (owner: SharedSource) in owner.configSnapshot }
             AsyncFunction("initialize") { (owner: SharedSource) in try owner.initialize(); return () }.runOnQueue(.main)
             AsyncFunction("isAttachedToPlayer") { (owner: SharedSource) -> Bool in
                 (try owner.source).isAttachedToPlayer
             }.runOnQueue(.main)
-            AsyncFunction("isActive") { (owner: SharedSource) -> Bool in (try owner.source).isActive }.runOnQueue(.main)
-            AsyncFunction("duration") { (owner: SharedSource) -> Double in (try owner.source).duration }.runOnQueue(.main)
+            AsyncFunction("isActive") { (owner: SharedSource) -> Bool in
+                (try owner.source).isActive
+            }.runOnQueue(.main)
+            AsyncFunction("duration") { (owner: SharedSource) -> Double in
+                (try owner.source).duration
+            }.runOnQueue(.main)
             AsyncFunction("loadingState") { (owner: SharedSource) -> Int in
                 (try owner.source).loadingState.rawValue
             }.runOnQueue(.main)

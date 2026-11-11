@@ -14,8 +14,8 @@ public class RNPlayerViewManager: Module {
             Prop("isPictureInPictureRequested") { (view: RNPlayerView, isPictureInPictureRequested: Bool) in
                 view.setPictureInPicture(enterPictureInPicture: isPictureInPictureRequested)
             }
-            AsyncFunction("attachBindings") { (view: RNPlayerView, owner: SharedPlayer,
-                fullscreen: SharedFullscreen?, messages: SharedCustomMessage?, config: [String: Any]?) in
+            // swiftlint:disable:next line_length
+            AsyncFunction("attachBindings") { (view: RNPlayerView, owner: SharedPlayer, fullscreen: SharedFullscreen?, messages: SharedCustomMessage?, config: [String: Any]?) in
                 try view.attachBindings(owner: owner, fullscreen: fullscreen, messages: messages, config: config)
             }
             AsyncFunction("updatePictureInPictureActions") { (view: RNPlayerView, actions: [String]) in

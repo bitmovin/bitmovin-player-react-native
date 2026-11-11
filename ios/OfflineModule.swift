@@ -10,8 +10,11 @@ public class OfflineModule: Module {
         Class("OfflineEvents", SharedOfflineEvents.self) { Constructor { SharedOfflineEvents() } }
         Class("OfflineContentManager", SharedOffline.self) {
             Constructor { (config: [String: Any], events: SharedOfflineEvents, callback: JavaScriptValue?) in
-                try SharedOffline(config: config,
-                    callback: callback.map { try CallbackScope(callback: $0, context: appContext) }, events: events)
+                try SharedOffline(
+                    config: config,
+                    callback: callback.map { try CallbackScope(callback: $0, context: appContext) },
+                    events: events
+                )
             }
             AsyncFunction("initialize") { (owner: SharedOffline) in try owner.initialize() }.runOnQueue(.main)
             Property("events") { (owner: SharedOffline) in owner.events }

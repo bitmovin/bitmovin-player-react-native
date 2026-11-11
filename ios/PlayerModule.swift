@@ -12,8 +12,11 @@ public class PlayerModule: Module {
         }
         Class("Player", SharedPlayer.self) {
             Constructor { (config: [String: Any]?, analytics: [String: Any]?, callback: JavaScriptValue?) in
-                try SharedPlayer.create(config: config, analyticsConfig: analytics,
-                    callback: callback.map { try CallbackScope(callback: $0, context: appContext) })
+                try SharedPlayer.create(
+                    config: config,
+                    analyticsConfig: analytics,
+                    callback: callback.map { try CallbackScope(callback: $0, context: appContext) }
+                )
             }
             AsyncFunction("initialize") { (owner: SharedPlayer) in try owner.initialize(); return () }.runOnQueue(.main)
             AsyncFunction("play") { (owner: SharedPlayer) in (try owner.player).play() }.runOnQueue(.main)
@@ -48,9 +51,15 @@ public class PlayerModule: Module {
                 }
                 return player.currentTime
             }.runOnQueue(.main)
-            AsyncFunction("isPlaying") { (owner: SharedPlayer) -> Bool? in (try owner.player).isPlaying }.runOnQueue(.main)
-            AsyncFunction("isPaused") { (owner: SharedPlayer) -> Bool? in (try owner.player).isPaused }.runOnQueue(.main)
-            AsyncFunction("getDuration") { (owner: SharedPlayer) -> Double? in (try owner.player).duration }.runOnQueue(.main)
+            AsyncFunction("isPlaying") { (owner: SharedPlayer) -> Bool? in
+                (try owner.player).isPlaying
+            }.runOnQueue(.main)
+            AsyncFunction("isPaused") { (owner: SharedPlayer) -> Bool? in
+                (try owner.player).isPaused
+            }.runOnQueue(.main)
+            AsyncFunction("getDuration") { (owner: SharedPlayer) -> Double? in
+                (try owner.player).duration
+            }.runOnQueue(.main)
             AsyncFunction("isMuted") { (owner: SharedPlayer) -> Bool? in (try owner.player).isMuted }.runOnQueue(.main)
             AsyncFunction("getTimeShift") { (owner: SharedPlayer) -> Double? in
                 (try owner.player).timeShift
@@ -135,7 +144,9 @@ public class PlayerModule: Module {
             AsyncFunction("isCastAvailable") { (owner: SharedPlayer) -> Bool? in
                 (try owner.player).isCastAvailable
             }.runOnQueue(.main)
-            AsyncFunction("isCasting") { (owner: SharedPlayer) -> Bool? in (try owner.player).isCasting }.runOnQueue(.main)
+            AsyncFunction("isCasting") { (owner: SharedPlayer) -> Bool? in
+                (try owner.player).isCasting
+            }.runOnQueue(.main)
             AsyncFunction("castVideo") { (owner: SharedPlayer) in (try owner.player).castVideo() }.runOnQueue(.main)
             AsyncFunction("castStop") { (owner: SharedPlayer) in (try owner.player).castStop() }.runOnQueue(.main)
             AsyncFunction("skipAd") { (owner: SharedPlayer) in (try owner.player).skipAd() }.runOnQueue(.main)
@@ -216,7 +227,9 @@ public class PlayerModule: Module {
                 }
             }.runOnQueue(.main)
             AsyncFunction("remove") { (owner: SharedPlaylist, source: SharedSource) in
-                if let index = try (try owner.player).playlist.sources.firstIndex(where: { $0 === (try source.source) }) {
+                if let index = try (try owner.player).playlist.sources.firstIndex(where: {
+                    $0 === (try source.source)
+                }) {
                     (try owner.player).playlist.remove(sourceAt: index)
                 }
             }.runOnQueue(.main)

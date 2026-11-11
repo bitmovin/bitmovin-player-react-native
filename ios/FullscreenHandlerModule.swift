@@ -8,7 +8,7 @@ public class FullscreenHandlerModule: Module {
         Class("FullscreenHandler", SharedFullscreen.self) {
             Constructor { (callback: JavaScriptValue) in
             try SharedFullscreen(callback: CallbackScope(callback: callback, context: appContext))
-        }
+            }
 
             AsyncFunction("setIsFullscreenActive") { (owner: SharedFullscreen, value: Bool) in
                 MainActor.assumeIsolated { owner.handler.isFullscreen = value }
