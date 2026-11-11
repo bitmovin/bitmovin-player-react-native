@@ -320,7 +320,7 @@ export function PlayerView({
   return (
     <NativePlayerView
       ref={nativeView}
-      onLayout={() => setMountedView(nativeView.current)}
+      onBmpViewAttached={() => setMountedView(nativeView.current)}
       style={nativeViewStyle}
       isFullscreenRequested={isFullscreenRequested}
       isPictureInPictureRequested={isPictureInPictureRequested}

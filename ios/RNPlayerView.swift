@@ -51,6 +51,7 @@ public class RNPlayerView: ExpoView {
     private var foregroundObserver: NSObjectProtocol?
 
     let onBmpPlayerViewReady = EventDispatcher()
+    let onBmpViewAttached = EventDispatcher()
     let onBmpPictureInPictureAvailabilityChanged = EventDispatcher()
     let onBmpPictureInPictureEnter = EventDispatcher()
     let onBmpPictureInPictureEntered = EventDispatcher()
@@ -75,6 +76,11 @@ public class RNPlayerView: ExpoView {
     override public func layoutSubviews() {
         super.layoutSubviews()
         maybeFixAVPlayerViewControllerVisibility()
+    }
+
+    override public func didMoveToWindow() {
+        super.didMoveToWindow()
+        if window != nil { onBmpViewAttached([:]) }
     }
 
     internal func attachBindings(

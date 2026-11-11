@@ -1,9 +1,5 @@
 import { requireNativeViewManager } from 'expo-modules-core';
-import type {
-  LayoutChangeEvent,
-  NativeSyntheticEvent,
-  ViewStyle,
-} from 'react-native';
+import type { NativeSyntheticEvent, ViewStyle } from 'react-native';
 import type { NativePlayerViewEvents } from './nativeEvents';
 import type { ScalingMode } from '../../styleConfig';
 import type { PlayerViewConfig } from './playerViewConfig';
@@ -26,7 +22,9 @@ export interface NativePlayerViewConfig {
  */
 export interface NativePlayerViewProps extends NativePlayerViewEvents {
   ref?: RefObject<NativePlayerViewRef | null>;
-  onLayout?: (event: LayoutChangeEvent) => void;
+  onBmpViewAttached?: (
+    event: NativeSyntheticEvent<Record<string, never>>
+  ) => void;
   onBmpPlayerViewReady?: (
     event: NativeSyntheticEvent<Record<string, never>>
   ) => void;

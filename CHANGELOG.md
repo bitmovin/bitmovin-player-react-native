@@ -23,6 +23,8 @@
 
 #### Other changes
 
+- Attach PlayerView bindings after its native host is registered, avoiding early view-reference lookup failures
+
 - Android: Update the native SDK to [`3.174.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31740)
 
 - Android: Release pending media-session service bindings and ignore stale connection callbacks after Player destruction

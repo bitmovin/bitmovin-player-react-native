@@ -25,6 +25,7 @@ public class RNPlayerViewManager: Module {
                 view.setIsPictureInPictureEnabled(value)
             }
             Events(
+                "onBmpViewAttached",
                 "onBmpPlayerViewReady",
                 "onBmpPictureInPictureAvailabilityChanged",
                 "onBmpPictureInPictureEnter",

@@ -58,6 +58,7 @@ class RNPlayerViewManager : Module() {
             }
 
             Events(
+                "onBmpViewAttached",
                 "onBmpPlayerViewReady",
                 "onBmpPictureInPictureAvailabilityChanged",
                 "onBmpPictureInPictureEnter",

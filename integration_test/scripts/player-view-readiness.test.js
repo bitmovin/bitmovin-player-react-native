@@ -149,12 +149,12 @@ vm.runInContext(compiled, playerViewContext);
 const { PlayerView } = playerViewModule.exports;
 // Use the installed Fabric renderer for real effect/ref ordering.
 // Only native attachment acceptance and failure are controlled here.
-const laidOutViews = new Set();
-async function flush() {
+const attachedViews = new Set();
+async function flush(attach = true) {
   for (let i = 0; i < 6; i++) {
     scheduler.unstable_flushAllWithoutAsserting();
-    if (committedView && !laidOutViews.has(committedView.tag)) {
-      laidOutViews.add(committedView.tag);
+    if (attach && committedView && !attachedViews.has(committedView.tag)) {
+      attachedViews.add(committedView.tag);
       committedView.handle.memoizedProps.onBmpViewAttached?.({
         nativeEvent: {},
       });
@@ -205,6 +205,12 @@ test('readiness waits for native attachment and is announced once', async () => 
     },
   };
   render(props);
+  await flush(false);
+  assert.equal(
+    bindings.size,
+    0,
+    'layout/ref availability does not prove platform attachment'
+  );
   await flush();
   assert.ok(
     committedView,

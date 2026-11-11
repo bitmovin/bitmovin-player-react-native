@@ -50,6 +50,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private var customMessageHandler: SharedCustomMessage? = null
 
     private val onBmpPlayerViewReady by EventDispatcher()
+    private val onBmpViewAttached by EventDispatcher()
     private val onBmpPictureInPictureAvailabilityChanged by EventDispatcher()
 
     private val onBmpFullscreenEnabled by EventDispatcher()
@@ -60,6 +61,11 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private val onBmpPictureInPictureEntered by EventDispatcher()
     private val onBmpPictureInPictureExit by EventDispatcher()
     private val onBmpPictureInPictureExited by EventDispatcher()
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        onBmpViewAttached(emptyMap<String, Any>())
+    }
 
     private var pictureInPictureConfig: PictureInPictureConfig = PictureInPictureConfig()
 
