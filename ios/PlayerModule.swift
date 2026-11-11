@@ -172,11 +172,15 @@ public class PlayerModule: Module {
                 let config = try playlistConfig(sources: sources, options: options)
                 owner.player.load(playlistConfig: config)
             }.runOnQueue(.main)
-            AsyncFunction("getSource") { (owner: SharedPlayer) -> SharedSource? in
-                owner.player.source.map { SharedSource(source: $0, callback: nil) }
+            AsyncFunction("getSource") { (owner: SharedPlayer, known: [SharedSource]) -> SharedSource? in
+                owner.player.source.map { source in
+                    known.first { $0.source === source } ?? SharedSource(source: source, callback: nil)
+                }
             }.runOnQueue(.main)
-            AsyncFunction("getPlaylistSources") { (owner: SharedPlayer) -> [SharedSource] in
-                owner.player.playlist.sources.map { SharedSource(source: $0, callback: nil) }
+            AsyncFunction("getPlaylistSources") { (owner: SharedPlayer, known: [SharedSource]) -> [SharedSource] in
+                owner.player.playlist.sources.map { source in
+                    known.first { $0.source === source } ?? SharedSource(source: source, callback: nil)
+                }
             }.runOnQueue(.main)
             AsyncFunction("playlistAdd") { (owner: SharedPlayer, source: SharedSource, index: Int?) in
                 try ensurePlaylistSourceType(source.source)

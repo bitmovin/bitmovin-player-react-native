@@ -44,14 +44,16 @@ class PlayerModule : Module() {
                 )
             }.runOnQueue(Queues.MAIN)
 
-            AsyncFunction("getSource") { shared: SharedPlayer ->
-                shared.player.source?.let { SharedSource(appContext, it) }
+            AsyncFunction("getSource") { shared: SharedPlayer, known: List<SharedSource> ->
+                shared.player.source?.let { source ->
+                    known.firstOrNull { it.source === source } ?: SharedSource(appContext, source)
+                }
             }.runOnQueue(Queues.MAIN)
-
-            AsyncFunction("getPlaylistSources") { shared: SharedPlayer ->
-                shared.player.playlist.sources.map { SharedSource(appContext, it) }
+            AsyncFunction("getPlaylistSources") { shared: SharedPlayer, known: List<SharedSource> ->
+                shared.player.playlist.sources.map { source ->
+                    known.firstOrNull { it.source === source } ?: SharedSource(appContext, source)
+                }
             }.runOnQueue(Queues.MAIN)
-
             AsyncFunction("playlistAdd") { shared: SharedPlayer, source: SharedSource, index: Int? ->
                 if (index == null) {
                     shared.player.playlist.add(source.source)

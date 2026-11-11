@@ -92,8 +92,8 @@ export interface NativePlayer extends SharedObject<PlayerModuleEvents> {
     sources: NativeSource[],
     options?: PlaylistOptions
   ): Promise<void>;
-  getSource(): Promise<NativeSource | null>;
-  getPlaylistSources(): Promise<NativeSource[]>;
+  getSource(knownSources: NativeSource[]): Promise<NativeSource | null>;
+  getPlaylistSources(knownSources: NativeSource[]): Promise<NativeSource[]>;
   playlistAdd(source: NativeSource, index?: number): Promise<void>;
   playlistRemove(source: NativeSource): Promise<void>;
   playlistRemoveAt(index: number): Promise<void>;

@@ -57,6 +57,11 @@ const testRegistrations = [
   ),
   testSuite('network', androidAndIos, () => require('./networkTest').default),
   testSuite(
+    'source-ownership',
+    androidAndIos,
+    () => require('./sourceOwnershipTest').default
+  ),
+  testSuite(
     'object-events',
     androidAndIos,
     () => require('./objectEventsTest').default

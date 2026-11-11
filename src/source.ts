@@ -149,39 +149,40 @@ export interface SourceConfig {
  * Represents audio and video content that can be loaded into a player.
  */
 export class Source {
-  /**
-   * Subscribes to native events, even without a PlayerView. For example,
-   * `await source.on('sourceLoaded', listener)`.
-   * Use `event` to listen to all supported native object events.
-   * Await registration before triggering events. Call `remove()` on the resolved
-   * subscription to stop listening.
-   */
-  on = async <Name extends keyof SourceEvents>(
-    event: Name,
-    listener: SourceEvents[Name]
-  ): Promise<EventSubscription> =>
-    subscribeToNativeEvent(this.native, event, listener);
-
   /** @internal */
   readonly native: Promise<NativeSource>;
 
+  private static readonly sources = new WeakMap<
+    NativeSource,
+    WeakRef<Source>
+  >();
+
+  readonly config: SourceConfig | undefined;
+
   constructor(config: SourceConfig);
-  /** @internal Adopts a native-owned source without a JS configuration snapshot. */
-  constructor(config: undefined, native: NativeSource);
-  constructor(
-    readonly config: SourceConfig | undefined,
-    native?: NativeSource
-  ) {
-    this.native = native ? Promise.resolve(native) : this.createNative();
-    this.isInitialized = native !== undefined;
+  /** @internal Adopts a native-owned source without creating another one. */
+  constructor(native: NativeSource);
+  constructor(configOrNative: SourceConfig | NativeSource) {
+    this.config = 'url' in configOrNative ? configOrNative : undefined;
+    if ('url' in configOrNative) {
+      this.native = this.createNative().then((owner) => {
+        Source.sources.set(owner, new WeakRef(this));
+        this.isInitialized = true;
+        return owner;
+      });
+    } else {
+      this.native = Promise.resolve(configOrNative);
+      Source.sources.set(configOrNative, new WeakRef(this));
+      this.isInitialized = true;
+    }
     this.drm = new SourceDrmApi(this.native);
-    // Keep the original rejection available to initialize() and runtime methods.
+    // Keep creation failures available to initialize() and runtime methods.
     void this.native.catch(() => {});
   }
 
-  /** @internal Wraps an SDK source without creating a second native source. */
+  /** @internal Reuses the original wrapper while it is still reachable. */
   static fromNative(native: NativeSource): Source {
-    return new Source(undefined, native);
+    return Source.sources.get(native)?.deref() ?? new Source(native);
   }
 
   private async createNative(): Promise<NativeSource> {
@@ -193,7 +194,6 @@ export class Source {
         callback
       )
     );
-    this.isInitialized = true;
     return native;
   }
 
@@ -215,6 +215,19 @@ export class Source {
   initialize = async (): Promise<void> => {
     await this.native;
   };
+
+  /**
+   * Subscribes to native events, even without a PlayerView. For example,
+   * `await source.on('sourceLoaded', listener)`.
+   * Use `event` to listen to all supported native object events.
+   * Await registration before triggering events. Call `remove()` on the resolved
+   * subscription to stop listening.
+   */
+  on = async <Name extends keyof SourceEvents>(
+    event: Name,
+    listener: SourceEvents[Name]
+  ): Promise<EventSubscription> =>
+    subscribeToNativeEvent(this.native, event, listener);
 
   /**
    * The duration of the source in seconds if it’s a VoD or `INFINITY` if it’s a live stream.

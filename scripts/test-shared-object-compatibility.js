@@ -80,12 +80,16 @@ function fixture(t) {
         playlist = sources;
         calls.push({ sources, options });
       },
-      getPlaylistSources: async () =>
-        playlist.map((source) => ({
-          sdkSource: source.sdkSource,
-          getMetadata: source.getMetadata,
-        })),
-      getSource: async () => (await native.getPlaylistSources())[0] ?? null,
+      getPlaylistSources: async (known = []) =>
+        playlist.map(
+          (source) =>
+            known.find((peer) => peer.sdkSource === source.sdkSource) ?? {
+              sdkSource: source.sdkSource,
+              getMetadata: source.getMetadata,
+            }
+        ),
+      getSource: async (known) =>
+        (await native.getPlaylistSources(known))[0] ?? null,
       playlistAdd: async (source, index = playlist.length) => {
         playlist.splice(index, 0, source);
       },
@@ -383,7 +387,7 @@ test('playlist mutations delegate without querying or reconciling native sources
   player.destroy();
 });
 
-test('playlist queries return fresh handles to current SDK sources without creating SDK sources', async (t) => {
+test('playlist queries preserve original Sources without creating SDK sources', async (t) => {
   const { Player, Source, creations } = fixture(t);
   const player = new Player();
   const first = new Source({ url: 'https://test/first' });
@@ -396,8 +400,11 @@ test('playlist queries return fresh handles to current SDK sources without creat
     await Promise.all(sources.map((source) => source.metadata())),
     [{ title: 'first' }, { title: 'second' }]
   );
-  assert.notEqual(sources[0], first);
-  assert.notEqual((await player.playlist.getSources())[0], sources[0]);
+  assert.equal(sources[0], first);
+  assert.equal(sources[1], second);
+  assert.equal((await player.playlist.getSources())[0], first);
+  assert.equal(sources[0].config, first.config);
+  assert.equal(await player.getSource(), first);
   assert.deepEqual(await (await player.getSource()).metadata(), {
     title: 'first',
   });

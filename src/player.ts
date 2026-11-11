@@ -1,3 +1,5 @@
+import type { NativeSource } from './modules/sourceModule';
+import type { NativeOffline } from './offline/offlineModule';
 import type { EventSubscription } from 'expo-modules-core';
 import type { PlayerEvents } from './events';
 import { subscribeToNativeEvent } from './nativeEvents';
@@ -36,23 +38,10 @@ export class Player {
   private static readonly loadedContent = new WeakMap<
     NativePlayer,
     {
-      sources: Awaited<Source['native']>[];
-      offline?: Awaited<OfflineContentManager['native']>;
+      sources: Set<NativeSource>;
+      offline?: NativeOffline;
     }
   >();
-
-  /**
-   * Subscribes to native events, even without a PlayerView. For example,
-   * `await player.on('play', listener)`.
-   * Use `event` to listen to all supported native object events.
-   * Await registration before triggering events. Call `remove()` on the resolved
-   * subscription to stop listening.
-   */
-  on = async <Name extends keyof PlayerEvents>(
-    event: Name,
-    listener: PlayerEvents[Name]
-  ): Promise<EventSubscription> =>
-    subscribeToNativeEvent(this.native, event, listener);
 
   constructor(readonly config: PlayerConfig = {}) {
     const instance = legacyPlayerRegistry.create(config.nativeId, () =>
@@ -66,13 +55,7 @@ export class Player {
       : undefined;
     this.buffer = new BufferApi(this.native);
     this.mediaControls = new MediaControlsApi(this.native);
-    this.playlist = new PlaylistApi(this.native, (native, source) => {
-      const content = Player.loadedContent.get(native) ?? { sources: [] };
-      // SDK query handles cannot identify the original JS callback owners.
-      // Keep added peers for this session, until load, unload or destroy replaces it.
-      if (!content.sources.includes(source)) content.sources.push(source);
-      Player.loadedContent.set(native, content);
-    });
+    this.playlist = new PlaylistApi(this);
   }
 
   /** User-defined compatibility ID, or a generated UUIDv4. */
@@ -95,28 +78,6 @@ export class Player {
   source?: Source;
   /** Provides access to the native playlist. */
   readonly playlist: PlaylistApi;
-
-  /**
-   * Queries the currently active native source, including after playlist transitions.
-   * Returns a fresh JS handle to the SDK source.
-   */
-  getSource = async (): Promise<Source | undefined> => {
-    const source = await (await this.native).getSource();
-    return source ? Source.fromNative(source) : undefined;
-  };
-
-  /**
-   * Loads a playlist. Resolution means the SDK accepted the call; observe Ready for playback readiness.
-   * The native SDK controls validation, preloading, replay and transitions.
-   */
-  loadPlaylist = async (config: PlaylistConfig): Promise<void> => {
-    const sources = await Promise.all(
-      config.sources.map((source) => source.native)
-    );
-    const native = await this.native;
-    await native.loadPlaylist(sources, config.options);
-    Player.loadedContent.set(native, { sources });
-  };
   /**
    * The `AnalyticsApi` for interactions regarding the `Player`'s analytics.
    *
@@ -200,7 +161,7 @@ export class Player {
     const offline = await offlineContentManager.native;
     const native = await this.native;
     if (await native.loadOfflineContent(offline, options)) {
-      Player.loadedContent.set(native, { sources: [], offline });
+      Player.loadedContent.set(native, { sources: new Set(), offline });
     }
   };
 
@@ -212,7 +173,66 @@ export class Player {
     const nativeSource = await source.native;
     const native = await this.native;
     await native.loadSource(nativeSource);
-    Player.loadedContent.set(native, { sources: [nativeSource] });
+    Player.loadedContent.set(native, { sources: new Set([nativeSource]) });
+  };
+
+  /**
+   * Queries the currently active native source, including after playlist transitions.
+   * Reuses the original Source while it is reachable; adopts SDK-created sources on first query.
+   */
+  getSource = async (): Promise<Source | undefined> => {
+    const native = await this.native;
+    const source = await native.getSource([
+      ...(Player.loadedContent.get(native)?.sources ?? []),
+    ]);
+    if (!source) return undefined;
+    this.retainSource(native, source);
+    return Source.fromNative(source);
+  };
+
+  /**
+   * Loads a playlist. Resolution means the SDK accepted the call; observe Ready for playback readiness.
+   * The native SDK controls validation, preloading, replay and transitions.
+   */
+  loadPlaylist = async (config: PlaylistConfig): Promise<void> => {
+    const sources = await Promise.all(
+      config.sources.map((source) => source.native)
+    );
+    const native = await this.native;
+    await native.loadPlaylist(sources, config.options);
+    Player.loadedContent.set(native, { sources: new Set(sources) });
+  };
+
+  /**
+   * Subscribes to native events, even without a PlayerView. For example,
+   * `await player.on('play', listener)`.
+   * Use `event` to listen to all supported native object events.
+   * Await registration before triggering events. Call `remove()` on the resolved
+   * subscription to stop listening.
+   */
+  on = async <Name extends keyof PlayerEvents>(
+    event: Name,
+    listener: PlayerEvents[Name]
+  ): Promise<EventSubscription> =>
+    subscribeToNativeEvent(this.native, event, listener);
+
+  /** @internal Keeps callback peers available while this SDK playback session owns their sources. */
+  retainSource = (native: NativePlayer, source: NativeSource): void => {
+    const content = Player.loadedContent.get(native) ?? {
+      sources: new Set<NativeSource>(),
+    };
+    content.sources.add(source);
+    Player.loadedContent.set(native, content);
+  };
+
+  /** @internal Queries owned source handles without a source-ID registry. */
+  getPlaylistSources = async (): Promise<Source[]> => {
+    const native = await this.native;
+    const sources = await native.getPlaylistSources([
+      ...(Player.loadedContent.get(native)?.sources ?? []),
+    ]);
+    sources.forEach((source) => this.retainSource(native, source));
+    return sources.map(Source.fromNative);
   };
 
   /**

@@ -4,6 +4,8 @@
 
 ### Changed
 
+- Source queries preserve the original Source object and configuration while it remains reachable. SDK-created sources are adopted on their first query
+
 #### Breaking changes
 
 - Pass `NetworkConfig` and `DrmConfig` objects directly; the configuration-only `Network` and `Drm` wrapper classes have been removed
