@@ -4,13 +4,19 @@ import { Source, TimelineReferencePoint } from './source';
 import type { Player } from './player';
 import { NativePlaylist } from './modules/playerModule';
 
-/** Where playback starts when replaying a finished playlist. */
+/**
+ * Where playback starts when replaying a finished playlist.
+ * @experimental
+ */
 export enum ReplayMode {
   PLAYLIST = 'playlist',
   LAST_SOURCE = 'lastSource',
 }
 
-/** Additional native playlist configuration. */
+/**
+ * Additional native playlist configuration.
+ * @experimental
+ */
 export interface PlaylistOptions {
   /**
    * Start preloading every source when the playlist is loaded.
@@ -24,7 +30,10 @@ export interface PlaylistOptions {
   replayMode?: ReplayMode;
 }
 
-/** Sources and options to load into a player. */
+/**
+ * Sources and options to load into a player.
+ * @experimental
+ */
 export interface PlaylistConfig {
   sources: Source[];
   options?: PlaylistOptions;
@@ -39,6 +48,7 @@ export interface SeekTarget {
 /**
  * Manages the native player's playlist. The SDK owns source order, preloading,
  * transitions and source attachment. Mutations retain the SDK's no-op and warning behavior.
+ * @experimental
  */
 export class PlaylistApi extends NativePlaylist {
   /** @internal */

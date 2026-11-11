@@ -88,7 +88,10 @@ export class Player extends NativePlayer {
    * @deprecated Use {@link getSource} to query the active native source after playlist transitions.
    */
   source?: Source;
-  /** Provides access to the native playlist. */
+  /**
+   * Provides access to the native playlist.
+   * @experimental
+   */
   declare readonly playlist: PlaylistApi;
   /**
    * The `AnalyticsApi` for interactions regarding the `Player`'s analytics.
@@ -168,6 +171,7 @@ export class Player extends NativePlayer {
   /**
    * Loads a playlist. Resolution means the SDK accepted the call; observe Ready for playback readiness.
    * The native SDK controls validation, preloading, replay and transitions.
+   * @experimental
    */
   loadPlaylist = async (config: PlaylistConfig): Promise<void> => {
     await super.loadPlaylist(config);
