@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { Source } from 'bitmovin-player-react-native';
+import { Source, type SourceConfig } from 'bitmovin-player-react-native';
 import { TestScope } from 'cavy';
 import {
   callPlayer,
@@ -12,6 +12,28 @@ import { Sources } from './helper/Sources';
 
 export default (spec: TestScope) => {
   spec.describe('Source ownership', () => {
+    if (Platform.OS === 'android') {
+      spec.it(
+        'rejects malformed Source config with an invalid-argument error',
+        async () => {
+          // JavaScript callers do not have the TypeScript requirement for `type`.
+          const source = new Source({
+            url: Sources.artOfMotionHls.url,
+          } as SourceConfig);
+          let failure: unknown;
+          try {
+            await source.initialize();
+          } catch (error) {
+            failure = error;
+          }
+          expect(failure, 'Malformed source config rejects').toBeDefined();
+          expect(
+            (failure as { code: string }).code,
+            'Invalid-argument error code'
+          ).toBe('ERR_INVALID_ARGUMENT');
+        }
+      );
+    }
     if (Platform.OS === 'ios') {
       spec.it(
         'rejects unsupported source loading without replacing playback',
