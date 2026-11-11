@@ -18,6 +18,8 @@
 
 #### Other changes
 
+- Android: Update the native SDK to [`3.174.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31740)
+
 - Android: Release pending media-session service bindings and ignore stale connection callbacks after Player destruction
 
 - Android: Use Expo 57's Gradle plugin. For apps without root-project SDK overrides, the library's compile SDK and target SDK defaults are now API 36, so install Android SDK Platform 36. The minimum SDK stays API 24, existing host overrides are honored, and the app keeps its own target SDK
@@ -44,6 +46,9 @@
 - Android: Use `onPlaybackSpeedChanged` to observe playback speed changes, matching iOS
 
 ### Fixed
+
+- Android: Reject loading a Source attached to another Player before unloading the current session, leaving the Player usable for later loads
+- Android: Stop adding `com.google.android.gms.permission.AD_ID` when Google IMA is disabled. Apps that use the advertising ID, for example through analytics, may need to add `com.google.android.gms:play-services-ads-identifier` to their own dependencies
 
 - iOS: Include configured Source metadata in playlist event payloads before the Source is prepared
 

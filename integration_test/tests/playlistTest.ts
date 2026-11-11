@@ -381,44 +381,6 @@ export default (spec: TestScope) => {
   if (Platform.OS === 'ios') {
     spec.describe('iOS playlist validation', () => {
       spec.it(
-        'rejects loading another player source before unloading',
-        async () => {
-          await startPlayerTest({}, async () => {
-            const first = new Source({
-              ...Sources.artOfMotionHls,
-              metadata: { item: 'first' },
-            });
-            const second = new Source({
-              ...Sources.sintel,
-              metadata: { item: 'second' },
-            });
-            await callPlayerAndExpectEvent(
-              (player) => player.loadSource(first),
-              EventType.Ready
-            );
-            const other = new Player({
-              licenseKey: PlayerTestWorld.defaultLicenseKey,
-            });
-            try {
-              await other.loadSource(second);
-              await callPlayer(async (player) => {
-                const error = await player.loadSource(second).then(
-                  () => undefined,
-                  (error) => error
-                );
-                expect(error).toBeDefined();
-                expect(await (await player.getSource())?.metadata()).toEqual({
-                  item: 'first',
-                });
-              });
-            } finally {
-              await other.destroy();
-            }
-          });
-        }
-      );
-
-      spec.it(
         'rejects a duplicate source before changing the active session',
         async () => {
           await startPlayerTest({}, async () => {
@@ -542,46 +504,6 @@ export default (spec: TestScope) => {
                 )
               ).toEqual([{ item: 'first' }]);
             });
-          });
-        }
-      );
-
-      spec.it(
-        'rejects a source attached to another player before unloading',
-        async () => {
-          await startPlayerTest({}, async () => {
-            const first = new Source({
-              ...Sources.artOfMotionHls,
-              metadata: { item: 'first' },
-            });
-            const second = new Source({
-              ...Sources.sintel,
-              metadata: { item: 'second' },
-            });
-            await callPlayerAndExpectEvent(
-              (player) => player.loadPlaylist({ sources: [first] }),
-              EventType.Ready
-            );
-            const other = new Player({
-              licenseKey: PlayerTestWorld.defaultLicenseKey,
-            });
-            try {
-              await other.loadSource(second);
-              await callPlayer(async (player) => {
-                const error = await player
-                  .loadPlaylist({ sources: [second] })
-                  .then(
-                    () => undefined,
-                    (error) => error
-                  );
-                expect(error).toBeDefined();
-                expect(await (await player.getSource())?.metadata()).toEqual({
-                  item: 'first',
-                });
-              });
-            } finally {
-              await other.destroy();
-            }
           });
         }
       );

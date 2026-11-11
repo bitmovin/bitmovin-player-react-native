@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import {
+  Player,
   Source,
   type SourceConfig,
   type SourceLoadedEvent,
@@ -14,9 +15,98 @@ import {
 } from '../playertesting';
 import { expect } from './helper/Expect';
 import { Sources } from './helper/Sources';
+import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 
 export default (spec: TestScope) => {
   spec.describe('Source ownership', () => {
+    spec.it(
+      'rejects loading another player source before unloading',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const first = new Source({
+            ...Sources.artOfMotionHls,
+            metadata: { item: 'first' },
+          });
+          const second = new Source({
+            ...Sources.sintel,
+            metadata: { item: 'second' },
+          });
+          await callPlayerAndExpectEvent(
+            (player) => player.loadSource(first),
+            EventType.Ready
+          );
+          const other = new Player({
+            licenseKey: PlayerTestWorld.defaultLicenseKey,
+          });
+          try {
+            await other.loadSource(second);
+            expect(await second.isAttachedToPlayer()).toBeTruthy();
+            await callPlayer(async (player) => {
+              const error = await player.loadSource(second).then(
+                () => undefined,
+                (error) => error
+              );
+              expect(error).toBeDefined();
+              expect(await (await player.getSource())?.metadata()).toEqual({
+                item: 'first',
+              });
+            });
+          } finally {
+            await other.destroy();
+          }
+          await callPlayerAndExpectEvent(
+            (player) => player.loadSource(first),
+            EventType.Ready
+          );
+        });
+      }
+    );
+
+    spec.it(
+      'rejects a source attached to another player before unloading',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const first = new Source({
+            ...Sources.artOfMotionHls,
+            metadata: { item: 'first' },
+          });
+          const second = new Source({
+            ...Sources.sintel,
+            metadata: { item: 'second' },
+          });
+          await callPlayerAndExpectEvent(
+            (player) => player.loadPlaylist({ sources: [first] }),
+            EventType.Ready
+          );
+          const other = new Player({
+            licenseKey: PlayerTestWorld.defaultLicenseKey,
+          });
+          try {
+            await other.loadSource(second);
+            expect(await second.isAttachedToPlayer()).toBeTruthy();
+            await callPlayer(async (player) => {
+              const error = await player
+                .loadPlaylist({ sources: [second] })
+                .then(
+                  () => undefined,
+                  (error) => error
+                );
+              expect(error).toBeDefined();
+              expect(await (await player.getSource())?.metadata()).toEqual({
+                item: 'first',
+              });
+            });
+          } finally {
+            await other.destroy();
+          }
+          await callPlayerAndExpectEvent(
+            (player) => player.loadPlaylist({ sources: [first] }),
+            EventType.Ready
+          );
+        });
+      }
+    );
+
     spec.it('resolves the last of overlapping playlist loads', async () => {
       await startPlayerTest({}, async () => {
         const first = new Source(Sources.artOfMotionHls);

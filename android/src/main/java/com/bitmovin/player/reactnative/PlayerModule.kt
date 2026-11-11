@@ -1,10 +1,12 @@
 package com.bitmovin.player.reactnative
 
+import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.analytics.AnalyticsApi.Companion.analytics
 import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.api.playlist.PlaylistConfig
 import com.bitmovin.player.api.playlist.PlaylistOptions
 import com.bitmovin.player.api.playlist.SeekTarget
+import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.IS_GOOGLE_IMA_ENABLED
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
@@ -14,6 +16,7 @@ import com.bitmovin.player.reactnative.converter.toReplayMode
 import com.bitmovin.player.reactnative.converter.toTimelineReferencePoint
 import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
 import expo.modules.kotlin.functions.Queues
+import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.jni.JavaScriptFunction
 import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.modules.Module
@@ -33,9 +36,11 @@ class PlayerModule : Module() {
         Class(SharedPlayer::class) {
             AsyncFunction("loadPlaylist") { shared: SharedPlayer, sources: List<SharedSource>,
                 options: Map<String, Any>?, ->
+                val nativeSources = sources.map { it.source }
+                ensureSourcesAvailable(shared.player, nativeSources)
                 shared.player.load(
                     PlaylistConfig(
-                        sources.map { it.source },
+                        nativeSources,
                         PlaylistOptions(
                             preloadAllSources = options?.get("preloadAllSources") as? Boolean ?: false,
                             replayMode = options?.get("replayMode").toReplayMode(),
@@ -257,8 +262,17 @@ class PlayerModule : Module() {
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("loadSource") { shared: SharedPlayer, sharedSource: SharedSource ->
+                ensureSourcesAvailable(shared.player, listOf(sharedSource.source))
                 shared.player.load(sharedSource.source)
             }.runOnQueue(Queues.MAIN)
         }
+    }
+}
+
+// The SDK checks foreign attachment after unloading, which can leave the Player unable to load again.
+private fun ensureSourcesAvailable(player: Player, sources: List<Source>) {
+    val sessionSources = player.playlist.sources
+    if (sources.any { source -> source.isAttachedToPlayer && sessionSources.none { it === source } }) {
+        throw CodedException("ERR_SOURCE_ALREADY_ATTACHED", "Source is already attached to another player", null)
     }
 }
