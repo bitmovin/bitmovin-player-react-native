@@ -10,6 +10,16 @@ import { releaseSourceOwner } from '../utils/sourceOwners';
  * inactive.
  *
  * Accessible through {@link Player.playlist}.
+ *
+ * Known limitations:
+ * - Sources that left the player through {@link Player.unload} or a later load stay allocated until the player
+ *   is destroyed.
+ * - Sources removed via {@link PlaylistApi.remove} or {@link PlaylistApi.removeAt} are not destroyed with the
+ *   player and must be destroyed via {@link Source.destroy} once they are no longer needed.
+ *
+ * See {@link Player.destroy} for all known limitations of the source lifecycle.
+ *
+ * @experimental
  */
 export class PlaylistApi {
   /**

@@ -157,11 +157,23 @@ export interface PlayerEventMap extends SourceEventMap {
   stallEnded: StallEndedEvent;
   /** Emitted when the current playback time has changed. */
   timeChanged: TimeChangedEvent;
-  /** Emitted when a source has been added to the playback session. */
+  /**
+   * Emitted when a source has been added to the playback session.
+   *
+   * @experimental
+   */
   sourceAdded: SourceAddedEvent;
-  /** Emitted when a source has been removed from the playback session. */
+  /**
+   * Emitted when a source has been removed from the playback session.
+   *
+   * @experimental
+   */
   sourceRemoved: SourceRemovedEvent;
-  /** Emitted when the player transitions between two sources of a playlist. */
+  /**
+   * Emitted when the player transitions between two sources of a playlist.
+   *
+   * @experimental
+   */
   playlistTransition: PlaylistTransitionEvent;
   /** Emitted when an ad break has finished. */
   adBreakFinished: AdBreakFinishedEvent;

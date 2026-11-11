@@ -64,6 +64,8 @@ export class Player extends NativeInstance<PlayerConfig> {
   private readonly knownSources = new Map<string, Source>();
   /**
    * The {@link PlaylistApi} for interactions regarding the playlist of the playback session.
+   *
+   * @experimental
    */
   playlist: PlaylistApi = new PlaylistApi(
     this.nativeId,
@@ -277,6 +279,16 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * Throws if `sources` is empty or contains a source more than once, `options.replayMode` is unknown, a source
    * was destroyed, or (on iOS and tvOS) a source has an unsupported type.
+   *
+   * Known limitations:
+   * - Sources that left the player through {@link Player.unload} or a later load stay allocated until the player
+   *   is destroyed.
+   * - Sources removed via {@link PlaylistApi.remove} or {@link PlaylistApi.removeAt} are not destroyed with the
+   *   player and must be destroyed via {@link Source.destroy} once they are no longer needed.
+   *
+   * See {@link Player.destroy} for all known limitations of the source lifecycle.
+   *
+   * @experimental
    */
   loadPlaylist = (playlistConfig: PlaylistConfig) => {
     validatePlaylistConfig(playlistConfig);

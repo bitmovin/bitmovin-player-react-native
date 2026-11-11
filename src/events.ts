@@ -299,6 +299,8 @@ export interface SourceUnloadedEvent extends Event {
  * Emitted when a {@link Source} was added to an active playback session, either while loading a
  * playlist via {@link Player.loadPlaylist} or via {@link PlaylistApi.add}.
  * When loading, it is emitted for every source of the playlist before {@link PlayerActiveEvent}.
+ *
+ * @experimental
  */
 export interface SourceAddedEvent extends Event {
   /**
@@ -314,6 +316,8 @@ export interface SourceAddedEvent extends Event {
 /**
  * Emitted when a {@link Source} was removed from an active playback session, either via
  * {@link PlaylistApi.remove} / {@link PlaylistApi.removeAt} or while unloading the playback session.
+ *
+ * @experimental
  */
 export interface SourceRemovedEvent extends Event {
   /**
@@ -328,6 +332,8 @@ export interface SourceRemovedEvent extends Event {
 
 /**
  * Emitted when the player transitions between two sources in a playlist.
+ *
+ * @experimental
  */
 export interface PlaylistTransitionEvent extends Event {
   /**
