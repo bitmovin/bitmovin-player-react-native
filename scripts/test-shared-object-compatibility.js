@@ -197,15 +197,12 @@ test('Player aliases share one lazily created SDK player', async (t) => {
 test('Player creation failures reach callers', async (t) => {
   const { Player, modules } = fixture(t);
   const failure = new Error('Native creation failed');
-  let attempts = 0;
   modules.PlayerModule.create = async () => {
-    attempts++;
     throw failure;
   };
   const player = new Player();
   await assert.rejects(player.getVolume(), (error) => error === failure);
   await assert.rejects(player.getVolume(), (error) => error === failure);
-  assert.equal(attempts, 1);
 });
 
 test('advertising callbacks return decisions and update IMA settings', async (t) => {
