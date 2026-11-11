@@ -44,7 +44,7 @@ public final class SharedPlayer: SharedObject {
         let analytics = analyticsConfig.flatMap { RCTConvert.analyticsConfig($0) }
         guard analyticsConfig == nil || analytics != nil else {
             callback?.close()
-            throw Exception(name: "InvalidAnalyticsConfig", description: "Invalid analytics configuration")
+            throw Exception(name: "InvalidArgument", description: "Invalid analytics configuration")
         }
         let player: Player
         if let analytics {

@@ -9,7 +9,7 @@
 #### Breaking changes
 
 - Pass `NetworkConfig` and `DrmConfig` objects directly; the configuration-only `Network` and `Drm` wrapper classes have been removed
-- Check `source.config.drmConfig` for DRM configuration. `source.drm` is now an always-present, read-only property exposing runtime APIs, including for clear content. Move standalone `Drm.fairplay` usage to `source.drm.fairplay`; `Drm` no longer accepts a Source constructor argument
+- Check `source.config.drmConfig` for DRM configuration. `source.drm` is now an always-present, read-only property exposing runtime APIs, including for clear content. Move standalone `Drm.fairplay` usage to `source.drm.fairplay`
 - Remove calls to `Source.destroy()` and reads of `Source.isDestroyed`. Source cleanup is automatic, and a Source remains reusable after its Player is destroyed
 - Retain and reuse Source instances directly. `Source.nativeId`, `SourceConfig.nativeId`, and ID-based Source aliasing are no longer supported
 - Keep a Player or OfflineContentManager instance alive while using its compatibility ID. Keeping only its `nativeId` no longer retains the underlying resources; later ID-based construction can create a new instance
