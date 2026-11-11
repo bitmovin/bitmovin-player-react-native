@@ -15,14 +15,17 @@ export default (spec: TestScope) => {
 
   spec.describe('media-session teardown', () => {
     spec.it(
-      'keeps playback alive after destroying a player during service binding',
+      'keeps playback alive after prompt Player initialization and destruction',
       async () => {
         const destroyed = new Player({
           licenseKey: PlayerTestWorld.defaultLicenseKey,
           mediaControlConfig: { isEnabled: true },
         });
-        await destroyed.initialize();
-        await destroyed.destroy();
+        try {
+          await destroyed.initialize();
+        } finally {
+          await destroyed.destroy();
+        }
         await startPlayerTest(
           { mediaControlConfig: { isEnabled: false } },
           async () => {
