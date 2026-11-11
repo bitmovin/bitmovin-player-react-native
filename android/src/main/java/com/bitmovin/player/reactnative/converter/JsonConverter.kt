@@ -1096,6 +1096,7 @@ fun DateRangeMetadata.toJson(): Map<String, Any> {
 
     return mapOf(
         "metadataType" to "DATERANGE",
+        "platform" to "android",
         "id" to id,
         "relativeTimeRange" to relativeTimeRange,
         "endOnNext" to endOnNext,
@@ -1117,6 +1118,7 @@ fun EventMessage.toJson(): Map<String, Any> = mapOf(
 
 private fun Id3Frame.toJson(): Map<String, Any> = buildMap {
     put("metadataType", "ID3")
+    put("platform", "android")
     put("id", id)
 
     when (this@toJson) {
