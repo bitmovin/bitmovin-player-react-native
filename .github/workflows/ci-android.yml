@@ -106,7 +106,9 @@ jobs:
           skip-prebuild: true
 
       - name: Prebuild Android Example
-        run: yarn example prebuild --clean --platform android
+        run: |
+          yarn example prebuild --clean --platform android
+          .github/scripts/setup-gradle-properties.sh
 
       - name: Build Android example
         id: build
@@ -153,7 +155,9 @@ jobs:
           skip-prebuild: true
 
       - name: Prebuild Android Integration
-        run: yarn integration-test prebuild --clean --platform android
+        run: |
+          yarn integration-test prebuild --clean --platform android
+          .github/scripts/setup-gradle-properties.sh
 
       - name: Build Android integration test host app
         id: build
@@ -232,7 +236,9 @@ jobs:
         timeout-minutes: 5
         env:
           EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY: ${{ secrets.INTEGRATION_TESTS_PLAYER_LICENSE_KEY }}
-        run: yarn integration-test prebuild --clean --platform android
+        run: |
+          yarn integration-test prebuild --clean --platform android
+          .github/scripts/setup-gradle-properties.sh
 
       # Build only the ABI used by the runtime emulator below.
       - name: Build Android integration test host app once
@@ -330,7 +336,9 @@ jobs:
           skip-prebuild: true
 
       - name: Prebuild Android TV Example
-        run: yarn example prebuild:tv --clean --platform android
+        run: |
+          yarn example prebuild:tv --clean --platform android
+          .github/scripts/setup-gradle-properties.sh
 
       - name: Build Android TV example
         id: build
