@@ -1,3 +1,4 @@
+import { bindNativeMethods } from './native/bindNativeMethods';
 import { Platform } from 'react-native';
 import { Source, TimelineReferencePoint } from './source';
 import type { Player } from './player';
@@ -53,6 +54,7 @@ export class PlaylistApi extends NativePlaylist {
   /** @internal */
   constructor(private readonly owner: Player) {
     super(owner);
+    bindNativeMethods(this, NativePlaylist.prototype);
   }
 
   /**
@@ -75,13 +77,13 @@ export class PlaylistApi extends NativePlaylist {
   };
 
   /** Removes a source. The active source cannot be removed. */
-  remove: (source: Source) => Promise<void> = super.remove.bind(this);
+  declare remove: (source: Source) => Promise<void>;
 
   /** Removes the source at the given index. The active source cannot be removed. */
-  removeAt: (index: number) => Promise<void> = super.removeAt.bind(this);
+  declare removeAt: (index: number) => Promise<void>;
 
   /** Seeks to a time in a source that is already part of the playlist. */
-  seek: (source: Source, time: number) => Promise<void> = super.seek.bind(this);
+  declare seek: (source: Source, time: number) => Promise<void>;
 
   /** Seeks relative to a timeline reference point. @platform Android */
   seekTo = async (source: Source, target: SeekTarget): Promise<void> => {

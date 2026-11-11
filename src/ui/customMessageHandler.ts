@@ -1,3 +1,4 @@
+import { bindNativeMethods } from '../native/bindNativeMethods';
 import { NativeCustomMessage } from './customMessageHandlerModule';
 import { NativeConfigSerializer } from '../native/nativeConfigSerializer';
 
@@ -23,7 +24,6 @@ export interface CustomMessageHandlerProps {
  * @platform Android, iOS
  */
 export class CustomMessageHandler extends NativeCustomMessage {
-  destroy = super.destroy.bind(this);
   constructor(private readonly options: CustomMessageHandlerProps) {
     const serializer = new NativeConfigSerializer();
     const config = serializer.serialize({
@@ -33,6 +33,7 @@ export class CustomMessageHandler extends NativeCustomMessage {
         options.onReceivedAsynchronousMessage(message, data ?? undefined),
     });
     super(config, serializer.dispatcher.callback);
+    bindNativeMethods(this, NativeCustomMessage.prototype);
     serializer.dispatcher.retain(this);
   }
   /** Handles a synchronous message delivered by the Player UI. */
@@ -47,6 +48,5 @@ export class CustomMessageHandler extends NativeCustomMessage {
     this.options.onReceivedAsynchronousMessage(message, data);
   }
   /** Sends a message to the Player UI. Resolution acknowledges native submission. */
-  sendMessage: (message: string, data?: string) => Promise<void> =
-    super.sendMessage.bind(this);
+  declare sendMessage: (message: string, data?: string) => Promise<void>;
 }

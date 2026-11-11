@@ -10,6 +10,7 @@ import type { OfflineState } from './offlineState';
 import { NativeOffline, NativeOfflineEvents } from './offlineModule';
 import { legacyOfflineRegistry } from '../nativeInstanceRegistry';
 import { NativeConfigSerializer } from '../native/nativeConfigSerializer';
+import { bindNativeMethods } from '../native/bindNativeMethods';
 
 const handleBitmovinNativeOfflineEvent = (
   data: BitmovinNativeOfflineEventData,
@@ -63,7 +64,7 @@ export class OfflineContentManager extends NativeOffline {
     super(converted, events, serializer.dispatcher.callback);
     serializer.dispatcher.retain(this);
     this.nativeId = legacyOfflineRegistry.register(config.nativeId, this);
-    this.addListener = this.addListener.bind(this);
+    bindNativeMethods(this, NativeOffline.prototype);
     this.observeEvents(events);
   }
 
@@ -131,13 +132,13 @@ export class OfflineContentManager extends NativeOffline {
   /**
    * Gets the current state of the `OfflineContentManager`
    */
-  state: () => Promise<OfflineState> = super.state.bind(this);
+  declare state: () => Promise<OfflineState>;
 
   /**
    * Loads the current `OfflineContentOptions`.
    * When the options are loaded the data will be passed to the `OfflineContentManagerListener.onOptionsAvailable`.
    */
-  getOptions: () => Promise<void> = super.getOptions.bind(this);
+  declare getOptions: () => Promise<void>;
 
   /**
    * Enqueues downloads according to the `OfflineDownloadRequest`.
@@ -145,40 +146,39 @@ export class OfflineContentManager extends NativeOffline {
    * A resolved promise does not indicate that the download has finished.
    * Observe `OfflineContentManagerListener` for download completion and errors.
    */
-  download: (request: OfflineDownloadRequest) => Promise<void> =
-    super.download.bind(this);
+  declare download: (request: OfflineDownloadRequest) => Promise<void>;
 
   /**
    * Resumes all suspended actions.
    */
-  resume: () => Promise<void> = super.resume.bind(this);
+  declare resume: () => Promise<void>;
 
   /**
    * Suspends all active actions.
    */
-  suspend: () => Promise<void> = super.suspend.bind(this);
+  declare suspend: () => Promise<void>;
 
   /**
    * Cancels and deletes the active download.
    */
-  cancelDownload: () => Promise<void> = super.cancelDownload.bind(this);
+  declare cancelDownload: () => Promise<void>;
 
   /**
    * Resolves how many bytes of storage are used by the offline content.
    */
-  usedStorage: () => Promise<number> = super.usedStorage.bind(this);
+  declare usedStorage: () => Promise<number>;
 
   /**
    * Deletes everything related to the related content ID.
    */
-  deleteAll: () => Promise<void> = super.deleteAll.bind(this);
+  declare deleteAll: () => Promise<void>;
 
   /**
    * Downloads the offline license.
    * When finished successfully, data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    */
-  downloadLicense: () => Promise<void> = super.downloadLicense.bind(this);
+  declare downloadLicense: () => Promise<void>;
 
   /**
    * Releases the currently held offline license.
@@ -187,14 +187,12 @@ export class OfflineContentManager extends NativeOffline {
    *
    * @platform Android
    */
-  releaseLicense: () => Promise<void> = super.releaseLicense.bind(this);
+  declare releaseLicense: () => Promise<void>;
 
   /**
    * Renews the already downloaded DRM license.
    * When finished successfully data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    */
-  renewOfflineLicense: () => Promise<void> = super.renewOfflineLicense.bind(
-    this
-  );
+  declare renewOfflineLicense: () => Promise<void>;
 }
