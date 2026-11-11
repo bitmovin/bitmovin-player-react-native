@@ -140,6 +140,7 @@ export class Player extends NativeInstance<PlayerConfig> {
    *   another player, is destroyed too.
    * - Sources that left the player through {@link Player.unload} or a later load stay allocated until the player
    *   is destroyed.
+   * - {@link Source.on} listeners do not receive the final `sourceUnloaded` when the player is destroyed.
    */
   destroy = () => {
     if (!this.isDestroyed) {
