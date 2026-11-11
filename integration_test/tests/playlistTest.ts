@@ -235,7 +235,7 @@ export default (spec: TestScope) => {
           expect(isSecondActive, 'Second source is active').toBeTruthy();
           const sources = await player.playlist.getSources();
           expect(
-            sources.map((source) => source.config?.url),
+            sources.map((source) => source.config?.metadata?.label),
             'Sources of the playlist'
           ).toEqual([second.config?.metadata?.label]);
         });
@@ -511,7 +511,9 @@ export default (spec: TestScope) => {
           }, EventType.SourceAdded);
           await callPlayer(async (player) => {
             const sources = await player.playlist.getSources();
-            expect(sources.map((source) => source.config?.url)).toEqual([
+            expect(
+              sources.map((source) => source.config?.metadata?.label)
+            ).toEqual([
               first.config?.metadata?.label,
               second.config?.metadata?.label,
             ]);

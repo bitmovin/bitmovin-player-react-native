@@ -43,10 +43,8 @@ export class PlaylistApi {
    * unsupported type.
    */
   add = async (source: Source, index?: number): Promise<void> => {
-    const [native, nativeSource] = await Promise.all([
-      this.player.native,
-      source.native,
-    ]);
+    const nativeSource = await source.native;
+    const native = await this.player.native;
     await native.playlistAdd(nativeSource, index);
     this.player.retainSource(native, nativeSource);
   };
@@ -59,7 +57,8 @@ export class PlaylistApi {
    * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
    */
   remove = async (source: Source): Promise<void> => {
-    await (await this.player.native).playlistRemove(await source.native);
+    const nativeSource = await source.native;
+    await (await this.player.native).playlistRemove(nativeSource);
   };
 
   /**
@@ -82,6 +81,7 @@ export class PlaylistApi {
    * On iOS and tvOS, no `PlayerWarning` is emitted.
    */
   seek = async (source: Source, time: number): Promise<void> => {
-    await (await this.player.native).playlistSeek(await source.native, time);
+    const nativeSource = await source.native;
+    await (await this.player.native).playlistSeek(nativeSource, time);
   };
 }
