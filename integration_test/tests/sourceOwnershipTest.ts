@@ -156,6 +156,55 @@ export default (spec: TestScope) => {
       });
     });
 
+    spec.it(
+      'resolves a source removed and reloaded as a playlist concurrently',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const first = new Source(Sources.artOfMotionHls);
+          const second = new Source(Sources.sintel);
+          await callPlayerAndExpectEvent(
+            (player) => player.loadPlaylist({ sources: [first, second] }),
+            EventType.Ready
+          );
+          await callPlayerAndExpectEvent(async (player) => {
+            await Promise.all([
+              player.playlist.remove(second),
+              player.loadPlaylist({ sources: [second] }),
+            ]);
+          }, EventType.Ready);
+          await callPlayer(async (player) => {
+            const sources = await player.playlist.getSources();
+            expect(sources).toHaveLength(1);
+            expect(sources[0]).toBe(second);
+            expect(await player.getSource()).toBe(second);
+          });
+        });
+      }
+    );
+
+    spec.it(
+      'resolves a source removed by index and loaded concurrently',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const first = new Source(Sources.artOfMotionHls);
+          const second = new Source(Sources.sintel);
+          await callPlayerAndExpectEvent(
+            (player) => player.loadPlaylist({ sources: [first, second] }),
+            EventType.Ready
+          );
+          await callPlayerAndExpectEvent(async (player) => {
+            await Promise.all([
+              player.playlist.removeAt(1),
+              player.loadSource(second),
+            ]);
+          }, EventType.Ready);
+          await callPlayer(async (player) => {
+            expect(await player.getSource()).toBe(second);
+          });
+        });
+      }
+    );
+
     if (Platform.OS === 'android') {
       spec.it(
         'rejects malformed Source config with an invalid-argument error',
