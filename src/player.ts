@@ -21,22 +21,6 @@ import { PlaylistApi } from './playlist';
 import type { PlaylistConfig } from './playlist';
 import { bindNativeMethods } from './native/bindNativeMethods';
 
-interface PlayerState {
-  config: PlayerConfig;
-  nativeId: string;
-  initialized: boolean;
-  destroyed: boolean;
-  ready: Promise<void>;
-  source?: Source;
-  sources: Set<Source>;
-  offline?: OfflineContentManager;
-  buffer: BufferApi;
-  analytics?: AnalyticsApi;
-  mediaControls: MediaControlsApi;
-  playlist: PlaylistApi;
-}
-const playerStates = new WeakMap<NativePlayer, PlayerState>();
-
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
  * instance can be created via the {@link usePlayer} hook and will idle until one or more {@link Source}s are
@@ -47,8 +31,12 @@ const playerStates = new WeakMap<NativePlayer, PlayerState>();
  * @see PlayerView
  */
 export class Player extends NativePlayer {
-  // Fabric can freeze the public SharedObject when it is passed to a view.
-  constructor(config: PlayerConfig = {}) {
+  declare private readonly ready: Promise<void>;
+  private sources = new Set<Source>();
+  // Retains offline configuration callbacks while its SDK source is loaded.
+  declare private offline?: OfflineContentManager;
+
+  constructor(readonly config: PlayerConfig = {}) {
     const alias = legacyPlayerRegistry.get(config.nativeId);
     if (alias) return alias as Player;
     const callbacks = new NativeConfigSerializer();
@@ -62,25 +50,20 @@ export class Player extends NativePlayer {
       callbacks.dispatcher.callback
     );
     callbacks.dispatcher.retain(this);
-    const nativeId = legacyPlayerRegistry.register(config.nativeId, this);
-    const state: PlayerState = {
-      config,
-      nativeId,
-      initialized: false,
-      destroyed: false,
-      ready: Promise.resolve(),
-      sources: new Set(),
-      buffer: new BufferApi(this),
-      mediaControls: new MediaControlsApi(this),
-      playlist: new PlaylistApi(this),
-      analytics: config.analyticsConfig ? new AnalyticsApi(this) : undefined,
-    };
-    playerStates.set(this, state);
+    this.nativeId = legacyPlayerRegistry.register(config.nativeId, this);
+    this.buffer = new BufferApi(this);
+    this.mediaControls = new MediaControlsApi(this);
+    this.playlist = new PlaylistApi(this);
+    this.analytics = config.analyticsConfig
+      ? new AnalyticsApi(this)
+      : undefined;
     bindNativeMethods(this, NativePlayer.prototype);
-    state.ready = super.initialize().then(() => {
-      state.initialized = true;
+    this.ready = super.initialize().then(() => {
+      this.isInitialized = true;
     });
-    void state.ready.catch(() => legacyPlayerRegistry.remove(nativeId, this));
+    void this.ready.catch(() =>
+      legacyPlayerRegistry.remove(this.nativeId, this)
+    );
     if (
       config.advertisingConfig?.ima?.beforeInitialization &&
       !PlayerModule.isGoogleImaEnabled
@@ -91,77 +74,53 @@ export class Player extends NativePlayer {
   }
 
   /** User-defined compatibility ID, or a generated UUIDv4. */
-  get nativeId(): string {
-    return playerStates.get(this)!.nativeId;
-  }
+  declare readonly nativeId: string;
 
   /** Whether the constructor's native creation attempt has completed successfully. */
-  get isInitialized(): boolean {
-    return playerStates.get(this)!.initialized;
-  }
+  isInitialized = false;
 
   /**
    * Whether `destroy()` has been called on this wrapper.
    */
-  get isDestroyed(): boolean {
-    return playerStates.get(this)!.destroyed;
-  }
+  isDestroyed = false;
   /**
    * Most recent source passed to {@link loadSource}.
    * @deprecated Use {@link getSource} to query the active native source after playlist transitions.
    */
-  get source(): Source | undefined {
-    return playerStates.get(this)!.source;
-  }
-  set source(source: Source | undefined) {
-    playerStates.get(this)!.source = source;
-  }
+  source?: Source;
   /** Provides access to the native playlist. */
-  get playlist(): PlaylistApi {
-    return playerStates.get(this)!.playlist;
-  }
+  declare readonly playlist: PlaylistApi;
   /**
    * The `AnalyticsApi` for interactions regarding the `Player`'s analytics.
    *
    * `undefined` if the player was created without analytics support.
    */
-  get analytics(): AnalyticsApi | undefined {
-    return playerStates.get(this)!.analytics;
-  }
+  readonly analytics?: AnalyticsApi;
   /**
    * The {@link BufferApi} for interactions regarding the buffer.
    */
-  get buffer(): BufferApi {
-    return playerStates.get(this)!.buffer;
-  }
+  declare readonly buffer: BufferApi;
   /**
    * The {@link MediaControlsApi} for interactions regarding the Player's media controls integration.
    *
    * @platform iOS, tvOS
    */
-  get mediaControls(): MediaControlsApi {
-    return playerStates.get(this)!.mediaControls;
-  }
+  declare readonly mediaControls: MediaControlsApi;
 
   /**
    * Waits for the native `Player` creation started by the constructor.
    */
-  initialize = (): Promise<void> => playerStates.get(this)!.ready;
-
-  get config(): PlayerConfig {
-    return playerStates.get(this)!.config;
-  }
+  initialize = (): Promise<void> => this.ready;
 
   /**
    * Destroys the native `Player` and releases all of its allocated resources.
    */
   destroy = async (): Promise<void> => {
-    const state = playerStates.get(this)!;
-    state.destroyed = true;
-    legacyPlayerRegistry.remove(state.nativeId, this);
+    this.isDestroyed = true;
+    legacyPlayerRegistry.remove(this.nativeId, this);
     await super.destroy();
-    state.sources.clear();
-    state.offline = undefined;
+    this.sources.clear();
+    this.offline = undefined;
   };
 
   /**
@@ -179,9 +138,8 @@ export class Player extends NativePlayer {
     options?: OfflineSourceOptions
   ): Promise<void> => {
     if ((await super.loadOfflineContent(manager, options)) !== false) {
-      const state = playerStates.get(this)!;
-      state.sources = new Set();
-      state.offline = manager;
+      this.sources = new Set();
+      this.offline = manager;
     }
   };
 
@@ -191,9 +149,8 @@ export class Player extends NativePlayer {
   loadSource = async (source: Source): Promise<void> => {
     this.source = source;
     await super.loadSource(source);
-    const state = playerStates.get(this)!;
-    state.sources = new Set([source]);
-    state.offline = undefined;
+    this.sources = new Set([source]);
+    this.offline = undefined;
   };
 
   /**
@@ -201,7 +158,7 @@ export class Player extends NativePlayer {
    * Reuses the original Source while it is reachable; adopts SDK-created sources on first query.
    */
   getSource = async (): Promise<Source | undefined> => {
-    const source = await super.getSource([...playerStates.get(this)!.sources]);
+    const source = await super.getSource([...this.sources]);
     if (!source) return undefined;
     const owner = Source.fromNative(source);
     this.retainSource(owner);
@@ -214,9 +171,8 @@ export class Player extends NativePlayer {
    */
   loadPlaylist = async (config: PlaylistConfig): Promise<void> => {
     await super.loadPlaylist(config);
-    const state = playerStates.get(this)!;
-    state.sources = new Set(config.sources);
-    state.offline = undefined;
+    this.sources = new Set(config.sources);
+    this.offline = undefined;
   };
 
   /**
@@ -242,12 +198,12 @@ export class Player extends NativePlayer {
 
   /** @internal Keeps callback peers available while this SDK playback session owns their sources. */
   retainSource = (source: Source): void => {
-    playerStates.get(this)!.sources.add(source);
+    this.sources.add(source);
   };
 
   /** @internal Queries owned source handles without a source-ID registry. */
   get knownSources(): Source[] {
-    return [...playerStates.get(this)!.sources];
+    return [...this.sources];
   }
 
   /**
@@ -255,9 +211,8 @@ export class Player extends NativePlayer {
    */
   unload = async (): Promise<void> => {
     await super.unload();
-    const state = playerStates.get(this)!;
-    state.sources.clear();
-    state.offline = undefined;
+    this.sources.clear();
+    this.offline = undefined;
   };
 
   /**

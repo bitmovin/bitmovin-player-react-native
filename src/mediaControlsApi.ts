@@ -1,7 +1,6 @@
 import { bindNativeMethods } from './native/bindNativeMethods';
 import { NativeMediaControls } from './modules/playerModule';
 import type { Player } from './player';
-import { retainPlayerApi } from './native/playerApiOwner';
 import { Platform } from 'react-native';
 
 /**
@@ -12,10 +11,13 @@ import { Platform } from 'react-native';
  * @platform iOS, tvOS
  */
 export class MediaControlsApi extends NativeMediaControls {
+  // Retains configured JS callbacks while this native API handle is retained.
+  declare private readonly owner: Player;
+
   /** @internal */
-  constructor(player: Player) {
-    super(player);
-    retainPlayerApi(this, player);
+  constructor(owner: Player) {
+    super(owner);
+    this.owner = owner;
     bindNativeMethods(this, NativeMediaControls.prototype);
   }
 

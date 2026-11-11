@@ -147,21 +147,12 @@ export interface SourceConfig {
   cmcdConfig?: CmcdConfig;
 }
 
-interface SourceState {
-  config?: SourceConfig;
-  drm: SourceDrmApi;
-  initialized: boolean;
-  ready: Promise<void>;
-}
-const sourceStates = new WeakMap<NativeSource, SourceState>();
-
 /**
  * Represents audio and video content that can be loaded into a player.
  */
 export class Source extends NativeSource {
-  get config(): SourceConfig | undefined {
-    return sourceStates.get(this)?.config ?? this.configSnapshot;
-  }
+  readonly config?: SourceConfig;
+  declare private readonly ready: Promise<void>;
 
   constructor(config: SourceConfig);
   /** @internal Adopt an existing native source peer. */
@@ -175,18 +166,13 @@ export class Source extends NativeSource {
       callbacks.dispatcher.callback
     );
     callbacks.dispatcher.retain(this);
-    const state: SourceState = {
-      config,
-      drm: new SourceDrmApi(this),
-      initialized: false,
-      ready: Promise.resolve(),
-    };
-    sourceStates.set(this, state);
+    this.config = config;
+    this.drm = new SourceDrmApi(this);
     bindNativeMethods(this, Source.prototype);
-    state.ready = super.initialize().then(() => {
-      state.initialized = true;
+    this.ready = super.initialize().then(() => {
+      this.isInitialized = true;
     });
-    void state.ready.catch(() => {});
+    void this.ready.catch(() => {});
   }
 
   /**
@@ -196,13 +182,16 @@ export class Source extends NativeSource {
    */
   static fromNative(native: NativeSource): Source {
     return adoptNative(native, Source.prototype, (owner) => {
-      if (!sourceStates.has(owner))
-        sourceStates.set(owner, {
+      if (!Object.hasOwn(owner, 'ready')) {
+        // This native peer skipped the JS constructor; install the same instance fields once.
+        Object.assign(owner, {
+          config: owner.configSnapshot,
           drm: new SourceDrmApi(owner),
-          initialized: true,
+          isInitialized: true,
           ready: Promise.resolve(),
         });
-      bindNativeMethods(owner, Source.prototype);
+        bindNativeMethods(owner, Source.prototype);
+      }
     });
   }
 
@@ -211,22 +200,18 @@ export class Source extends NativeSource {
    * Use `drm.fairplay` to access {@link FairplayDrmApi} for FairPlay-specific APIs such as {@link FairplayDrmApi.renewExpiringLicense}.
    * Available for every source. Read {@link SourceConfig.drmConfig} to inspect DRM configuration.
    */
-  get drm(): SourceDrmApi {
-    return sourceStates.get(this)!.drm;
-  }
+  declare readonly drm: SourceDrmApi;
 
   /**
    * Whether the native {@link Source} object has been created.
    */
-  get isInitialized(): boolean {
-    return sourceStates.get(this)!.initialized;
-  }
+  isInitialized = false;
 
   /**
    * Waits for the native {@link Source} creation started by the constructor.
    */
   initialize(): Promise<void> {
-    return sourceStates.get(this)!.ready;
+    return this.ready;
   }
 
   /**

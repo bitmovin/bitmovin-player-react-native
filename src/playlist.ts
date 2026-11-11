@@ -3,7 +3,6 @@ import { Platform } from 'react-native';
 import { Source, TimelineReferencePoint } from './source';
 import type { Player } from './player';
 import { NativePlaylist } from './modules/playerModule';
-import { retainPlayerApi, playerForApi } from './native/playerApiOwner';
 
 /** Where playback starts when replaying a finished playlist. */
 export enum ReplayMode {
@@ -43,9 +42,8 @@ export interface SeekTarget {
  */
 export class PlaylistApi extends NativePlaylist {
   /** @internal */
-  constructor(player: Player) {
-    super(player);
-    retainPlayerApi(this, player);
+  constructor(private readonly owner: Player) {
+    super(owner);
     bindNativeMethods(this, NativePlaylist.prototype);
   }
 
@@ -54,7 +52,7 @@ export class PlaylistApi extends NativePlaylist {
    * Reuses the original Source objects while they remain reachable.
    */
   getSources = async (): Promise<Source[]> => {
-    const owner = playerForApi(this);
+    const owner = this.owner;
     const sources = (await super.getSources(owner.knownSources)).map(
       Source.fromNative
     );
@@ -65,7 +63,7 @@ export class PlaylistApi extends NativePlaylist {
   /** Adds a source at the given index, or appends it when omitted. */
   add = async (source: Source, index?: number): Promise<void> => {
     await super.add(source, index);
-    playerForApi(this).retainSource(source);
+    this.owner.retainSource(source);
   };
 
   /** Removes a source. The active source cannot be removed. */

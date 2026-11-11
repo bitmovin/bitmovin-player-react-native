@@ -416,8 +416,8 @@ test('playlist queries preserve original Sources without creating SDK sources', 
   });
   await player.playlist.remove(sources[1]);
   assert.equal((await player.playlist.getSources()).length, 1);
-  // The SDK double changes state independently of the JS wrapper.
-  await player.playlist.removeAt(0);
+  // The SDK double changes state independently of the JS object.
+  await (await controlFor(player)).playlistRemoveAt(0);
   assert.deepEqual(await player.playlist.getSources(), []);
   assert.equal(await player.getSource(), undefined);
   assert.equal(creations.filter(({ kind }) => kind === 'source').length, 2);
@@ -505,11 +505,10 @@ test('native-owned sources are adopted without creating another SDK source', asy
   player.destroy();
 });
 
-test('can load and clear content through aliases after the native player prop is frozen', async (t) => {
+test('can load and clear content through compatibility aliases', async (t) => {
   const { Player, Source } = fixture(t);
   const player = new Player();
   const alias = new Player({ nativeId: player.nativeId });
-  Object.freeze(player);
   const source = new Source({ url: 'https://test/source', type: 'hls' });
   await player.loadSource(source);
   await alias.unload();

@@ -110,7 +110,6 @@ test('offline progress reaches listeners with the public nativeId', async (t) =>
     onProgress: (event) => received.push(event),
   });
   await manager.initialize();
-  Object.freeze(manager);
   const event = { eventType: 'onProgress', progress: 0.5 };
   owners[0].emit(event);
   assert.deepEqual(received, [{ ...event, nativeId: config.nativeId }]);

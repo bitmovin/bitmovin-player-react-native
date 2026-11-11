@@ -1,7 +1,6 @@
 import { bindNativeMethods } from './native/bindNativeMethods';
 import { NativeBuffer } from './modules/playerModule';
 import type { Player } from './player';
-import { retainPlayerApi } from './native/playerApiOwner';
 
 /**
  * Represents different types of media.
@@ -72,10 +71,13 @@ export interface BufferLevels {
  * Accessible through {@link Player.buffer}.
  */
 export class BufferApi extends NativeBuffer {
+  // Retains configured JS callbacks while this native API handle is retained.
+  declare private readonly owner: Player;
+
   /** @internal */
-  constructor(player: Player) {
-    super(player);
-    retainPlayerApi(this, player);
+  constructor(owner: Player) {
+    super(owner);
+    this.owner = owner;
     bindNativeMethods(this, NativeBuffer.prototype);
   }
 

@@ -12,17 +12,6 @@ import { legacyOfflineRegistry } from '../nativeInstanceRegistry';
 import { NativeConfigSerializer } from '../native/nativeConfigSerializer';
 import { bindNativeMethods } from '../native/bindNativeMethods';
 
-interface OfflineManagerState {
-  config: OfflineContentConfig;
-  nativeId: string;
-  initialized: boolean;
-  destroyed: boolean;
-  ready: Promise<void>;
-  listeners: Set<OfflineContentManagerListener>;
-  subscription?: EventSubscription;
-}
-const offlineStates = new WeakMap<NativeOffline, OfflineManagerState>();
-
 const handleBitmovinNativeOfflineEvent = (
   data: BitmovinNativeOfflineEventData,
   listeners: Set<OfflineContentManagerListener>
@@ -60,7 +49,11 @@ const handleBitmovinNativeOfflineEvent = (
  * @platform Android, iOS
  */
 export class OfflineContentManager extends NativeOffline {
-  constructor(config: OfflineContentConfig) {
+  declare private readonly ready: Promise<void>;
+  private readonly listeners = new Set<OfflineContentManagerListener>();
+  private subscription?: EventSubscription;
+
+  constructor(readonly config: OfflineContentConfig) {
     const alias = legacyOfflineRegistry.get(config.nativeId);
     if (alias) return alias as OfflineContentManager;
     const serializer = new NativeConfigSerializer();
@@ -71,53 +64,34 @@ export class OfflineContentManager extends NativeOffline {
     const events = new NativeOfflineEvents();
     super(converted, events, serializer.dispatcher.callback);
     serializer.dispatcher.retain(this);
-    const nativeId = legacyOfflineRegistry.register(config.nativeId, this);
-    const state: OfflineManagerState = {
-      config,
-      nativeId,
-      initialized: false,
-      destroyed: false,
-      ready: Promise.resolve(),
-      listeners: new Set(),
-    };
-    offlineStates.set(this, state);
+    this.nativeId = legacyOfflineRegistry.register(config.nativeId, this);
     bindNativeMethods(this, NativeOffline.prototype);
     this.observeEvents(events);
-    state.ready = super.initialize().then(() => {
-      state.initialized = true;
+    this.ready = super.initialize().then(() => {
+      this.isInitialized = true;
     });
-    void state.ready.catch(() => {
-      state.subscription?.remove();
-      state.subscription = undefined;
-      legacyOfflineRegistry.remove(nativeId, this);
+    void this.ready.catch(() => {
+      this.subscription?.remove();
+      this.subscription = undefined;
+      legacyOfflineRegistry.remove(this.nativeId, this);
     });
   }
 
   /** User-defined compatibility ID, or a generated UUIDv4. */
-  get nativeId(): string {
-    return offlineStates.get(this)!.nativeId;
-  }
-  get config(): OfflineContentConfig {
-    return offlineStates.get(this)!.config;
-  }
+  declare readonly nativeId: string;
 
   /** Whether the constructor's native creation attempt has completed successfully. */
-  get isInitialized(): boolean {
-    return offlineStates.get(this)!.initialized;
-  }
+  isInitialized = false;
 
   /** Whether `destroy()` has been called on this wrapper. */
-  get isDestroyed(): boolean {
-    return offlineStates.get(this)!.destroyed;
-  }
+  isDestroyed = false;
 
   /** Waits for the native manager creation started by the constructor. */
-  initialize = (): Promise<void> => offlineStates.get(this)!.ready;
+  initialize = (): Promise<void> => this.ready;
 
   private observeEvents(events: NativeOfflineEvents) {
-    const state = offlineStates.get(this)!;
-    if (!state.subscription)
-      state.subscription = events.addListener(
+    if (!this.subscription)
+      this.subscription = events.addListener(
         'onBitmovinOfflineEvent',
         OfflineContentManager.weakEventListener(new WeakRef(this))
       );
@@ -128,13 +102,12 @@ export class OfflineContentManager extends NativeOffline {
     return (event: Omit<BitmovinNativeOfflineEventData, 'nativeId'>) => {
       const manager = reference.deref();
       if (!manager) return;
-      const state = offlineStates.get(manager)!;
       handleBitmovinNativeOfflineEvent(
         {
           ...event,
-          nativeId: state.nativeId,
+          nativeId: manager.nativeId,
         } as BitmovinNativeOfflineEventData,
-        state.listeners
+        manager.listeners
       );
     };
   }
@@ -152,7 +125,7 @@ export class OfflineContentManager extends NativeOffline {
   ): (() => void) | EventSubscription {
     if (typeof listenerOrEvent === 'string')
       return super.addListener(listenerOrEvent as never, listener as never);
-    const listeners = offlineStates.get(this)!.listeners;
+    const listeners = this.listeners;
     listeners.add(listenerOrEvent);
     return () => {
       listeners.delete(listenerOrEvent);
@@ -163,12 +136,11 @@ export class OfflineContentManager extends NativeOffline {
    * Destroys the native `OfflineManager` and releases all of its allocated resources.
    */
   destroy = async (): Promise<void> => {
-    const state = offlineStates.get(this)!;
-    state.destroyed = true;
-    state.subscription?.remove();
-    state.subscription = undefined;
-    state.listeners.clear();
-    legacyOfflineRegistry.remove(state.nativeId, this);
+    this.isDestroyed = true;
+    this.subscription?.remove();
+    this.subscription = undefined;
+    this.listeners.clear();
+    legacyOfflineRegistry.remove(this.nativeId, this);
     await super.destroy();
   };
 

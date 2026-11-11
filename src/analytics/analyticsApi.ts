@@ -1,7 +1,6 @@
 import { bindNativeMethods } from '../native/bindNativeMethods';
 import { NativeAnalytics } from '../modules/playerModule';
 import type { Player } from '../player';
-import { retainPlayerApi } from '../native/playerApiOwner';
 import type { CustomDataConfig } from './config';
 
 /**
@@ -9,10 +8,13 @@ import type { CustomDataConfig } from './config';
  * Use the `Player.analytics` property to access a `Player`'s `AnalyticsApi`.
  */
 export class AnalyticsApi extends NativeAnalytics {
+  // Retains configured JS callbacks while this native API handle is retained.
+  declare private readonly owner: Player;
+
   /** @internal */
-  constructor(player: Player) {
-    super(player);
-    retainPlayerApi(this, player);
+  constructor(owner: Player) {
+    super(owner);
+    this.owner = owner;
     bindNativeMethods(this, NativeAnalytics.prototype);
   }
 

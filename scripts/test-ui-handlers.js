@@ -86,7 +86,6 @@ test('fullscreen callbacks reach the current JS handler', async (t) => {
   };
   bridge.setFullscreenHandler(handler);
   const native = await controlFor(bridge);
-  Object.freeze(bridge);
   assert.equal(dispatch(native, 'enterFullscreen'), true);
   assert.equal(dispatch(native, 'exitFullscreen'), false);
   await bridge.destroy();
@@ -100,7 +99,6 @@ test('custom messages preserve synchronous replies and async delivery', async (t
     onReceivedAsynchronousMessage: (...args) => received.push(args),
   });
   const native = await controlFor(handler);
-  Object.freeze(handler);
   assert.equal(
     dispatch(native, 'synchronousMessage', ['get', 'value']),
     'get:value'

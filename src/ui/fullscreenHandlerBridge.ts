@@ -2,28 +2,23 @@ import { bindNativeMethods } from '../native/bindNativeMethods';
 import type { FullscreenHandler } from './fullscreenHandler';
 import { NativeFullscreen } from './fullscreenHandlerModule';
 import { NativeCallbacks } from '../native/nativeCallbacks';
-const states = new WeakMap<
-  FullscreenHandlerBridge,
-  { handler?: FullscreenHandler }
->();
 /** Adapts a user-supplied fullscreen interface to the native handler object. @internal */
 export class FullscreenHandlerBridge extends NativeFullscreen {
+  private handler?: FullscreenHandler;
+
   constructor() {
-    const state: { handler?: FullscreenHandler } = {};
     const callbacks = new NativeCallbacks((operation) => {
-      if (operation === 'enterFullscreen') state.handler?.enterFullscreen();
-      if (operation === 'exitFullscreen') state.handler?.exitFullscreen();
-      return state.handler?.isFullscreenActive ?? false;
+      if (operation === 'enterFullscreen') this.handler?.enterFullscreen();
+      if (operation === 'exitFullscreen') this.handler?.exitFullscreen();
+      return this.handler?.isFullscreenActive ?? false;
     });
     super(callbacks.callback);
     bindNativeMethods(this, NativeFullscreen.prototype);
     callbacks.retain(this);
-    states.set(this, state);
   }
   setFullscreenHandler(handler: FullscreenHandler | undefined): void {
-    const state = states.get(this)!;
-    if (state.handler === handler) return;
-    state.handler = handler;
+    if (this.handler === handler) return;
+    this.handler = handler;
     void super.setIsFullscreenActive(handler?.isFullscreenActive ?? false);
   }
 }
