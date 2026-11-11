@@ -2,7 +2,7 @@ import ExpoModulesCore
 import ExpoModulesJSI
 import Foundation
 
-/// Owns the JS dispatcher and one cancellation condition, never a table of callback requests.
+/// Owns the JS dispatcher and cancels its in-flight completions on close.
 nonisolated internal final class CallbackScope: LongLivedObject {
     private let timeout: TimeInterval = 0.25
     let condition = NSCondition()

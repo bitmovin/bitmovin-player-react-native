@@ -22,7 +22,7 @@ internal fun JavaScriptValue.toCallbackValue(): Any? = when {
     else -> null
 }
 
-/** Owns callback lifetime and wakes synchronous SDK calls when their owner is destroyed. */
+/** Owns callback lifetime, wakes blocked SDK calls and cancels in-flight completions on close. */
 class CallbackScope(private val context: AppContext, callback: JavaScriptFunction<JavaScriptValue>?) {
     private val timeoutMs = 250L
     private val lock = ReentrantLock()
@@ -51,20 +51,25 @@ class CallbackScope(private val context: AppContext, callback: JavaScriptFunctio
         fallbackArgument: Int? = null,
         completion: ((Any?) -> Unit)? = null,
     ) {
-        context.runtime.schedule {
-            val function = lock.withLock { callback }
-            try {
-                if (function?.isValid() == true) {
-                    val value = function(operation, args, result, mutating, fallbackArgument, appContext = context)
-                    completion?.invoke(value.toCallbackValue())
-                } else {
+        try {
+            context.runtime.schedule {
+                val function = lock.withLock { callback }
+                try {
+                    if (function?.isValid() == true) {
+                        val value = function(operation, args, result, mutating, fallbackArgument, appContext = context)
+                        completion?.invoke(value.toCallbackValue())
+                    } else {
+                        result?.resolve(null)
+                        completion?.invoke(null)
+                    }
+                } catch (_: Throwable) {
                     result?.resolve(null)
                     completion?.invoke(null)
                 }
-            } catch (_: Throwable) {
-                result?.resolve(null)
-                completion?.invoke(null)
             }
+        } catch (_: Throwable) {
+            result?.resolve(null)
+            completion?.invoke(null)
         }
     }
 
