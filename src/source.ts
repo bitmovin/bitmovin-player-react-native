@@ -211,8 +211,17 @@ export class Source extends NativeInstance<SourceConfig> {
     }
     const sourceMetadata = this.config?.analyticsSourceMetadata;
     if (this.config?.drmConfig) {
-      this.drm = new Drm(this.config.drmConfig, this.nativeId);
-      await this.drm.initialize();
+      const drm = new Drm(this.config.drmConfig, this.nativeId);
+      // Set before initializing, so that a destroy during the initialization releases it.
+      this.drm = drm;
+      try {
+        await drm.initialize();
+      } catch (error) {
+        // Release its subscriptions, so that a later initialization starts over.
+        void drm.destroy();
+        this.drm = undefined;
+        throw error;
+      }
     }
     // Native runs creations and destroys in call order, so a destroy made after this check runs after the creation.
     if (this.isDestroyed) {

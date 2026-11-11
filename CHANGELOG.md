@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- A source whose DRM initialization failed keeping the failed DRM config and its event subscriptions until the source was destroyed
+
 ## [1.31.0] - 2026-11-12
 
 ### Added
