@@ -10,6 +10,7 @@ import type { OfflineState } from './offlineState';
 import { NativeOffline, NativeOfflineEvents } from './offlineModule';
 import { legacyOfflineRegistry } from '../nativeInstanceRegistry';
 import { NativeConfigSerializer } from '../native/nativeConfigSerializer';
+import { bindNativeMethods } from '../native/bindNativeMethods';
 
 interface OfflineManagerState {
   config: OfflineContentConfig;
@@ -80,6 +81,7 @@ export class OfflineContentManager extends NativeOffline {
       listeners: new Set(),
     };
     offlineStates.set(this, state);
+    bindNativeMethods(this, NativeOffline.prototype);
     this.observeEvents(events);
     state.ready = super.initialize().then(() => {
       state.initialized = true;

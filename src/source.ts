@@ -9,6 +9,7 @@ import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
 import { NativeSource } from './modules/sourceModule';
 import { adoptNative } from './native/adoptNative';
+import { bindNativeMethods } from './native/bindNativeMethods';
 import { NativeConfigSerializer } from './native/nativeConfigSerializer';
 
 /**
@@ -181,13 +182,18 @@ export class Source extends NativeSource {
       ready: Promise.resolve(),
     };
     sourceStates.set(this, state);
+    bindNativeMethods(this, Source.prototype);
     state.ready = super.initialize().then(() => {
       state.initialized = true;
     });
     void state.ready.catch(() => {});
   }
 
-  /** @internal Reuses the original wrapper while it is still reachable. */
+  /**
+   * SDK offline loading creates content without calling the JS constructor.
+   * Promote that existing peer; ordinary source queries return the original instance.
+   * @internal
+   */
   static fromNative(native: NativeSource): Source {
     return adoptNative(native, Source.prototype, (owner) => {
       if (!sourceStates.has(owner))
@@ -196,6 +202,7 @@ export class Source extends NativeSource {
           initialized: true,
           ready: Promise.resolve(),
         });
+      bindNativeMethods(owner, Source.prototype);
     });
   }
 
@@ -218,7 +225,9 @@ export class Source extends NativeSource {
   /**
    * Waits for the native {@link Source} creation started by the constructor.
    */
-  initialize = (): Promise<void> => sourceStates.get(this)!.ready;
+  initialize(): Promise<void> {
+    return sourceStates.get(this)!.ready;
+  }
 
   /**
    * Subscribes to native events, even without a PlayerView. For example,
@@ -227,13 +236,19 @@ export class Source extends NativeSource {
    * Await registration before triggering events. Call `remove()` on the resolved
    * subscription to stop listening.
    */
-  on = async <Name extends keyof SourceEvents>(
+  async on<Name extends keyof SourceEvents>(
     event: Name,
     listener: SourceEvents[Name]
-  ): Promise<EventSubscription> => {
-    await this.initialize();
-    return subscribeToNativeEvent(this, event, listener);
-  };
+  ): Promise<EventSubscription> {
+    const subscription = subscribeToNativeEvent(this, event, listener);
+    try {
+      await this.initialize();
+      return await subscription;
+    } catch (error) {
+      (await subscription).remove();
+      throw error;
+    }
+  }
 
   /**
    * The duration of the source in seconds if it’s a VoD or `INFINITY` if it’s a live stream.

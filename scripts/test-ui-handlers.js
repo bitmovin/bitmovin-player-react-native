@@ -1,3 +1,7 @@
+const {
+  installNativeClasses,
+  controlFor,
+} = require('./helpers/native-class-doubles');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -16,8 +20,8 @@ function fixture(t) {
   });
   const source = path.resolve(__dirname, '../src');
   const program = ts.createProgram(
-    ['fullscreenHandlerBridge.ts', 'customMessageHandlerBridge.ts'].map(
-      (file) => path.join(source, 'ui', file)
+    ['fullscreenHandlerBridge.ts', 'customMessageHandler.ts'].map((file) =>
+      path.join(source, 'ui', file)
     ),
     {
       rootDir: source,
@@ -33,7 +37,7 @@ function fixture(t) {
   fs.mkdirSync(expo, { recursive: true });
   fs.writeFileSync(path.join(expo, 'index.js'), 'module.exports = {};');
   const callbacks = new WeakMap();
-  require(expo).requireNativeModule = () => ({
+  const transport = {
     create(config, callback) {
       if (callback == null) {
         callback = config;
@@ -47,14 +51,20 @@ function fixture(t) {
       callbacks.set(native, { config, callback });
       return native;
     },
-  });
+  };
+  const modules = {
+    NativeCallbacksModule: {},
+    FullscreenHandlerModule: transport,
+    CustomMessageHandlerModule: transport,
+  };
+  installNativeClasses(modules);
+  require(expo).requireNativeModule = (name) => modules[name];
   return {
     FullscreenHandlerBridge: require(
       path.join(output, 'ui/fullscreenHandlerBridge')
     ).FullscreenHandlerBridge,
-    CustomMessageHandlerBridge: require(
-      path.join(output, 'ui/customMessageHandlerBridge')
-    ).CustomMessageHandlerBridge,
+    CustomMessageHandler: require(path.join(output, 'ui/customMessageHandler'))
+      .CustomMessageHandler,
     dispatch: (native, operation, args = []) =>
       callbacks
         .get(native)
@@ -62,7 +72,7 @@ function fixture(t) {
   };
 }
 
-test('fullscreen callbacks reach the current JS handler', (t) => {
+test('fullscreen callbacks reach the current JS handler', async (t) => {
   const { FullscreenHandlerBridge, dispatch } = fixture(t);
   const bridge = new FullscreenHandlerBridge();
   const handler = {
@@ -75,24 +85,27 @@ test('fullscreen callbacks reach the current JS handler', (t) => {
     },
   };
   bridge.setFullscreenHandler(handler);
-  assert.equal(dispatch(bridge.native, 'enterFullscreen'), true);
-  assert.equal(dispatch(bridge.native, 'exitFullscreen'), false);
-  bridge.destroy();
+  const native = await controlFor(bridge);
+  Object.freeze(bridge);
+  assert.equal(dispatch(native, 'enterFullscreen'), true);
+  assert.equal(dispatch(native, 'exitFullscreen'), false);
+  await bridge.destroy();
 });
 
-test('custom messages preserve synchronous replies and async delivery', (t) => {
-  const { CustomMessageHandlerBridge, dispatch } = fixture(t);
-  const bridge = new CustomMessageHandlerBridge();
+test('custom messages preserve synchronous replies and async delivery', async (t) => {
+  const { CustomMessageHandler, dispatch } = fixture(t);
   const received = [];
-  bridge.setCustomMessageHandler({
-    receivedSynchronousMessage: (message, data) => `${message}:${data}`,
-    receivedAsynchronousMessage: (...args) => received.push(args),
+  const handler = new CustomMessageHandler({
+    onReceivedSynchronousMessage: (message, data) => `${message}:${data}`,
+    onReceivedAsynchronousMessage: (...args) => received.push(args),
   });
+  const native = await controlFor(handler);
+  Object.freeze(handler);
   assert.equal(
-    dispatch(bridge.native, 'synchronousMessage', ['get', 'value']),
+    dispatch(native, 'synchronousMessage', ['get', 'value']),
     'get:value'
   );
-  dispatch(bridge.native, 'asynchronousMessage', ['notify', 'value']);
+  dispatch(native, 'asynchronousMessage', ['notify', 'value']);
   assert.deepEqual(received, [['notify', 'value']]);
-  bridge.destroy();
+  await handler.destroy();
 });

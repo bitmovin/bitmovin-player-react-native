@@ -19,6 +19,7 @@ import type { VideoQuality } from './media';
 import { NativeConfigSerializer } from './native/nativeConfigSerializer';
 import { PlaylistApi } from './playlist';
 import type { PlaylistConfig } from './playlist';
+import { bindNativeMethods } from './native/bindNativeMethods';
 
 interface PlayerState {
   config: PlayerConfig;
@@ -75,6 +76,7 @@ export class Player extends NativePlayer {
       analytics: config.analyticsConfig ? new AnalyticsApi(this) : undefined,
     };
     playerStates.set(this, state);
+    bindNativeMethods(this, NativePlayer.prototype);
     state.ready = super.initialize().then(() => {
       state.initialized = true;
     });
@@ -228,8 +230,14 @@ export class Player extends NativePlayer {
     event: Name,
     listener: PlayerEvents[Name]
   ): Promise<EventSubscription> => {
-    await this.initialize();
-    return subscribeToNativeEvent(this, event, listener);
+    const subscription = subscribeToNativeEvent(this, event, listener);
+    try {
+      await this.initialize();
+      return await subscription;
+    } catch (error) {
+      (await subscription).remove();
+      throw error;
+    }
   };
 
   /** @internal Keeps callback peers available while this SDK playback session owns their sources. */

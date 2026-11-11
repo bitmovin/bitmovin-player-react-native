@@ -1,3 +1,4 @@
+import { bindNativeMethods } from '../native/bindNativeMethods';
 import { NativeCustomMessage } from './customMessageHandlerModule';
 import { NativeConfigSerializer } from '../native/nativeConfigSerializer';
 
@@ -33,6 +34,7 @@ export class CustomMessageHandler extends NativeCustomMessage {
         options.onReceivedAsynchronousMessage(message, data ?? undefined),
     });
     super(config, serializer.dispatcher.callback);
+    bindNativeMethods(this, NativeCustomMessage.prototype);
     serializer.dispatcher.retain(this);
     handlers.set(this, options);
   }

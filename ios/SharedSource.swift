@@ -13,11 +13,13 @@ public final class SharedSource: SharedObject {
     private var isObserving = false
 
     init(source: Source, callback: CallbackScope?) {
-        initialization = SharedObjectInitialization { source }
+        initialization = SharedObjectInitialization(value: source)
         self.callback = callback
         configSnapshot = Self.snapshot(source.sourceConfig)
         super.init()
         events.owner = self
+        source.add(listener: events)
+        isObserving = true
     }
 
     init(config: [String: Any]?, analytics: [String: Any]?, callback: CallbackScope?) {
@@ -56,7 +58,7 @@ public final class SharedSource: SharedObject {
         case .progressive: type = "progressive"
         default: return nil
         }
-        guard let url = config.url else { return nil }
+        let url = config.url
         return ["url": url.absoluteString, "type": type, "title": config.title,
                 "description": config.sourceDescription, "metadata": config.metadata]
     }

@@ -17,7 +17,8 @@ class SharedSource private constructor(
     private val callbacks: CallbackScope? = null,
 ) : SharedObject(appContext) {
     constructor(appContext: AppContext, source: Source) : this(appContext, { source }) {
-        configSnapshot = snapshot(source)
+        // SDK-created offline sources must already emit events when the JS query resolves.
+        initialize()
     }
 
     private val initialization = SharedObjectInitialization {

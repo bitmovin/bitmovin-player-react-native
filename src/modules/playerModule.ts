@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-redeclare -- Native constructor values intentionally share their instance interface names. */
 import type { PlayerEvents } from '../events';
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
@@ -155,21 +156,20 @@ declare class PlayerModule extends NativeModule {
   readonly MediaControlsApi: new (player: NativePlayer) => NativeMediaControls;
   readonly PlaylistApi: new (player: NativePlayer) => NativePlaylist;
 }
-const module = requireNativeModule<PlayerModule>('PlayerModule');
+const nativeModule = requireNativeModule<PlayerModule>('PlayerModule');
 /** @internal */
-export const NativePlayer = module.Player;
+export const NativePlayer = nativeModule.Player;
 /** @internal */
-export const NativeBuffer = module.BufferApi;
+export const NativeBuffer = nativeModule.BufferApi;
 /** @internal */
-export const NativeAnalytics = module.AnalyticsApi;
+export const NativeAnalytics = nativeModule.AnalyticsApi;
 /** @internal */
 export const NativeMediaControls: new (
   player: NativePlayer
 ) => Pick<NativeMediaControls, 'isEnabled' | 'setEnabled'> =
   Platform.OS === 'ios'
-    ? module.MediaControlsApi
+    ? nativeModule.MediaControlsApi
     : class {
-        constructor(_player: NativePlayer) {}
         isEnabled(): Promise<boolean> {
           return Promise.resolve(false);
         }
@@ -178,5 +178,5 @@ export const NativeMediaControls: new (
         }
       };
 /** @internal */
-export const NativePlaylist = module.PlaylistApi;
-export default module;
+export const NativePlaylist = nativeModule.PlaylistApi;
+export default nativeModule;

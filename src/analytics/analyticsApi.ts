@@ -1,3 +1,4 @@
+import { bindNativeMethods } from '../native/bindNativeMethods';
 import { NativeAnalytics } from '../modules/playerModule';
 import type { Player } from '../player';
 import { retainPlayerApi } from '../native/playerApiOwner';
@@ -12,6 +13,7 @@ export class AnalyticsApi extends NativeAnalytics {
   constructor(player: Player) {
     super(player);
     retainPlayerApi(this, player);
+    bindNativeMethods(this, NativeAnalytics.prototype);
   }
 
   /**

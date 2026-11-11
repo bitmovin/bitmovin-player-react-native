@@ -1,3 +1,4 @@
+import { bindNativeMethods } from './native/bindNativeMethods';
 import { NativeBuffer } from './modules/playerModule';
 import type { Player } from './player';
 import { retainPlayerApi } from './native/playerApiOwner';
@@ -75,6 +76,7 @@ export class BufferApi extends NativeBuffer {
   constructor(player: Player) {
     super(player);
     retainPlayerApi(this, player);
+    bindNativeMethods(this, NativeBuffer.prototype);
   }
 
   /**

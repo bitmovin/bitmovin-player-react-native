@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-redeclare -- Native constructor values intentionally share their instance interface names. */
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
@@ -15,9 +16,9 @@ declare class CustomMessageHandlerModule extends NativeModule {
     callback: NativeCallback
   ) => NativeCustomMessage;
 }
-const module = requireNativeModule<CustomMessageHandlerModule>(
+const nativeModule = requireNativeModule<CustomMessageHandlerModule>(
   'CustomMessageHandlerModule'
 );
 /** @internal */
-export const NativeCustomMessage = module.CustomMessageHandler;
-export default module;
+export const NativeCustomMessage = nativeModule.CustomMessageHandler;
+export default nativeModule;

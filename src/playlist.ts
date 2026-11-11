@@ -1,3 +1,4 @@
+import { bindNativeMethods } from './native/bindNativeMethods';
 import { Platform } from 'react-native';
 import { Source, TimelineReferencePoint } from './source';
 import type { Player } from './player';
@@ -45,6 +46,7 @@ export class PlaylistApi extends NativePlaylist {
   constructor(player: Player) {
     super(player);
     retainPlayerApi(this, player);
+    bindNativeMethods(this, NativePlaylist.prototype);
   }
 
   /**

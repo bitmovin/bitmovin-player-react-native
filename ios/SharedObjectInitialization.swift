@@ -8,6 +8,8 @@ internal final class SharedObjectInitialization<Value> {
 
     init(_ factory: @escaping () throws -> Value) { self.factory = factory }
 
+    init(value: Value) { result = .success(value) }
+
     func get() throws -> Value {
         guard Thread.isMainThread else {
             throw Exception(name: "InvalidThread", description: "SDK objects must be accessed on the main thread")

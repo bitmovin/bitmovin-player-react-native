@@ -1,3 +1,7 @@
+const {
+  installNativeClasses,
+  controlFor,
+} = require('./helpers/native-class-doubles');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -77,6 +81,7 @@ function fixture(t) {
     path.join(directory, 'node_modules/expo-modules-core')
   ).requireNativeModule = (name) =>
     name === 'OfflineModule' ? offlineModule : {};
+  installNativeClasses({ OfflineModule: offlineModule });
   const { OfflineContentManager } = require(
     path.join(directory, 'offline/offlineContentManager.js')
   );
@@ -91,7 +96,8 @@ test('offline aliases share the native manager', async (t) => {
   assert.equal(owners.length, 1);
   assert.equal(Object.hasOwn(owners[0].config, 'nativeId'), false);
   assert.equal(config.nativeId, 'public-label');
-  assert.equal(await manager.native, await alias.native);
+  assert.equal(manager, alias);
+  assert.equal(await controlFor(manager), await controlFor(alias));
   await manager.destroy();
   await alias.destroy();
 });
@@ -104,6 +110,7 @@ test('offline progress reaches listeners with the public nativeId', async (t) =>
     onProgress: (event) => received.push(event),
   });
   await manager.initialize();
+  Object.freeze(manager);
   const event = { eventType: 'onProgress', progress: 0.5 };
   owners[0].emit(event);
   assert.deepEqual(received, [{ ...event, nativeId: config.nativeId }]);

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-redeclare -- Native constructor values intentionally share their instance interface names. */
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
@@ -17,6 +18,7 @@ export type NativeOfflineEvents = SharedObject<OfflineEvents>;
 
 /** @internal */
 export interface NativeOffline extends SharedObject {
+  /** @internal */
   readonly events: NativeOfflineEvents;
   /** @internal */
   initialize(): Promise<void>;
@@ -42,9 +44,9 @@ declare class OfflineModule extends NativeModule {
     callback: NativeCallback
   ) => NativeOffline;
 }
-const module = requireNativeModule<OfflineModule>('OfflineModule');
+const nativeModule = requireNativeModule<OfflineModule>('OfflineModule');
 /** @internal */
-export const NativeOffline = module.OfflineContentManager;
+export const NativeOffline = nativeModule.OfflineContentManager;
 /** @internal */
-export const NativeOfflineEvents = module.OfflineEvents;
-export default module;
+export const NativeOfflineEvents = nativeModule.OfflineEvents;
+export default nativeModule;

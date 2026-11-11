@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-redeclare -- Native constructor values intentionally share their instance interface names. */
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
@@ -14,9 +15,9 @@ declare class FullscreenHandlerModule extends NativeModule {
     callback: NativeCallback
   ) => NativeFullscreen;
 }
-const module = requireNativeModule<FullscreenHandlerModule>(
+const nativeModule = requireNativeModule<FullscreenHandlerModule>(
   'FullscreenHandlerModule'
 );
 /** @internal */
-export const NativeFullscreen = module.FullscreenHandler;
-export default module;
+export const NativeFullscreen = nativeModule.FullscreenHandler;
+export default nativeModule;

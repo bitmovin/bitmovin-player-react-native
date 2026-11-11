@@ -100,7 +100,7 @@ public class PlayerModule: Module {
             }.runOnQueue(.main)
             AsyncFunction("loadOfflineContent") { (owner: SharedPlayer, offline: SharedOffline, options: [String: Any]?) -> Bool in // swiftlint:disable:this line_length
                 #if os(iOS)
-                guard let config = offline.offlineContentManager.createOfflineSourceConfig(
+                guard let config = (try offline.offlineContentManager).createOfflineSourceConfig(
                     restrictedToAssetCache: options?["restrictedToAssetCache"] as? Bool ?? true
                 ) else { return false }
                 (try owner.player).load(sourceConfig: config)

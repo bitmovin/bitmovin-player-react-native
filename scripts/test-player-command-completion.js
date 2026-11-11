@@ -1,3 +1,7 @@
+const {
+  installNativeClasses,
+  controlFor,
+} = require('./helpers/native-class-doubles');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -64,6 +68,10 @@ function fixture(t, methods = {}) {
   require(
     path.join(directory, 'node_modules/expo-modules-core')
   ).nativeModules.PlayerModule = module;
+  installNativeClasses(
+    require(path.join(directory, 'node_modules/expo-modules-core'))
+      .nativeModules
+  );
   const { Player } = require(path.join(directory, 'player'));
   return { Player, module, native };
 }

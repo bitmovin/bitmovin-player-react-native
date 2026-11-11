@@ -207,7 +207,7 @@ export function PlayerView({
       if (currentPlayer.current === player) {
         currentPlayer.current = undefined;
       }
-      fullscreenBridge.current?.destroy();
+      void fullscreenBridge.current?.destroy();
       fullscreenBridge.current = undefined;
     };
   }, [player, fullscreenBridge]);

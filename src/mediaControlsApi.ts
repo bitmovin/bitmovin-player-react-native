@@ -1,3 +1,4 @@
+import { bindNativeMethods } from './native/bindNativeMethods';
 import { NativeMediaControls } from './modules/playerModule';
 import type { Player } from './player';
 import { retainPlayerApi } from './native/playerApiOwner';
@@ -15,6 +16,7 @@ export class MediaControlsApi extends NativeMediaControls {
   constructor(player: Player) {
     super(player);
     retainPlayerApi(this, player);
+    bindNativeMethods(this, NativeMediaControls.prototype);
   }
 
   /**

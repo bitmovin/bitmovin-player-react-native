@@ -1,3 +1,4 @@
+import { bindNativeMethods } from '../native/bindNativeMethods';
 import type { FullscreenHandler } from './fullscreenHandler';
 import { NativeFullscreen } from './fullscreenHandlerModule';
 import { NativeCallbacks } from '../native/nativeCallbacks';
@@ -15,6 +16,7 @@ export class FullscreenHandlerBridge extends NativeFullscreen {
       return state.handler?.isFullscreenActive ?? false;
     });
     super(callbacks.callback);
+    bindNativeMethods(this, NativeFullscreen.prototype);
     callbacks.retain(this);
     states.set(this, state);
   }
