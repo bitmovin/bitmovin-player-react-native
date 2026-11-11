@@ -9,7 +9,6 @@ import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
 import { NativeSource } from './modules/sourceModule';
 import { adoptNative } from './native/adoptNative';
-import { bindNativeMethods } from './native/bindNativeMethods';
 import { NativeConfigSerializer } from './native/nativeConfigSerializer';
 
 /**
@@ -163,7 +162,7 @@ export class Source extends NativeSource {
     callbacks.dispatcher.retain(this);
     this.config = config;
     this.drm = new SourceDrmApi(this);
-    bindNativeMethods(this, Source.prototype);
+    this.bindMethods();
   }
 
   /**
@@ -179,9 +178,21 @@ export class Source extends NativeSource {
           config: owner.configSnapshot,
           drm: new SourceDrmApi(owner),
         });
-        bindNativeMethods(owner, Source.prototype);
+        owner.bindMethods();
       }
     });
+  }
+
+  // SDK-created peers skip JS field initializers, so both creation paths bind here.
+  private bindMethods(): void {
+    this.duration = super.duration.bind(this);
+    this.isActive = super.isActive.bind(this);
+    this.isAttachedToPlayer = super.isAttachedToPlayer.bind(this);
+    this.metadata = super.metadata.bind(this);
+    this.setMetadata = super.setMetadata.bind(this);
+    this.loadingState = super.loadingState.bind(this);
+    this.getThumbnail = super.getThumbnail.bind(this);
+    this.on = this.on.bind(this);
   }
 
   /**

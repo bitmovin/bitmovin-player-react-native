@@ -1,4 +1,3 @@
-import { bindNativeMethods } from '../native/bindNativeMethods';
 import { NativeAnalytics } from '../modules/playerModule';
 import type { Player } from '../player';
 import type { CustomDataConfig } from './config';
@@ -15,19 +14,19 @@ export class AnalyticsApi extends NativeAnalytics {
   constructor(owner: Player) {
     super(owner);
     this.owner = owner;
-    bindNativeMethods(this, NativeAnalytics.prototype);
   }
 
   /**
    * Sends a sample with the provided custom data.
    * Does not change the configured custom data of the collector or source.
    */
-  declare sendCustomDataEvent: (customData: CustomDataConfig) => Promise<void>;
+  sendCustomDataEvent: (customData: CustomDataConfig) => Promise<void> =
+    super.sendCustomDataEvent.bind(this);
 
   /**
    * Gets the current user id used by the bundled analytics instance.
    *
    * @returns The current user id.
    */
-  declare getUserId: () => Promise<string | null>;
+  getUserId: () => Promise<string | null> = super.getUserId.bind(this);
 }

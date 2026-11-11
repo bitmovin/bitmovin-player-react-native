@@ -1,10 +1,10 @@
-import { bindNativeMethods } from '../native/bindNativeMethods';
 import type { FullscreenHandler } from './fullscreenHandler';
 import { NativeFullscreen } from './fullscreenHandlerModule';
 import { NativeCallbacks } from '../native/nativeCallbacks';
 /** Adapts a user-supplied fullscreen interface to the native handler object. @internal */
 export class FullscreenHandlerBridge extends NativeFullscreen {
   private handler?: FullscreenHandler;
+  destroy = super.destroy.bind(this);
 
   constructor() {
     const callbacks = new NativeCallbacks((operation) => {
@@ -13,7 +13,6 @@ export class FullscreenHandlerBridge extends NativeFullscreen {
       return this.handler?.isFullscreenActive ?? false;
     });
     super(callbacks.callback);
-    bindNativeMethods(this, NativeFullscreen.prototype);
     callbacks.retain(this);
   }
   setFullscreenHandler(handler: FullscreenHandler | undefined): void {

@@ -1,4 +1,3 @@
-import { bindNativeMethods } from './native/bindNativeMethods';
 import { NativeMediaControls } from './modules/playerModule';
 import type { Player } from './player';
 import { Platform } from 'react-native';
@@ -18,7 +17,6 @@ export class MediaControlsApi extends NativeMediaControls {
   constructor(owner: Player) {
     super(owner);
     this.owner = owner;
-    bindNativeMethods(this, NativeMediaControls.prototype);
   }
 
   /**
