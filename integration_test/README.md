@@ -209,6 +209,18 @@ reachable host and port as the JavaScript assets, including a custom Metro port,
 without hard-coding an emulator address. The native player fetches the media
 over HTTP; its playback and subtitle handling remain real.
 
+### Advertising inputs
+
+Advertising lifecycle cases use the fixed VAST and VMAP XML in
+[`AdFixtures.ts`](./tests/helper/AdFixtures.ts), encoded as data URIs through the
+existing ad-tag API. Android BAM uses an HTTP loader, so its cases use the native
+SDK's existing Bitmovin-hosted two-second VAST and VMAP fixtures instead. The VMAP
+midroll is at 10 seconds on that path and 15 seconds in the inline fixture; each
+case seeks to two seconds before its cue. Lifecycle assertions and timeouts are
+the same. These cases need no ad-decision server or local HTTP fixture service.
+Error cases use the SDK tests' Bitmovin-hosted missing-media URL (HTTP 403).
+Pause-ad cases keep their existing provider tag.
+
 ### Scope and limitations
 
 - This hosting code runs in Node on the maintainer's machine or CI runner. It is
