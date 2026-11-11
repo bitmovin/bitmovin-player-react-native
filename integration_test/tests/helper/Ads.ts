@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { linearAdTag, vmapAdTag } from './AdFixtures';
 
 let correlator = Date.now();
@@ -8,6 +9,15 @@ export const AdTags = {
   vast1: linearAdTag,
   vast2: linearAdTag,
   vmapPreMidPost: vmapAdTag,
+  // Android BAM uses an HTTP loader; use its existing bounded SDK fixtures.
+  bitmovinVast:
+    Platform.OS === 'android'
+      ? 'https://bitmovin-player-eu-west1-ci-input.s3.amazonaws.com/general/sample-vast-tags/bitmovin-cdn/vast-skippable-2s.xml'
+      : linearAdTag,
+  bitmovinVmap:
+    Platform.OS === 'android'
+      ? 'https://bitmovin-player-eu-west1-ci-input.s3.amazonaws.com/general/sample-vmap-2s.xml'
+      : vmapAdTag,
   progressive:
     'https://cdn.bitmovin.com/content/internal/assets/testing/ads/testad2s.mp4',
   get pause(): string {

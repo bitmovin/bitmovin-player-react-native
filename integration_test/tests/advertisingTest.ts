@@ -57,6 +57,7 @@ type AdScenario = {
   name: string;
   adItems: AdItem[];
   expectManifestLoaded: boolean;
+  seekBeforeMidroll?: number;
   expectManifestLoadedAfterSeekByPlatform?: Partial<
     Record<SupportedTestPlatform, boolean>
   >;
@@ -69,6 +70,7 @@ export default (spec: TestScope) => {
       name,
       adItems,
       expectManifestLoaded,
+      seekBeforeMidroll = 13,
       expectManifestLoadedAfterSeekByPlatform,
     } = scenario;
     const expectManifestLoadedAfterSeek =
@@ -168,7 +170,7 @@ export default (spec: TestScope) => {
               ? expectEvent(EventType.AdManifestLoaded, 20)
               : Promise.resolve(),
             callPlayerAndExpectEvent(async (player) => {
-              await player.seek(13);
+              await player.seek(seekBeforeMidroll);
             }, EventType.Seeked),
           ]);
           await waitForAdExpectations([
@@ -332,15 +334,15 @@ export default (spec: TestScope) => {
       name: 'BITMOVIN VAST',
       adItems: [
         {
-          sources: [{ tag: AdTags.vastSkippable, type: AdSourceType.BITMOVIN }],
+          sources: [{ tag: AdTags.bitmovinVast, type: AdSourceType.BITMOVIN }],
           position: 'pre',
         },
         {
-          sources: [{ tag: AdTags.vast1, type: AdSourceType.BITMOVIN }],
+          sources: [{ tag: AdTags.bitmovinVast, type: AdSourceType.BITMOVIN }],
           position: '15',
         },
         {
-          sources: [{ tag: AdTags.vast2, type: AdSourceType.BITMOVIN }],
+          sources: [{ tag: AdTags.bitmovinVast, type: AdSourceType.BITMOVIN }],
           position: 'post',
         },
       ],
@@ -348,11 +350,11 @@ export default (spec: TestScope) => {
     },
     {
       name: 'BITMOVIN VMAP',
+      // Both inputs seek two seconds before their fixture's midroll cue.
+      seekBeforeMidroll: currentPlatform === 'android' ? 8 : 13,
       adItems: [
         {
-          sources: [
-            { tag: AdTags.vmapPreMidPost, type: AdSourceType.BITMOVIN },
-          ],
+          sources: [{ tag: AdTags.bitmovinVmap, type: AdSourceType.BITMOVIN }],
         },
       ],
       expectManifestLoaded: false,
