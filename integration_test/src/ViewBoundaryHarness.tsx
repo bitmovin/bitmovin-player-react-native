@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useLayoutEffect, useSyncExternalStore } from 'react';
 import { View } from 'react-native';
 import { PlayerView, type PlayerViewProps } from 'bitmovin-player-react-native';
 
@@ -6,10 +6,16 @@ type Selection = { props?: PlayerViewProps; onCommit?: () => void };
 // Cavy replaces its child tree before invoking each test, without awaiting that commit.
 // Preserve the pending request so the replacement harness can consume it.
 let selection: Selection = {};
-let update: ((next: Selection) => void) | undefined;
+let update: (() => void) | undefined;
 function select(next: Selection): void {
   selection = next;
-  update?.(next);
+  update?.();
+}
+function subscribe(listener: () => void): () => void {
+  update = listener;
+  return () => {
+    if (update === listener) update = undefined;
+  };
 }
 export async function showBoundaryView(props?: PlayerViewProps): Promise<void> {
   let timeout: ReturnType<typeof setTimeout> | undefined;
@@ -50,15 +56,8 @@ export default function ViewBoundaryHarness({
 }: {
   children: React.ReactNode;
 }): React.JSX.Element {
-  const [current, setSelection] = useState(() => selection);
+  const current = useSyncExternalStore(subscribe, () => selection);
   useLayoutEffect(() => current.onCommit?.(), [current]);
-  useLayoutEffect(() => {
-    update = setSelection;
-    setSelection(selection);
-    return () => {
-      update = undefined;
-    };
-  }, []);
   return (
     <View style={{ flex: 1 }}>
       {current.props ? (
