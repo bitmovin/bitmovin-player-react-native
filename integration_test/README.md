@@ -212,14 +212,21 @@ over HTTP; its playback and subtitle handling remain real.
 ### Advertising inputs
 
 Advertising lifecycle cases use the fixed VAST and VMAP XML in
-[`AdFixtures.ts`](./tests/helper/AdFixtures.ts), encoded as data URIs through the
-existing ad-tag API. Android BAM uses an HTTP loader, so its cases use the native
-SDK's existing Bitmovin-hosted two-second VAST and VMAP fixtures instead. The VMAP
-midroll is at 10 seconds on that path and 15 seconds in the inline fixture; each
-case seeks to two seconds before its cue. Lifecycle assertions and timeouts are
-the same. These cases need no ad-decision server or local HTTP fixture service.
-Error cases use the SDK tests' Bitmovin-hosted missing-media URL (HTTP 403).
-Pause-ad cases keep their existing provider tag.
+[`advertising.js`](./assets/fixtures/advertising.js). IMA and iOS BAM receive the
+same inline data URIs as before. Android BAM requires HTTP, so Metro serves its
+manifests at `/cavy-fixtures/advertising/vast.xml` and
+`/cavy-fixtures/advertising/vmap.xml` for `GET` and `HEAD`. The existing
+[`fixtureUrl`](./tests/helper/FixtureUrl.ts) resolves their device-reachable host
+and port. The VMAP embeds its VAST data; it needs no URL rewriting or additional
+manifest requests. All paths use the existing two-second Bitmovin media and a
+15-second midroll cue, so every case seeks to 13 seconds. Lifecycle assertions
+and timeouts are unchanged.
+
+The middleware records `[Cavy fixture]` method, fixed path, status and byte count
+in Metro output, which CI already captures in `metro.log`. It does not log
+request bodies or query strings. Error cases retain the SDK's missing-media URL
+(HTTP 403), and pause-ad cases retain their provider tag. This adds no server,
+port, CORS override or app networking-policy exception.
 
 ### Scope and limitations
 

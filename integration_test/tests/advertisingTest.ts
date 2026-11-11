@@ -57,7 +57,6 @@ type AdScenario = {
   name: string;
   adItems: AdItem[];
   expectManifestLoaded: boolean;
-  seekBeforeMidroll?: number;
   expectManifestLoadedAfterSeekByPlatform?: Partial<
     Record<SupportedTestPlatform, boolean>
   >;
@@ -70,7 +69,6 @@ export default (spec: TestScope) => {
       name,
       adItems,
       expectManifestLoaded,
-      seekBeforeMidroll = 13,
       expectManifestLoadedAfterSeekByPlatform,
     } = scenario;
     const expectManifestLoadedAfterSeek =
@@ -170,7 +168,7 @@ export default (spec: TestScope) => {
               ? expectEvent(EventType.AdManifestLoaded, 20)
               : Promise.resolve(),
             callPlayerAndExpectEvent(async (player) => {
-              await player.seek(seekBeforeMidroll);
+              await player.seek(13);
             }, EventType.Seeked),
           ]);
           await waitForAdExpectations([
@@ -350,8 +348,6 @@ export default (spec: TestScope) => {
     },
     {
       name: 'BITMOVIN VMAP',
-      // Both inputs seek two seconds before their fixture's midroll cue.
-      seekBeforeMidroll: currentPlatform === 'android' ? 8 : 13,
       adItems: [
         {
           sources: [{ tag: AdTags.bitmovinVmap, type: AdSourceType.BITMOVIN }],
