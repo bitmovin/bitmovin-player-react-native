@@ -21,8 +21,6 @@ export type PlayerModuleEvents = PlayerEvents;
 
 /** @internal */
 export interface NativePlayer extends SharedObject<PlayerModuleEvents> {
-  /** @internal */
-  initialize(): Promise<void>;
   play(): Promise<void>;
 
   pause(): Promise<void>;

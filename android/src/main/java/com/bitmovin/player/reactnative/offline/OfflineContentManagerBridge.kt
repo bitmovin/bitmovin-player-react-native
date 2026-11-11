@@ -32,8 +32,6 @@ class OfflineContentManagerBridge(
     val offlineContentManager: OfflineContentManager
         get() = initialization.get()
 
-    fun initialize() { initialization.get() }
-
     enum class OfflineEventType(val eventName: String) {
         ON_COMPLETED("onCompleted"),
         ON_ERROR("onError"),
@@ -46,7 +44,7 @@ class OfflineContentManagerBridge(
     }
 
     val state: OfflineOptionEntryState
-        get() { initialize(); return aggregateState(contentOptions) }
+        get() { initialization.get(); return aggregateState(contentOptions) }
 
     fun getOptions() {
         offlineContentManager.getOptions()
@@ -59,7 +57,7 @@ class OfflineContentManagerBridge(
      * When no `minimumBitrate` is provided, the highest bitrate will be downloaded.
      */
     fun process(request: OfflineDownloadRequest) {
-        initialize()
+        val manager = offlineContentManager
         if (contentOptions != null) {
             val sortedVideoOptions = contentOptions!!.videoOptions.sortedBy { option -> option.bitrate }
             if (request.minimumBitrate == null) {
@@ -72,7 +70,7 @@ class OfflineContentManagerBridge(
             appliesDownloadActions(request.audioOptionIds, contentOptions!!.audioOptions)
             appliesDownloadActions(request.textOptionIds, contentOptions!!.textOptions)
 
-            offlineContentManager.process(contentOptions!!)
+            manager.process(contentOptions!!)
         }
     }
 

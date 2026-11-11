@@ -1,18 +1,22 @@
 # SharedObject compatibility decisions
 
 - The Player and OfflineContentManager registries exist only for backward
-  compatibility with `nativeId`-based construction: wrappers created with the same
-  ID share one SDK object. Methods and views use that object directly. Alias flags
-  and configuration remain
-  independent. Reusing an ID redirects compatibility lookup to its current
-  registration; an existing SharedObject never changes its SDK object. Each
-  registry holds creation Promises weakly. Keep an owning TS wrapper reachable
-  while using its ID; the registry does not keep pending or ready objects alive.
-- Player, Source, and OfflineContentManager constructors start one native creation
-  attempt. Methods and `initialize()` await the same Promise; a failed attempt
-  requires a new wrapper. Destruction removes the ID registration and waits for
-  that object's creation before releasing it. The registry only resolves aliases;
-  resource cleanup belongs to the owner.
+  compatibility with `nativeId`-based construction: constructors with the same
+  ID return the same public SharedObject, including its configuration and flags.
+  The registries hold weak references to those objects. Keep the object reachable
+  while using its ID; the registry does not keep it alive.
+- Player, Source, and OfflineContentManager constructors create their native
+  SharedObjects synchronously. The first SDK operation creates the SDK resource
+  on the main thread and caches either its value or its failure. There is no
+  separate JS initialization Promise or readiness flag. Source SDK listeners
+  attach before the operation that loads the source; offline event subscriptions
+  attach before the first SDK operation. Destruction removes the ID registration
+  and releases an existing resource, or cancels an unused factory without creating
+  one. Resource cleanup belongs to the owner.
+- PlayerView passes imperative SharedObjects through its native view method after
+  the host layout. They are not native JSX props, so Fabric does not recursively
+  freeze the Player, its API handles, or the UI callback owners. SDK creation and
+  view attachment complete before the method acknowledges public view readiness.
 - Destruction keeps the SDK reference reachable while its TS wrapper is retained.
   Direct methods inherit SDK behavior after destruction. Source has no destruction
   API or binding ID; each wrapper owns one native Source directly.

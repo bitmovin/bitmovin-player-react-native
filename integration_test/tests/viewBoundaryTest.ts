@@ -65,10 +65,6 @@ export default (spec: TestScope) => {
             !Object.isFrozen(first.buffer),
             'Fabric reached its owned Buffer API'
           );
-          check(
-            first.isInitialized,
-            'Public immediate mount did not await constructor initialization'
-          );
           await event(first, 'ready', () => first.loadSource(firstSource));
           check(
             first.source === firstSource,

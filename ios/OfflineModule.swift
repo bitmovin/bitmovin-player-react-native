@@ -16,7 +16,6 @@ public class OfflineModule: Module {
                     events: events
                 )
             }
-            AsyncFunction("initialize") { (owner: SharedOffline) in try owner.initialize() }.runOnQueue(.main)
             Property("events") { (owner: SharedOffline) in owner.events }
             AsyncFunction("state") { (owner: SharedOffline) -> String? in
 #if os(iOS)

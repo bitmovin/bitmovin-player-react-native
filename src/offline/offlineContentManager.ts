@@ -44,12 +44,11 @@ const handleBitmovinNativeOfflineEvent = (
 /**
  * Provides the means to download and store sources locally that can be played back with a Player
  * without an active network connection. An OfflineContentManager instance can be created via
- * the constructor, which starts native resource creation.
+ * the constructor. Native SDK resources are created on the first SDK operation.
  *
  * @platform Android, iOS
  */
 export class OfflineContentManager extends NativeOffline {
-  declare private readonly ready: Promise<void>;
   private readonly listeners = new Set<OfflineContentManagerListener>();
   private subscription?: EventSubscription;
 
@@ -67,27 +66,13 @@ export class OfflineContentManager extends NativeOffline {
     this.nativeId = legacyOfflineRegistry.register(config.nativeId, this);
     bindNativeMethods(this, NativeOffline.prototype);
     this.observeEvents(events);
-    this.ready = super.initialize().then(() => {
-      this.isInitialized = true;
-    });
-    void this.ready.catch(() => {
-      this.subscription?.remove();
-      this.subscription = undefined;
-      legacyOfflineRegistry.remove(this.nativeId, this);
-    });
   }
 
   /** User-defined compatibility ID, or a generated UUIDv4. */
   declare readonly nativeId: string;
 
-  /** Whether the constructor's native creation attempt has completed successfully. */
-  isInitialized = false;
-
   /** Whether `destroy()` has been called on this wrapper. */
   isDestroyed = false;
-
-  /** Waits for the native manager creation started by the constructor. */
-  initialize = (): Promise<void> => this.ready;
 
   private observeEvents(events: NativeOfflineEvents) {
     if (!this.subscription)

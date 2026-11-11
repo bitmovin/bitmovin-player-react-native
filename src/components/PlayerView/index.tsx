@@ -8,7 +8,6 @@ import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenHandlerBridge';
 import type { PlayerViewProps } from './properties';
 import type { PictureInPictureAction } from './pictureInPictureAction';
-import type { NativePlayer } from '../../modules/playerModule';
 
 /**
  * Base style that initializes the native view frame when no width/height prop has been set.
@@ -80,12 +79,7 @@ export function PlayerView({
     [player, config]
   );
 
-  const [resolvedPlayer, setResolvedPlayer] = useState<{
-    player: typeof player;
-    native: NativePlayer;
-  }>();
-  const nativePlayer =
-    resolvedPlayer?.player === player ? resolvedPlayer.native : undefined;
+  const nativePlayer = player;
   const didNotifyPlayerViewReady = useRef<
     | {
         player: typeof player;
@@ -94,6 +88,8 @@ export function PlayerView({
     | undefined
   >(undefined);
   const currentPlayer = useRef<typeof player | undefined>(player);
+  if (currentPlayer.current !== player)
+    didNotifyPlayerViewReady.current = undefined;
   currentPlayer.current = player;
 
   const notifyReady = useRef<(view: NativePlayerViewRef) => void>(() => {});
@@ -273,28 +269,6 @@ export function PlayerView({
     };
   }, [player, props]);
 
-  useEffect(() => {
-    let cancelled = false;
-    currentPlayer.current = player;
-    async function resolvePlayer() {
-      await player.initialize();
-      const native = player;
-      if (!cancelled) {
-        setResolvedPlayer({ player, native });
-      }
-    }
-    // Creation failures remain available through the public Player APIs.
-    // A view waiting for that Player must not add unhandled rejections.
-    void resolvePlayer().catch(() => {});
-
-    return () => {
-      cancelled = true;
-      if (currentPlayer.current === player) {
-        currentPlayer.current = undefined;
-      }
-    };
-  }, [player]);
-
   useEffect(
     () => () => {
       void fullscreenBridge.current?.destroy();
@@ -322,24 +296,26 @@ export function PlayerView({
       ? JSON.stringify(pictureInPictureActions)
       : undefined;
   useEffect(() => {
-    if (nativePlayer && pictureInPictureActionsJson != null) {
+    if (
+      mountedView === nativeView.current &&
+      pictureInPictureActionsJson != null
+    ) {
       void nativeView.current?.updatePictureInPictureActions(
         JSON.parse(pictureInPictureActionsJson) as PictureInPictureAction[]
       );
     }
-  }, [nativePlayer, pictureInPictureActionsJson]);
+  }, [mountedView, nativePlayer, pictureInPictureActionsJson]);
 
   useEffect(() => {
-    if (nativePlayer && isPictureInPictureEnabled != null) {
+    if (
+      mountedView === nativeView.current &&
+      isPictureInPictureEnabled != null
+    ) {
       void nativeView.current?.setIsPictureInPictureEnabled(
         isPictureInPictureEnabled
       );
     }
-  }, [nativePlayer, isPictureInPictureEnabled]);
-
-  if (!nativePlayer) {
-    return null;
-  }
+  }, [mountedView, nativePlayer, isPictureInPictureEnabled]);
 
   return (
     <NativePlayerView

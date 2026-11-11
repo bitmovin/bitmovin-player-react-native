@@ -1,7 +1,7 @@
 import type { EventSubscription } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 
-/** Await the native creation Promise, then attach directly to the SharedObject. */
+/** Attach directly to the already-created SharedObject, before any SDK operation. */
 export async function subscribeToNativeEvent<
   Events extends Record<string, (payload: any) => void>,
   Name extends keyof Events,

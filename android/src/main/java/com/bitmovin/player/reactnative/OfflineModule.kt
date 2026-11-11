@@ -41,7 +41,6 @@ class OfflineModule : Module() {
 
             Constructor { config: Map<String, Any?>?, events: SharedOfflineEvents,
                 callback: JavaScriptFunction<JavaScriptValue>?, -> create(config, events, callback) }
-            AsyncFunction("initialize", OfflineContentManagerBridge::initialize).runOnQueue(Queues.MAIN)
 
             AsyncFunction("state") { owner: OfflineContentManagerBridge -> owner.state.name }.runOnQueue(Queues.MAIN)
             AsyncFunction("getOptions", OfflineContentManagerBridge::getOptions).runOnQueue(Queues.MAIN)

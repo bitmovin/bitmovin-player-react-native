@@ -18,17 +18,21 @@ public final class SharedOffline: SharedObject {
         self.callback = callback
         self.events = events
         initialization = SharedObjectInitialization {
-            guard let identifier = config["identifier"] as? String,
-                  let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"], callback: callback) else {
-                throw Exception(
-                    name: "InvalidArgument",
-                    description: "Invalid offline identifier or source configuration"
-                )
+            do {
+                guard let identifier = config["identifier"] as? String,
+                      let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"], callback: callback) else {
+                    throw Exception(
+                        name: "InvalidArgument", description: "Invalid offline identifier or source configuration"
+                    )
+                }
+                let manager = try OfflineManager.sharedInstance().offlineContentManager(for: sourceConfig, id: identifier)
+                return Resource(manager: manager, bridge: OfflineContentManagerBridge(
+                    forManager: manager, events: events, identifier: identifier
+                ))
+            } catch {
+                callback?.close()
+                throw error
             }
-            let manager = try OfflineManager.sharedInstance().offlineContentManager(for: sourceConfig, id: identifier)
-            return Resource(manager: manager, bridge: OfflineContentManagerBridge(
-                forManager: manager, events: events, identifier: identifier
-            ))
         }
         super.init()
     }
@@ -39,12 +43,6 @@ public final class SharedOffline: SharedObject {
         super.init()
     }
 #endif
-
-    func initialize() throws {
-#if os(iOS)
-        do { _ = try initialization.get() } catch { callback?.close(); throw error }
-#endif
-    }
 
     func destroy() {
         callback?.close()

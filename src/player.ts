@@ -31,7 +31,6 @@ import { bindNativeMethods } from './native/bindNativeMethods';
  * @see PlayerView
  */
 export class Player extends NativePlayer {
-  declare private readonly ready: Promise<void>;
   private sources = new Set<Source>();
   // Retains offline configuration callbacks while its SDK source is loaded.
   declare private offline?: OfflineContentManager;
@@ -58,12 +57,6 @@ export class Player extends NativePlayer {
       ? new AnalyticsApi(this)
       : undefined;
     bindNativeMethods(this, NativePlayer.prototype);
-    this.ready = super.initialize().then(() => {
-      this.isInitialized = true;
-    });
-    void this.ready.catch(() =>
-      legacyPlayerRegistry.remove(this.nativeId, this)
-    );
     if (
       config.advertisingConfig?.ima?.beforeInitialization &&
       !PlayerModule.isGoogleImaEnabled
@@ -75,9 +68,6 @@ export class Player extends NativePlayer {
 
   /** User-defined compatibility ID, or a generated UUIDv4. */
   declare readonly nativeId: string;
-
-  /** Whether the constructor's native creation attempt has completed successfully. */
-  isInitialized = false;
 
   /**
    * Whether `destroy()` has been called on this wrapper.
@@ -109,11 +99,6 @@ export class Player extends NativePlayer {
    * @platform iOS, tvOS
    */
   declare readonly mediaControls: MediaControlsApi;
-
-  /**
-   * Waits for the native `Player` creation started by the constructor.
-   */
-  initialize = (): Promise<void> => this.ready;
 
   /**
    * Destroys the native `Player` and releases all of its allocated resources.
@@ -189,16 +174,8 @@ export class Player extends NativePlayer {
   on = async <Name extends keyof PlayerEvents>(
     event: Name,
     listener: PlayerEvents[Name]
-  ): Promise<EventSubscription> => {
-    const subscription = subscribeToNativeEvent(this, event, listener);
-    try {
-      await this.initialize();
-      return await subscription;
-    } catch (error) {
-      (await subscription).remove();
-      throw error;
-    }
-  };
+  ): Promise<EventSubscription> =>
+    subscribeToNativeEvent(this, event, listener);
 
   /** @internal Keeps callback peers available while this SDK playback session owns their sources. */
   retainSource = (source: Source): void => {

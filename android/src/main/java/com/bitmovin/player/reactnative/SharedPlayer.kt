@@ -27,10 +27,8 @@ class SharedPlayer private constructor(
         runCatching { factory().also { observePlayerEvents(it) } }.onFailure { callbacks.close() }.getOrThrow()
     }
 
-    fun initialize(): Player = initialization.get()
-
     val player: Player
-        get() = initialize()
+        get() = initialization.get()
 
     fun destroy() {
         callbacks.close()

@@ -109,7 +109,7 @@ test('offline progress reaches listeners with the public nativeId', async (t) =>
   const unsubscribe = manager.addListener({
     onProgress: (event) => received.push(event),
   });
-  await manager.initialize();
+  await manager.state();
   const event = { eventType: 'onProgress', progress: 0.5 };
   owners[0].emit(event);
   assert.deepEqual(received, [{ ...event, nativeId: config.nativeId }]);
@@ -126,7 +126,7 @@ test('offline creation failures reach callers', async (t) => {
     throw failure;
   };
   await assert.rejects(
-    new OfflineContentManager(config).initialize(),
+    new OfflineContentManager(config).state(),
     (error) => error === failure
   );
 });

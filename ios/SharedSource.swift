@@ -3,7 +3,6 @@ import ExpoModulesCore
 
 public final class SharedSource: SharedObject {
     private let initialization: SharedObjectInitialization<Source>
-    var source: Source { get throws { try initialize() } }
     var fairplayRequests: SourceFairplayRequests {
         get throws { SourceFairplayRequests.attached(to: try source) }
     }
@@ -37,17 +36,18 @@ public final class SharedSource: SharedObject {
         events.owner = self
     }
 
-    @discardableResult
-    func initialize() throws -> Source {
-        do {
-            let source = try initialization.get()
-            if !isObserving {
-                source.add(listener: events)
-                isObserving = true
-                configSnapshot = Self.snapshot(source.sourceConfig)
-            }
-            return source
-        } catch { callback?.close(); throw error }
+    var source: Source {
+        get throws {
+            do {
+                let source = try initialization.get()
+                if !isObserving {
+                    source.add(listener: events)
+                    isObserving = true
+                    configSnapshot = Self.snapshot(source.sourceConfig)
+                }
+                return source
+            } catch { callback?.close(); throw error }
+        }
     }
 
     private static func snapshot(_ config: SourceConfig) -> [String: Any]? {

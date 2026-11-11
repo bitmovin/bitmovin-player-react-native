@@ -18,7 +18,7 @@ class SharedSource private constructor(
 ) : SharedObject(appContext) {
     constructor(appContext: AppContext, source: Source) : this(appContext, { source }) {
         // SDK-created offline sources must already emit events when the JS query resolves.
-        initialize()
+        this.source
     }
 
     private val initialization = SharedObjectInitialization {
@@ -29,12 +29,10 @@ class SharedSource private constructor(
     var configSnapshot: Map<String, Any?>? = null
         private set
 
-    fun initialize(): Source = initialization.get()
-
     override fun sharedObjectDidRelease() { callbacks?.close() }
 
     val source: Source
-        get() = initialize()
+        get() = initialization.get()
 
     companion object {
         private fun snapshot(source: Source): Map<String, Any?> = with(source.config) {

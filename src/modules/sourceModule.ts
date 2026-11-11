@@ -12,8 +12,6 @@ export type SourceModuleEvents = SourceEvents;
 /** @internal */
 export interface NativeSource extends SharedObject<SourceModuleEvents> {
   /** @internal */
-  initialize(): Promise<void>;
-  /** @internal */
   readonly configSnapshot?: import('../source').SourceConfig;
   isAttachedToPlayer(): Promise<boolean>;
 

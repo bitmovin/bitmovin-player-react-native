@@ -6,7 +6,6 @@ import Foundation
 public final class SharedPlayer: SharedObject {
     /// SDK player for native integrations. Retain this owner while using the player.
     private let initialization: SharedObjectInitialization<Player>
-    public var player: Player { get throws { try initialize() } }
     private let events = SharedObjectEvents()
     private let callback: CallbackScope?
 
@@ -17,13 +16,14 @@ public final class SharedPlayer: SharedObject {
         events.owner = self
     }
 
-    @discardableResult
-    func initialize() throws -> Player {
-        do {
-            let player = try initialization.get()
-            if !isObserving { player.add(listener: events); isObserving = true }
-            return player
-        } catch { callback?.close(); throw error }
+    public var player: Player {
+        get throws {
+            do {
+                let player = try initialization.get()
+                if !isObserving { player.add(listener: events); isObserving = true }
+                return player
+            } catch { callback?.close(); throw error }
+        }
     }
     private var isObserving = false
 

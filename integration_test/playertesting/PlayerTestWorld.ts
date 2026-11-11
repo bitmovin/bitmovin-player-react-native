@@ -111,7 +111,6 @@ export default class PlayerTestWorld {
       nativeId: `player-${uuid.v4()}`,
       ...config,
     });
-    await player.initialize();
     this.player = player;
 
     await fn().finally(async () => {

@@ -35,7 +35,6 @@ class PlayerModule : Module() {
                 callback: JavaScriptFunction<JavaScriptValue>?, ->
                 SharedPlayer.create(appContext, config, analytics, callback, mediaSessionPlaybackManager)
             }
-            AsyncFunction("initialize") { shared: SharedPlayer -> shared.initialize(); Unit }.runOnQueue(Queues.MAIN)
             AsyncFunction("loadPlaylist") { shared: SharedPlayer, config: SharedPlaylistConfig ->
                 val sources = config.sources
                 val options = config.options

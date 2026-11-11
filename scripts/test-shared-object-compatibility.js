@@ -179,29 +179,33 @@ function fixture(t) {
   };
 }
 
-test('Player aliases share eager native creation', async (t) => {
+test('Player aliases share one lazily created SDK player', async (t) => {
   const { Player, creations } = fixture(t);
   const player = new Player({ nativeId: 'shared' });
   const alias = new Player({ nativeId: 'shared' });
-  assert.equal(player.isInitialized, false);
-  await new Promise(setImmediate);
+  assert.equal(creations.length, 0);
+  assert.equal(await alias.getVolume(), 37);
   assert.equal(creations.length, 1);
   assert.equal(Object.hasOwn(creations[0].config, 'nativeId'), false);
   assert.equal(player.config.nativeId, 'shared');
   assert.equal(player, alias);
   assert.equal(await controlFor(player), await controlFor(alias));
   assert.equal(await alias.getVolume(), 37);
-  assert.equal(player.isInitialized, true);
   await player.destroy();
 });
 
 test('Player creation failures reach callers', async (t) => {
   const { Player, modules } = fixture(t);
   const failure = new Error('Native creation failed');
+  let attempts = 0;
   modules.PlayerModule.create = async () => {
+    attempts++;
     throw failure;
   };
-  await assert.rejects(new Player().initialize(), (error) => error === failure);
+  const player = new Player();
+  await assert.rejects(player.getVolume(), (error) => error === failure);
+  await assert.rejects(player.getVolume(), (error) => error === failure);
+  assert.equal(attempts, 1);
 });
 
 test('advertising callbacks return decisions and update IMA settings', async (t) => {
@@ -244,7 +248,6 @@ test('a Source can be loaded by another Player and still use its DRM API', async
   });
   const first = new Player();
   await first.loadSource(source);
-  assert.equal(source.isInitialized, true);
   await first.destroy();
   const second = new Player();
   await second.loadSource(source);
@@ -333,7 +336,6 @@ test('awaited object subscriptions use their native owner and can be removed', a
   );
   const removed = await player.on('ready', () => removedCalls++);
   removed.remove();
-  await other.initialize();
   (await controlFor(other)).emit('ready', { name: 'onReady' });
   (await controlFor(player)).emit('ready', { name: 'onReady' });
   assert.equal(playerCalls, 1);
@@ -352,22 +354,14 @@ test('awaited object subscriptions use their native owner and can be removed', a
   destroyedSubscription.remove();
 });
 
-test('registration and destruction await the same native creation promise', async (t) => {
-  const { Player, modules } = fixture(t);
-  const create = modules.PlayerModule.create;
-  modules.PlayerModule.create = async (...args) => {
-    const native = await create(...args);
-    native.destroy = async () => native.emit('destroy', { name: 'onDestroy' });
-    return native;
-  };
+test('subscriptions and destruction do not create an unused SDK player', async (t) => {
+  const { Player, creations } = fixture(t);
   const player = new Player();
   let calls = 0;
-  const pending = player.on('destroy', () => calls++);
-  assert.equal(typeof pending.then, 'function');
-  const destruction = player.destroy();
-  const subscription = await pending;
-  await destruction;
-  assert.equal(calls, 1);
+  const subscription = await player.on('destroy', () => calls++);
+  await player.destroy();
+  assert.equal(creations.length, 0);
+  assert.equal(calls, 0);
   subscription.remove();
 });
 
@@ -376,7 +370,6 @@ test('playlist mutations delegate without querying or reconciling native sources
   const player = new Player();
   const first = new Source({ url: 'https://test/first' });
   const second = new Source({ url: 'https://test/second' });
-  await player.initialize();
   const native = await controlFor(player);
   native.getPlaylistSources = async () =>
     assert.fail('Mutation queried native sources');
@@ -483,14 +476,12 @@ test('source event subscriptions register before playlist loading and can be rem
 test('native-owned sources are adopted without creating another SDK source', async (t) => {
   const { Player, modules, creations } = fixture(t);
   const player = new Player();
-  await player.initialize();
   const native = await modules.SourceModule.create({
     url: 'https://test/native-source',
   });
   (await controlFor(player)).getSource = async () => native;
   const count = creations.length;
   const source = await player.getSource();
-  assert.equal(source.isInitialized, true);
   assert.equal(source.config, undefined);
   assert.deepEqual(await source.metadata(), { title: 'shared source' });
   const received = [];

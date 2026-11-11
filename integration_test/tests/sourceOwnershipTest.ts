@@ -215,7 +215,7 @@ export default (spec: TestScope) => {
           } as SourceConfig);
           let failure: unknown;
           try {
-            await source.initialize();
+            await source.duration();
           } catch (error) {
             failure = error;
           }

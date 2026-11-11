@@ -16,7 +16,6 @@ class SourceModule : Module() {
                 SharedSource.create(appContext, config, analytics, callback)
             }
             Property("configSnapshot") { owner: SharedSource -> owner.configSnapshot }
-            AsyncFunction("initialize") { shared: SharedSource -> shared.initialize(); Unit }.runOnQueue(Queues.MAIN)
             AsyncFunction("isAttachedToPlayer") { shared: SharedSource ->
                 shared.source.isAttachedToPlayer
             }.runOnQueue(Queues.MAIN)

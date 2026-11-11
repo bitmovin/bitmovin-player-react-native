@@ -14,7 +14,6 @@ public class SourceModule: Module {
                 )
             }
             Property("configSnapshot") { (owner: SharedSource) in owner.configSnapshot }
-            AsyncFunction("initialize") { (owner: SharedSource) in try owner.initialize(); return () }.runOnQueue(.main)
             AsyncFunction("isAttachedToPlayer") { (owner: SharedSource) -> Bool in
                 (try owner.source).isAttachedToPlayer
             }.runOnQueue(.main)

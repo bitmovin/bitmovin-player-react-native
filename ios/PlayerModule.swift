@@ -18,7 +18,6 @@ public class PlayerModule: Module {
                     callback: callback.map { try CallbackScope(callback: $0, context: appContext) }
                 )
             }
-            AsyncFunction("initialize") { (owner: SharedPlayer) in try owner.initialize(); return () }.runOnQueue(.main)
             AsyncFunction("play") { (owner: SharedPlayer) in (try owner.player).play() }.runOnQueue(.main)
             AsyncFunction("pause") { (owner: SharedPlayer) in (try owner.player).pause() }.runOnQueue(.main)
             AsyncFunction("mute") { (owner: SharedPlayer) in (try owner.player).mute() }.runOnQueue(.main)

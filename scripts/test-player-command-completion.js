@@ -88,7 +88,6 @@ test('play waits for native command acceptance', async (t) => {
     },
   });
   const player = new Player();
-  await player.initialize();
   let completed = false;
   const playing = player.play().then(() => (completed = true));
   await invoked;
@@ -108,7 +107,6 @@ test('seek exposes the native command rejection', async (t) => {
     },
   });
   const player = new Player();
-  await player.initialize();
   await assert.rejects(player.seek(10), failure);
   await player.destroy();
 });
@@ -116,21 +114,25 @@ test('seek exposes the native command rejection', async (t) => {
 test('destroy waits for an already-started creation', async (t) => {
   let destroyCalls = 0;
   const { Player, module, native } = fixture(t, {
+    play: async () => {},
     destroy: async () => {
       destroyCalls++;
     },
   });
   let completeCreation;
+  let notifyCreation;
+  const started = new Promise((resolve) => (notifyCreation = resolve));
   const create = () =>
     new Promise((resolve) => {
       completeCreation = () => resolve(native);
+      notifyCreation();
     });
   module.initializeWithConfig = create;
   module.create = create;
   const player = new Player();
-  const creation = player.initialize();
+  const creation = player.play();
+  await started;
   const destruction = player.destroy();
-  await Promise.resolve();
   assert.equal(destroyCalls, 0);
   completeCreation();
   await Promise.all([creation, destruction]);

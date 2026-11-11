@@ -20,8 +20,6 @@ export type NativeOfflineEvents = SharedObject<OfflineEvents>;
 export interface NativeOffline extends SharedObject {
   /** @internal */
   readonly events: NativeOfflineEvents;
-  /** @internal */
-  initialize(): Promise<void>;
   state(): Promise<import('./offlineState').OfflineState>;
   getOptions(): Promise<void>;
   download(request: OfflineDownloadRequest): Promise<void>;

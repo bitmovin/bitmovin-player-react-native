@@ -6,7 +6,14 @@ const peers = new WeakMap();
 function controlFor(peer) {
   const state = peers.get(peer);
   if (!state) return Promise.resolve(peer);
-  return state.ready ?? peer.initialize().then(() => state.control);
+  state.ready ??= Promise.resolve()
+    .then(() => state.factory(...state.args))
+    .then((control) => {
+      state.control = control;
+      if (!control.events) Object.assign(control, emitterFor(state));
+      return control;
+    });
+  return state.ready;
 }
 function emitterFor(state) {
   return {
@@ -22,7 +29,7 @@ function emitterFor(state) {
 function nativeClass(factory, methods, { synchronous = false } = {}) {
   class BoundaryObject {
     constructor(...args) {
-      const state = { args, emitter: new EventEmitter() };
+      const state = { args, factory, emitter: new EventEmitter() };
       peers.set(this, state);
       if (synchronous) {
         state.control = factory(...args);
@@ -30,17 +37,6 @@ function nativeClass(factory, methods, { synchronous = false } = {}) {
           Object.assign(state.control, emitterFor(state));
         state.ready = Promise.resolve(state.control);
       }
-    }
-    initialize() {
-      const state = peers.get(this);
-      state.ready ??= Promise.resolve()
-        .then(() => factory(...state.args))
-        .then((control) => {
-          state.control = control;
-          if (!control.events) Object.assign(control, emitterFor(state));
-          return control;
-        });
-      return state.ready.then(() => undefined);
     }
     addListener(event, listener) {
       return emitterFor(peers.get(this)).addListener(event, listener);
@@ -70,6 +66,13 @@ function nativeClass(factory, methods, { synchronous = false } = {}) {
     BoundaryObject.prototype[name] = async function (...args) {
       const state = peers.get(this);
       if (name === 'destroy') {
+        if (!state.ready) {
+          state.ready = Promise.reject(
+            new Error('Destroyed before SDK creation')
+          );
+          void state.ready.catch(() => {});
+          return;
+        }
         try {
           await controlFor(this);
         } catch {

@@ -171,13 +171,12 @@ export default function OfflinePlayback() {
       async function updateDownloadState() {
         setDownloadState(await newOfflineContentManager.state());
       }
-      async function initializeOffline() {
-        await newOfflineContentManager.initialize();
+      async function setupOffline() {
         setOfflineContentManager(newOfflineContentManager);
         void updateDownloadState().catch(console.error);
         await newOfflineContentManager.getOptions();
       }
-      void initializeOffline().catch(console.error);
+      void setupOffline().catch(console.error);
 
       return () => {
         removeOfflineContentManagerListener();

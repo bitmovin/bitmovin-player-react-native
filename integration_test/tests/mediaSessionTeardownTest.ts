@@ -22,7 +22,7 @@ export default (spec: TestScope) => {
           mediaControlConfig: { isEnabled: true },
         });
         try {
-          await destroyed.initialize();
+          await destroyed.isMuted();
         } finally {
           await destroyed.destroy();
         }

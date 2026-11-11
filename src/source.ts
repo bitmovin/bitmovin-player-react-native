@@ -152,7 +152,6 @@ export interface SourceConfig {
  */
 export class Source extends NativeSource {
   readonly config?: SourceConfig;
-  declare private readonly ready: Promise<void>;
 
   constructor(config: SourceConfig) {
     const callbacks = new NativeConfigSerializer();
@@ -165,10 +164,6 @@ export class Source extends NativeSource {
     this.config = config;
     this.drm = new SourceDrmApi(this);
     bindNativeMethods(this, Source.prototype);
-    this.ready = super.initialize().then(() => {
-      this.isInitialized = true;
-    });
-    void this.ready.catch(() => {});
   }
 
   /**
@@ -178,13 +173,11 @@ export class Source extends NativeSource {
    */
   static fromNative(native: NativeSource): Source {
     return adoptNative(native, Source.prototype, (owner) => {
-      if (!Object.hasOwn(owner, 'ready')) {
+      if (!Object.hasOwn(owner, 'drm')) {
         // This native peer skipped the JS constructor; install the same instance fields once.
         Object.assign(owner, {
           config: owner.configSnapshot,
           drm: new SourceDrmApi(owner),
-          isInitialized: true,
-          ready: Promise.resolve(),
         });
         bindNativeMethods(owner, Source.prototype);
       }
@@ -199,18 +192,6 @@ export class Source extends NativeSource {
   declare readonly drm: SourceDrmApi;
 
   /**
-   * Whether the native {@link Source} object has been created.
-   */
-  isInitialized = false;
-
-  /**
-   * Waits for the native {@link Source} creation started by the constructor.
-   */
-  initialize(): Promise<void> {
-    return this.ready;
-  }
-
-  /**
    * Subscribes to native events, even without a PlayerView. For example,
    * `await source.on('sourceLoaded', listener)`.
    * Use `event` to listen to all supported native object events.
@@ -221,14 +202,7 @@ export class Source extends NativeSource {
     event: Name,
     listener: SourceEvents[Name]
   ): Promise<EventSubscription> {
-    const subscription = subscribeToNativeEvent(this, event, listener);
-    try {
-      await this.initialize();
-      return await subscription;
-    } catch (error) {
-      (await subscription).remove();
-      throw error;
-    }
+    return subscribeToNativeEvent(this, event, listener);
   }
 
   /**
