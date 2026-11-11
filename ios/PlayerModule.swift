@@ -258,6 +258,7 @@ public class PlayerModule: Module {
             guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
                   let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self),
                   let source = sourceModule.retrieve(sourceNativeId) else { return }
+            try Self.throwIfAttachedToAnotherPlayer([source], player: player)
             player.load(source: source)
         }.runOnQueue(.main)
         AsyncFunction("loadPlaylist") { [weak self] (nativeId: NativeId, sourceNativeIds: [NativeId], options: [String: Any]?) in // swiftlint:disable:this line_length
@@ -326,16 +327,22 @@ public class PlayerModule: Module {
                 description: "Source \(sourceNativeId) is part of the playlist more than once"
             )
         }
-        // The SDK raises a `fatalError` for a source attached to another player. Sources of this player's
-        // current session are fine, as loading unloads the session first.
+        try throwIfAttachedToAnotherPlayer(sources, player: player)
+    }
+
+    /// The SDK raises a `fatalError` for a source attached to another player. Sources of this player's current
+    /// session are fine, as loading unloads the session first.
+    private static func throwIfAttachedToAnotherPlayer(_ sources: [Source], player: Player) throws {
         let sessionSources = Set(player.playlist.sources.map { ObjectIdentifier($0 as AnyObject) })
-        for (source, sourceNativeId) in sourcesWithNativeIds
-        where source.isAttachedToPlayer && !sessionSources.contains(ObjectIdentifier(source as AnyObject)) {
-            throw Exception(
-                name: "SOURCE_ALREADY_ATTACHED",
-                description: "Source \(sourceNativeId) is already attached to another player"
-            )
+        let attached = sources.first { source in
+            source.isAttachedToPlayer && !sessionSources.contains(ObjectIdentifier(source as AnyObject))
         }
+        guard let attached else { return }
+        let sourceNativeId = SourceRegistry.nativeId(of: attached) ?? "unknown"
+        throw Exception(
+            name: "SOURCE_ALREADY_ATTACHED",
+            description: "Source \(sourceNativeId) is already attached to another player"
+        )
     }
 
     private func setupRemoteControlConfig(_ remoteControlConfig: RemoteControlConfig) {

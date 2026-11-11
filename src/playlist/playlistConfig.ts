@@ -2,6 +2,8 @@ import type { Source } from '../source';
 
 /**
  * Defines where playback starts when replaying a finished playlist.
+ *
+ * @experimental
  */
 export enum ReplayMode {
   /**
@@ -16,6 +18,8 @@ export enum ReplayMode {
 
 /**
  * Configures the behavior of a playlist.
+ *
+ * @experimental
  */
 export interface PlaylistOptions {
   /**
@@ -36,6 +40,8 @@ export interface PlaylistOptions {
 
 /**
  * Configures a playlist that can be loaded into a {@link Player} via {@link Player.loadPlaylist}.
+ *
+ * @experimental
  */
 export interface PlaylistConfig {
   /**

@@ -11,6 +11,7 @@ import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.playlist.PlaylistConfig
 import com.bitmovin.player.api.playlist.PlaylistOptions
+import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
@@ -343,6 +344,7 @@ class PlayerModule : Module() {
             val player = PlayerRegistry.getPlayer(nativeId)
             val source = appContext.registry.getModule<SourceModule>()?.getSourceOrNull(sourceNativeId)
             if (player != null && source != null) {
+                player.throwIfAttachedToAnotherPlayer(listOf(source))
                 player.load(source)
             }
         }.runOnQueue(Queues.MAIN)
@@ -353,12 +355,27 @@ class PlayerModule : Module() {
             val sources = sourceNativeIds.map {
                 SourceRegistry.getSource(it) ?: throw SourceException.SourceNotInitialized(it)
             }
+            player.throwIfAttachedToAnotherPlayer(sources)
             player.load(PlaylistConfig(sources, options?.toPlaylistOptions() ?: PlaylistOptions()))
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("source") { nativeId: NativeId ->
             PlayerRegistry.getPlayer(nativeId)?.source?.let { SourceRegistry.getNativeId(it) }
         }.runOnQueue(Queues.MAIN)
+    }
+
+    /**
+     * The SDK only checks for sources attached to another player while it sets up the new playback session, after
+     * unloading the current one. If the check fails there, the player cannot load any source afterwards.
+     * Sources of this player's current session are fine, as loading unloads the session first.
+     */
+    private fun Player.throwIfAttachedToAnotherPlayer(sources: List<Source>) {
+        val sessionSources = playlist.sources
+        val attached = sources
+            .filter { !sessionSources.contains(it) }
+            .firstOrNull { it.isAttachedToPlayer }
+            ?: return
+        throw SourceException.SourceAlreadyAttached(SourceRegistry.getNativeId(attached) ?: "unknown")
     }
 
     private fun initializePlayer(

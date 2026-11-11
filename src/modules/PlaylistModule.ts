@@ -16,13 +16,17 @@ declare class PlaylistModule extends NativeModule<PlaylistModuleEvents> {
 
   /**
    * Remove a source from the playback session.
+   *
+   * @returns whether the source was removed.
    */
-  remove(nativeId: string, sourceNativeId: string): Promise<void>;
+  remove(nativeId: string, sourceNativeId: string): Promise<boolean>;
 
   /**
    * Remove the source at `index` from the playback session.
+   *
+   * @returns the native id of the removed source, or `null` if none was removed.
    */
-  removeAt(nativeId: string, index: number): Promise<void>;
+  removeAt(nativeId: string, index: number): Promise<string | null>;
 
   /**
    * Seek to `time` in a source of the playback session.

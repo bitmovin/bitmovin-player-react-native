@@ -21,6 +21,7 @@ import { PlaylistApi } from './playlist';
 import { validatePlaylistConfig } from './playlist/validatePlaylistConfig';
 import type { PlayerEventMap } from './eventMap';
 import { EventListeners } from './utils/eventListeners';
+import { getSourceOwner, setSourceOwner } from './utils/sourceOwners';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -63,8 +64,14 @@ export class Player extends NativeInstance<PlayerConfig> {
   private readonly knownSources = new Map<string, Source>();
   /**
    * The {@link PlaylistApi} for interactions regarding the playlist of the playback session.
+   *
+   * @experimental
    */
-  playlist: PlaylistApi = new PlaylistApi(this.nativeId, this.knownSources);
+  playlist: PlaylistApi = new PlaylistApi(
+    this.nativeId,
+    this.knownSources,
+    (sources) => this.takeOwnership(sources)
+  );
 
   private network?: Network;
 
@@ -126,6 +133,15 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Destroys the native `Player` and releases all of its allocated resources.
+   *
+   * Also destroys every {@link Source} this player was the last to load or add to its playlist, including ones
+   * it no longer plays, e.g. after {@link Player.unload} or a later load. A source loaded into another player
+   * since, or removed via {@link PlaylistApi.remove} or {@link PlaylistApi.removeAt}, is not destroyed.
+   *
+   * Known limitations:
+   * - Sources that left the player through {@link Player.unload} or a later load stay allocated until the player
+   *   is destroyed.
+   * - {@link Source.on} listeners do not receive the final `sourceUnloaded` when the player is destroyed.
    */
   destroy = () => {
     if (!this.isDestroyed) {
@@ -133,7 +149,11 @@ export class Player extends NativeInstance<PlayerConfig> {
       void PlayerModule.destroy(this.nativeId).finally(() => {
         this.eventListeners.removeAll();
       });
-      this.knownSources.forEach((source) => void source.destroy());
+      this.knownSources.forEach((source) => {
+        if (getSourceOwner(source) === this.nativeId) {
+          source.destroy();
+        }
+      });
       this.knownSources.clear();
       void this.network?.destroy();
       void this.decoderConfig?.destroy();
@@ -201,12 +221,34 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Loads the given {@link Source} into the player.
+   * The player destroys the source when it is destroyed, see {@link Player.destroy}.
    */
   loadSource = (source: Source) => {
     this.knownSources.set(source.nativeId, source);
     void source
       .initialize()
-      .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId));
+      .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId))
+      .then(() => this.takeOwnership([source]));
+  };
+
+  /**
+   * Makes this player the owner of `sources` after native attached them to it, so that it destroys them with
+   * itself. Called in the order native ran the loads, adds and removes, so the last one wins.
+   */
+  private takeOwnership = (sources: Source[]) => {
+    if (!this.isDestroyed) {
+      sources.forEach((source) => {
+        // A `remove` of the source that native ran before can resolve after the load or add registered it.
+        this.knownSources.set(source.nativeId, source);
+        setSourceOwner(source, this.nativeId);
+      });
+      return;
+    }
+    // The player was destroyed while the load was pending, so native did not attach the sources. Destroy the
+    // ones no other player owns, as nobody else would.
+    sources
+      .filter((source) => getSourceOwner(source) === undefined)
+      .forEach((source) => source.destroy());
   };
 
   /**
@@ -232,8 +274,21 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * On iOS and tvOS, only HLS, progressive and `movpkg` sources can be part of a playlist.
    *
+   * The player destroys the sources when it is destroyed, unless they were loaded into another player since or
+   * removed via {@link PlaylistApi.remove} or {@link PlaylistApi.removeAt}; see {@link Player.destroy}.
+   *
    * Throws if `sources` is empty or contains a source more than once, `options.replayMode` is unknown, a source
    * was destroyed, or (on iOS and tvOS) a source has an unsupported type.
+   *
+   * Known limitations:
+   * - Sources that left the player through {@link Player.unload} or a later load stay allocated until the player
+   *   is destroyed.
+   * - Sources removed via {@link PlaylistApi.remove} or {@link PlaylistApi.removeAt} are not destroyed with the
+   *   player and must be destroyed via {@link Source.destroy} once they are no longer needed.
+   *
+   * See {@link Player.destroy} for all known limitations of the source lifecycle.
+   *
+   * @experimental
    */
   loadPlaylist = (playlistConfig: PlaylistConfig) => {
     validatePlaylistConfig(playlistConfig);
@@ -242,13 +297,15 @@ export class Player extends NativeInstance<PlayerConfig> {
     );
     void Promise.all(
       playlistConfig.sources.map((source) => source.initialize())
-    ).then(() =>
-      PlayerModule.loadPlaylist(
-        this.nativeId,
-        playlistConfig.sources.map((source) => source.nativeId),
-        playlistConfig.options
+    )
+      .then(() =>
+        PlayerModule.loadPlaylist(
+          this.nativeId,
+          playlistConfig.sources.map((source) => source.nativeId),
+          playlistConfig.options
+        )
       )
-    );
+      .then(() => this.takeOwnership(playlistConfig.sources));
   };
 
   /**
