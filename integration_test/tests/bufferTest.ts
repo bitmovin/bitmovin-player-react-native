@@ -12,10 +12,13 @@ export default (spec: TestScope) => {
   spec.describe('buffer API', () => {
     spec.it('shares buffer targets with compatibility aliases', async () => {
       await startPlayerTest({}, async () => {
-        await loadSourceConfig(Sources.artOfMotionHls);
         await callPlayer(async (player) => {
           const alias = new Player({ nativeId: player.nativeId });
           await alias.buffer.setTargetLevel(BufferType.FORWARD_DURATION, 12);
+        });
+        // The SDK applies buffer settings on its playback thread during source preparation.
+        await loadSourceConfig(Sources.artOfMotionHls);
+        await callPlayer(async (player) => {
           const levels = await player.buffer.getLevel(
             BufferType.FORWARD_DURATION
           );
