@@ -7,6 +7,11 @@ function testSuite(name, platforms, load) {
 
 const testRegistrations = [
   testSuite(
+    'media-session',
+    ['android'],
+    () => require('./mediaSessionTeardownTest').default
+  ),
+  testSuite(
     'offline',
     androidAndIos,
     () => require('./offlineOptionsTest').default
