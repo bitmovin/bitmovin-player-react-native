@@ -34,13 +34,17 @@ function fixture(t) {
   fs.writeFileSync(path.join(expo, 'index.js'), 'module.exports = {};');
   const callbacks = new WeakMap();
   require(expo).requireNativeModule = () => ({
-    create(callback) {
+    create(config, callback) {
+      if (callback == null) {
+        callback = config;
+        config = undefined;
+      }
       const native = {
         setIsFullscreenActive: async () => {},
         sendMessage: async () => {},
         destroy: async () => callbacks.delete(native),
       };
-      callbacks.set(native, callback);
+      callbacks.set(native, { config, callback });
       return native;
     },
   });
@@ -52,7 +56,9 @@ function fixture(t) {
       path.join(output, 'ui/customMessageHandlerBridge')
     ).CustomMessageHandlerBridge,
     dispatch: (native, operation, args = []) =>
-      callbacks.get(native)(operation, args),
+      callbacks
+        .get(native)
+        .callback(callbacks.get(native).config?.[operation] ?? operation, args),
   };
 }
 

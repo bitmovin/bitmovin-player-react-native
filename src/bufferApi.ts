@@ -78,8 +78,7 @@ export class BufferApi {
    * @returns a {@link BufferLevels} that contains {@link BufferLevel} values for audio and video.
    */
   getLevel = async (type: BufferType): Promise<BufferLevels> => {
-    return ((await (await this.nativePlayer()).getBufferLevel(type)) ??
-      null) as BufferLevels;
+    return (await this.nativePlayer()).getBufferLevel(type);
   };
 
   /**

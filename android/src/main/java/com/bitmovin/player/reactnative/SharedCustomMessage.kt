@@ -7,19 +7,23 @@ import expo.modules.kotlin.jni.JavaScriptFunction
 import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.sharedobjects.SharedObject
 
-class SharedCustomMessage(appContext: AppContext, callback: JavaScriptFunction<JavaScriptValue>?) : SharedObject(
-    appContext,
-) {
+class SharedCustomMessage(
+    appContext: AppContext,
+    config: Map<String, String>,
+    callback: JavaScriptFunction<JavaScriptValue>?,
+) : SharedObject(appContext) {
+    private val synchronousMessage = requireNotNull(config["synchronousMessage"])
+    private val asynchronousMessage = requireNotNull(config["asynchronousMessage"])
     private val callbacks = CallbackScope(appContext, callback)
     val customMessageHandler = CustomMessageHandler(
         object : Any() {
             @JavascriptInterface
             fun sendSynchronous(name: String, data: String?): String? =
-                callbacks.call("synchronousMessage", listOf(name, data)) as? String
+                callbacks.call(synchronousMessage, listOf(name, data)) as? String
 
             @JavascriptInterface
             fun sendAsynchronous(name: String, data: String?) =
-                callbacks.notify("asynchronousMessage", listOf(name, data))
+                callbacks.notify(asynchronousMessage, listOf(name, data))
         },
     )
     fun destroy() = callbacks.close()
