@@ -239,7 +239,6 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         config: Map<String, Any>?,
     ) {
         check(!owner.player.isDestroyed) { "Cannot attach a destroyed player" }
-        if (sharedPlayer !== owner) releasePlayerView()
         configure(config ?: emptyMap())
         attachFullscreenHandler(fullscreen)
         attachCustomMessageHandler(messages)

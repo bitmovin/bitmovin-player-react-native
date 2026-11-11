@@ -95,7 +95,7 @@ public class RNPlayerView: ExpoView {
 
     internal func setSharedPlayer(_ owner: SharedPlayer?) {
         guard sharedPlayer !== owner else { return }
-        detachSharedPlayer()
+        playerView?.player?.remove(listener: self)
         sharedPlayer = owner
     }
 
@@ -106,7 +106,7 @@ public class RNPlayerView: ExpoView {
     }
 
     internal func detachSharedPlayer() {
-        prepareForNewPlayerAttachment()
+        detachCurrentPlayer()
         sharedPlayer = nil
     }
 
@@ -125,11 +125,15 @@ public class RNPlayerView: ExpoView {
         }
 
         let previousPictureInPictureAvailableValue = playerView?.isPictureInPictureAvailable ?? false
-        self.playerView = PlayerView(
-            player: player,
-            frame: bounds,
-            playerViewConfig: playerViewConfigWrapper?.playerViewConfig ?? PlayerViewConfig()
-        )
+        if let playerView {
+            playerView.player = player
+        } else {
+            self.playerView = PlayerView(
+                player: player,
+                frame: bounds,
+                playerViewConfig: playerViewConfigWrapper?.playerViewConfig ?? PlayerViewConfig()
+            )
+        }
 
         player.add(listener: self)
         playerView?.add(listener: self)
@@ -249,27 +253,6 @@ private extension RNPlayerView {
             self.playerView?.exitPictureInPicture()
         }
 #endif
-    }
-
-    func prepareForNewPlayerAttachment() {
-        guard let playerView else {
-            return
-        }
-
-        // Avoid carrying over fullscreen/PiP state to a new player.
-        // Native PlayerView replaces its UI controller when the player instance changes, and does not
-        // support preserving fullscreen/PiP state across that swap. We tear down first to avoid stale state.
-        if playerView.isFullscreen {
-            playerView.exitFullscreen()
-        }
-        if playerView.isPictureInPicture {
-            playerView.exitPictureInPicture()
-        }
-
-        detachCurrentPlayer()
-
-        // Force a fresh PlayerView on next attach.
-        self.playerView = nil
     }
 }
 
