@@ -14,6 +14,8 @@ extension Source {
         ]
         if let metadata {
             json["metadata"] = metadata
+        } else if !sourceConfig.metadata.isEmpty {
+            json["metadata"] = sourceConfig.metadata
         }
         return json
     }

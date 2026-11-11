@@ -24,6 +24,8 @@
 
 ### Fixed
 
+- iOS: Include configured Source metadata in playlist event payloads before the Source is prepared
+
 - iOS: Preserve metadata set before loading a Source
 
 ### Changed
