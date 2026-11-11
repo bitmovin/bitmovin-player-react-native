@@ -71,11 +71,19 @@ function fixture(t, methods = {}) {
 test('play waits for native command acceptance', async (t) => {
   let accept;
   const pending = new Promise((resolve) => (accept = resolve));
-  const { Player } = fixture(t, { play: () => pending });
+  let notifyInvoked;
+  const invoked = new Promise((resolve) => (notifyInvoked = resolve));
+  const { Player } = fixture(t, {
+    play: () => {
+      notifyInvoked();
+      return pending;
+    },
+  });
   const player = new Player();
   await player.initialize();
   let completed = false;
   const playing = player.play().then(() => (completed = true));
+  await invoked;
   await Promise.resolve();
   assert.equal(completed, false);
   accept();
