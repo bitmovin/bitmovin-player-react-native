@@ -64,6 +64,7 @@ function fixture(t) {
     create: async (config, events) => {
       const owner = {
         config,
+        events,
         emit: (event) => events.emit(event),
         getState: async () => 'Downloaded',
         destroy: async () => {},

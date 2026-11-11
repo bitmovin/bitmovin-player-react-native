@@ -9,7 +9,6 @@ import type { OfflineDownloadRequest } from './offlineDownloadRequest';
 import type { OfflineState } from './offlineState';
 import OfflineModule, {
   type NativeOffline,
-  type NativeOfflineBackend,
   type NativeOfflineEvents,
 } from './offlineModule';
 import { legacyOfflineRegistry } from '../nativeInstanceRegistry';
@@ -87,17 +86,16 @@ export class OfflineContentManager {
     const serializer = new NativeConfigSerializer();
     const events = OfflineModule.createEvents();
     this.observeEvents(events);
-    let native: NativeOfflineBackend | undefined;
+    let native: NativeOffline | undefined;
     try {
-      const config = serializer.serialize(this.config);
-      delete config.nativeId;
+      const config = serializer.serialize({
+        identifier: this.config.identifier,
+        sourceConfig: this.config.sourceConfig,
+      });
       native = await serializer.dispatcher.createAsync((callback) =>
         OfflineModule.create(config, events, callback)
       );
-      const created = Object.defineProperty(native, 'events', {
-        value: events,
-      }) as NativeOffline;
-      return created;
+      return native;
     } catch (error) {
       this.eventSubscription?.remove();
       this.eventSubscription = undefined;

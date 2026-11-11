@@ -23,7 +23,10 @@ export interface NativeInstanceConfig {
 export class NativeInstanceRegistry<T extends SharedObject> {
   private readonly instances = new Map<string, WeakRef<Promise<T>>>();
 
-  create(nativeId: string | undefined, factory: () => Promise<T>) {
+  create(
+    nativeId: string | undefined,
+    factory: () => Promise<T>
+  ): { nativeId: string; native: Promise<T> } {
     const id = nativeId ?? Crypto.randomUUID();
     const cached =
       nativeId == null ? undefined : this.instances.get(nativeId)?.deref();

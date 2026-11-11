@@ -9,7 +9,7 @@ public class SourceModule: Module {
             let callback = try callback.map { try CallbackScope(callback: $0, context: appContext) }
             guard let sourceConfig = RCTConvert.sourceConfig(config, callback: callback) else {
                 callback?.close()
-                throw Exception(name: "InvalidSourceConfig", description: "Invalid source configuration")
+                throw Exception(name: "InvalidArgument", description: "Invalid source configuration")
             }
             let source: Source
             if let metadata = RCTConvert.analyticsSourceMetadata(analytics) {

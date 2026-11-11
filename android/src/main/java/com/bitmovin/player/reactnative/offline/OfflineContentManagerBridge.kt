@@ -21,7 +21,7 @@ class OfflineContentManagerBridge(
     private val identifier: String,
     source: SourceConfig,
     location: String,
-    private val events: SharedOfflineEvents,
+    val events: SharedOfflineEvents,
     private val callbacks: CallbackScope,
 ) : SharedObject(appContext), OfflineContentManagerListener {
     private var contentOptions: OfflineContentOptions? = null

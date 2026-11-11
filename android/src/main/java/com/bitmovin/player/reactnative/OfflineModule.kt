@@ -4,7 +4,7 @@ import com.bitmovin.player.reactnative.converter.toOfflineDownloadRequest
 import com.bitmovin.player.reactnative.converter.toSourceConfig
 import com.bitmovin.player.reactnative.extensions.getMap
 import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
-import expo.modules.kotlin.exception.CodedException
+import expo.modules.core.errors.InvalidArgumentException
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.jni.JavaScriptFunction
 import expo.modules.kotlin.jni.JavaScriptValue
@@ -17,11 +17,12 @@ class OfflineModule : Module() {
         events: SharedOfflineEvents,
         callback: JavaScriptFunction<JavaScriptValue>?,
     ): OfflineContentManagerBridge {
-        val identifier = requireNotNull(config?.get("identifier") as? String) { "Invalid identifier" }
+        val identifier = config?.get("identifier") as? String
+            ?: throw InvalidArgumentException("Invalid offline identifier")
         val callbacks = CallbackScope(appContext, callback)
         return callbacks.createSharedObject {
             val sourceConfig = config.getMap("sourceConfig")?.toSourceConfig(callbacks)
-                ?: throw OfflineException.InvalidSourceConfig()
+                ?: throw InvalidArgumentException("Invalid source configuration")
             val context = checkNotNull(appContext.reactContext) { "ReactApplicationContext is not available" }
             OfflineContentManagerBridge(
                 appContext,
@@ -47,6 +48,8 @@ class OfflineModule : Module() {
             Events("onBitmovinOfflineEvent")
         }
         Class(OfflineContentManagerBridge::class) {
+            Property("events") { owner: OfflineContentManagerBridge -> owner.events }
+
             // Expo requires a constructor even when creation uses the asynchronous factory.
             Constructor { error("Use OfflineModule.create") }
 
@@ -68,8 +71,4 @@ class OfflineModule : Module() {
             AsyncFunction("destroy", OfflineContentManagerBridge::release)
         }
     }
-}
-
-sealed class OfflineException(message: String) : CodedException(message) {
-    class InvalidSourceConfig : OfflineException("Invalid source config")
 }

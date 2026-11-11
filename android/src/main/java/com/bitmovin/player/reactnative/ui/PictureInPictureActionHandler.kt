@@ -16,12 +16,6 @@ import com.bitmovin.player.api.Player
 import com.bitmovin.player.reactnative.PictureInPictureAction
 import com.bitmovin.player.reactnative.R
 
-internal interface PictureInPictureActionHandler {
-    fun updatePictureInPictureActions(actions: List<PictureInPictureAction>)
-    fun buildRemoteActions(): List<RemoteAction>
-    fun dispose()
-}
-
 private const val SEEK_INTERVAL_SECONDS = 10.0
 private const val REQUEST_CODE_PLAY_PAUSE = 100
 private const val REQUEST_CODE_SEEK_BACKWARD = 101
@@ -32,6 +26,12 @@ private const val ACTION_SEEK_FORWARD =
     "com.bitmovin.player.reactnative.ui.pictureinpicture.SEEK_FORWARD"
 private const val ACTION_SEEK_BACKWARD =
     "com.bitmovin.player.reactnative.ui.pictureinpicture.SEEK_BACKWARD"
+
+internal interface PictureInPictureActionHandler {
+    fun updatePictureInPictureActions(actions: List<PictureInPictureAction>)
+    fun buildRemoteActions(): List<RemoteAction>
+    fun dispose()
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 internal class DefaultPictureInPictureActionHandler(

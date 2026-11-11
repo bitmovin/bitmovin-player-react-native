@@ -129,7 +129,7 @@ function fixture(t) {
       create: (callback) => create('fullscreen', {}, callback),
     },
     CustomMessageHandlerModule: {
-      create: (callback) => create('custom-message', {}, callback),
+      create: (config, callback) => create('custom-message', config, callback),
     },
     NativeCallbacksModule: {},
     OfflineModule: {},

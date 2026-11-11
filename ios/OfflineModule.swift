@@ -18,7 +18,7 @@ public class OfflineModule: Module {
                   ) else {
                 callback?.close()
                 throw Exception(
-                    name: "InvalidOfflineConfig",
+                    name: "InvalidArgument",
                     description: "Invalid offline identifier or source configuration"
                 )
             }
@@ -36,6 +36,7 @@ public class OfflineModule: Module {
 #endif
         }.runOnQueue(.main)
         Class("OfflineContentManager", SharedOffline.self) {
+            Property("events") { (owner: SharedOffline) in owner.events }
             AsyncFunction("getState") { (owner: SharedOffline) -> String? in
 #if os(iOS)
                 RCTConvert.toJson(offlineState: owner.offlineContentManager.offlineState)

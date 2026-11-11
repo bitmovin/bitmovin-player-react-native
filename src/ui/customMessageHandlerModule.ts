@@ -10,7 +10,10 @@ export interface NativeCustomMessage extends SharedObject {
 }
 
 declare class CustomMessageHandlerModule extends NativeModule {
-  create(callback: NativeCallback): NativeCustomMessage;
+  create(
+    config: { synchronousMessage: string; asynchronousMessage: string },
+    callback: NativeCallback
+  ): NativeCustomMessage;
 }
 
 export default requireNativeModule<CustomMessageHandlerModule>(

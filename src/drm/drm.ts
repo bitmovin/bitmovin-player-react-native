@@ -23,10 +23,3 @@ export interface DrmConfig {
    */
   widevine?: WidevineConfig;
 }
-
-/**
- * Contains streaming DRM configuration. Runtime operations are available through {@link Source.drm}.
- */
-export class Drm {
-  constructor(readonly config?: DrmConfig) {}
-}

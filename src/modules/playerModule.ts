@@ -5,14 +5,14 @@ import { requireNativeModule } from 'expo-modules-core';
 import type { NativeCallback } from '../native/nativeCallbacks';
 import type { NativeOffline } from '../offline/offlineModule';
 import type { NativeSource } from './sourceModule';
-import type { BufferLevels } from '../bufferApi';
+import type { BufferLevels, BufferType } from '../bufferApi';
 import type { PlaylistOptions, SeekTarget } from '../playlist';
 
 export type PlayerModuleEvents = PlayerEvents;
 
 /** @internal */
 export interface NativePlayer extends SharedObject<PlayerModuleEvents> {
-  getBufferLevel(type: string): Promise<BufferLevels | null>;
+  getBufferLevel(type: BufferType): Promise<BufferLevels>;
 
   setBufferTargetLevel(type: string, value: number): Promise<void>;
 

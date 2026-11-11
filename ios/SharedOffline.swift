@@ -3,7 +3,7 @@ import ExpoModulesCore
 import Foundation
 
 public final class SharedOffline: SharedObject {
-    private let events: SharedOfflineEvents
+    let events: SharedOfflineEvents
 #if os(iOS)
     let offlineContentManager: OfflineContentManager
     let bridge: OfflineContentManagerBridge

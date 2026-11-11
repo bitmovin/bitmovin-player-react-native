@@ -32,6 +32,7 @@ import com.bitmovin.player.api.buffer.BufferMediaTypeConfig
 import com.bitmovin.player.api.buffer.BufferType
 import com.bitmovin.player.api.casting.RemoteControlConfig
 import com.bitmovin.player.api.decoder.DecoderConfig
+import com.bitmovin.player.api.decoder.DecoderPriorityProvider
 import com.bitmovin.player.api.decoder.DecoderPriorityProvider.DecoderContext
 import com.bitmovin.player.api.decoder.MediaCodecInfo
 import com.bitmovin.player.api.deficiency.DeficiencyData
@@ -89,11 +90,11 @@ import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.api.ui.SurfaceType
 import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.CallbackScope
-import com.bitmovin.player.reactnative.ImaBeforeInitializationConfigurator
 import com.bitmovin.player.reactnative.PictureInPictureAction
 import com.bitmovin.player.reactnative.PictureInPictureConfig
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.UserInterfaceType
+import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
 import com.bitmovin.player.reactnative.extensions.get
 import com.bitmovin.player.reactnative.extensions.getArray
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
@@ -124,6 +125,25 @@ private fun Map<String, Any?>.filterNotNullValues(): Map<String, Any> =
 
 private inline fun MutableMap<String, Any>.putIfNotNull(key: String, value: Any?) {
     value?.let { put(key, it) }
+}
+
+fun Map<String, Any?>?.toDecoderConfig(callbacks: CallbackScope): DecoderConfig? {
+    if (this == null) return null
+    val token = getMap("decoderPriorityProvider")?.getString("overrideDecodersPriority")
+    return DecoderConfig(
+        decoderPriorityProvider = object : DecoderPriorityProvider {
+            override fun overrideDecodersPriority(
+                context: DecoderPriorityProvider.DecoderContext,
+                preferredDecoders: List<MediaCodecInfo>,
+            ): List<MediaCodecInfo> {
+                @Suppress("UNCHECKED_CAST")
+                val result = token?.let {
+                    callbacks.call(it, listOf(context.toJson(), preferredDecoders.map { it.toJson() }))
+                } as? List<Map<String, Any?>>
+                return result?.toMediaCodecInfoList() ?: preferredDecoders
+            }
+        },
+    )
 }
 
 fun Map<String, Any?>.toPlayerConfig(callbacks: CallbackScope): PlayerConfig = PlayerConfig(
@@ -258,7 +278,7 @@ fun Map<String, Any?>.toAdvertisingConfig(callbacks: CallbackScope): Advertising
             } ?: shouldPlayAdBreak,
         )
     }
-    return ImaBeforeInitializationConfigurator.configure(this, config, callbacks)
+    return configureIma(config, callbacks)
 }
 
 fun Map<String, Any?>.toAdItem(): AdItem? {
@@ -803,6 +823,16 @@ fun OfflineOptionEntry.toJson(): Map<String, Any> = mapOf(
     "language" to language,
 ).filterNotNullValues()
 
+fun Map<String, Any?>.toOfflineDownloadRequest(): OfflineDownloadRequest {
+    // JS numbers arrive as Double; Android's offline rendition selection uses Int bitrates.
+    val minimumBitrate = (get("minimumBitrate") as? Number)?.toInt()
+    return OfflineDownloadRequest(
+        minimumBitrate,
+        (get("audioOptionIds") as? List<*>)?.filterIsInstance<String>(),
+        (get("textOptionIds") as? List<*>)?.filterIsInstance<String>(),
+    )
+}
+
 fun OfflineContentOptions.toJson(): Map<String, Any> = mapOf(
     "audioOptions" to audioOptions.map { it.toJson() },
     "textOptions" to textOptions.map { it.toJson() },
@@ -1102,6 +1132,7 @@ fun DateRangeMetadata.toJson(): Map<String, Any> {
 
     return mapOf(
         "metadataType" to "DATERANGE",
+        "platform" to "android",
         "id" to id,
         "relativeTimeRange" to relativeTimeRange,
         "endOnNext" to endOnNext,
@@ -1123,6 +1154,7 @@ fun EventMessage.toJson(): Map<String, Any> = mapOf(
 
 private fun Id3Frame.toJson(): Map<String, Any> = buildMap {
     put("metadataType", "ID3")
+    put("platform", "android")
     put("id", id)
 
     when (this@toJson) {

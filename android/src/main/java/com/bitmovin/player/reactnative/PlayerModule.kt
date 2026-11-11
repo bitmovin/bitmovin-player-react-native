@@ -5,6 +5,7 @@ import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.api.playlist.PlaylistConfig
 import com.bitmovin.player.api.playlist.PlaylistOptions
 import com.bitmovin.player.api.playlist.SeekTarget
+import com.bitmovin.player.reactnative.converter.IS_GOOGLE_IMA_ENABLED
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
 import com.bitmovin.player.reactnative.converter.toBufferTypeOrThrow
@@ -23,7 +24,7 @@ class PlayerModule : Module() {
 
     override fun definition() = ModuleDefinition {
         Name("PlayerModule")
-        Constant("isGoogleImaEnabled") { ImaBeforeInitializationConfigurator.IS_GOOGLE_IMA_ENABLED }
+        Constant("isGoogleImaEnabled") { IS_GOOGLE_IMA_ENABLED }
         AsyncFunction("create") { config: Map<String, Any>?, analytics: Map<String, Any>?,
             callback: JavaScriptFunction<JavaScriptValue>?, ->
             SharedPlayer.create(appContext, config, analytics, callback, mediaSessionPlaybackManager)
