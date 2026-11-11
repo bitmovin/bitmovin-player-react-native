@@ -86,10 +86,10 @@ public class RNPlayerView: ExpoView {
         guard !(try owner.player).isDestroyed else {
             throw Exception(name: "DestroyedPlayer", description: "Cannot attach a destroyed player")
         }
+        setSharedPlayer(owner)
         configurePlayer(playerViewConfig: RCTConvert.rnPlayerViewConfig(config?["playerViewConfig"]))
         setFullscreenHandler(fullscreen)
         setCustomMessageHandler(messages)
-        setSharedPlayer(owner)
         attachConfiguredPlayer()
     }
 

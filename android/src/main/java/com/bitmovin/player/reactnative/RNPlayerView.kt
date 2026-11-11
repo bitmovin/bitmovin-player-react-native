@@ -142,6 +142,19 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     fun dispose() {
         sharedPlayer = null
         playerInMediaSessionService = null
+        releasePlayerView()
+
+        activityLifecycle?.removeObserver(activityLifecycleObserver)
+        viewTreeObserver.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(globalLayoutListener)
+        pictureInPictureActions = null
+
+        // cleanup all children views explicitly,
+        // so that in case react native does some view caching we are 100% the child views of this view
+        // are cleaned up from the view hierarchy
+        removeAllViews()
+    }
+
+    private fun releasePlayerView() {
         playerView?.let { view ->
             view.setPictureInPictureHandler(null)
             // keep the player alive (before calling PlayerView.onDestroy,
@@ -167,15 +180,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
         playerContainer = null
 
-        activityLifecycle?.removeObserver(activityLifecycleObserver)
-        viewTreeObserver.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(globalLayoutListener)
         reparentHelper.dispose()
-        pictureInPictureActions = null
-
-        // cleanup all children views explicitly,
-        // so that in case react native does some view caching we are 100% the child views of this view
-        // are cleaned up from the view hierarchy
-        removeAllViews()
     }
 
     private fun setPlayerView(playerView: PlayerView) {
@@ -234,6 +239,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         config: Map<String, Any>?,
     ) {
         check(!owner.player.isDestroyed) { "Cannot attach a destroyed player" }
+        if (sharedPlayer !== owner) releasePlayerView()
         configure(config ?: emptyMap())
         attachFullscreenHandler(fullscreen)
         attachCustomMessageHandler(messages)
