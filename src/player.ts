@@ -130,6 +130,16 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Also destroys every {@link Source} loaded into the player or added to its playlist, including ones it no longer
    * plays, e.g. after {@link Player.unload} or a later load. Sources removed via {@link PlaylistApi.remove} or
    * {@link PlaylistApi.removeAt} are not destroyed.
+   *
+   * Known limitations:
+   * - A source that left the player through {@link Player.unload} or a later load is destroyed too, even if it
+   *   was loaded into another player since. To move a source to another player, remove it via
+   *   {@link PlaylistApi.remove} first (not possible for the active source), or use a new {@link Source} for the
+   *   other player.
+   * - A source passed to a load or {@link PlaylistApi.add} that failed, e.g. because the source is attached to
+   *   another player, is destroyed too.
+   * - Sources that left the player through {@link Player.unload} or a later load stay allocated until the player
+   *   is destroyed.
    */
   destroy = () => {
     if (!this.isDestroyed) {
@@ -205,6 +215,7 @@ export class Player extends NativeInstance<PlayerConfig> {
 
   /**
    * Loads the given {@link Source} into the player.
+   * The player destroys the source when it is destroyed, see {@link Player.destroy}.
    */
   loadSource = (source: Source) => {
     this.knownSources.set(source.nativeId, source);
@@ -235,6 +246,9 @@ export class Player extends NativeInstance<PlayerConfig> {
    * via the advertising config only apply to the first source.
    *
    * On iOS and tvOS, only HLS, progressive and `movpkg` sources can be part of a playlist.
+   *
+   * The player destroys the sources when it is destroyed, unless they were removed via {@link PlaylistApi.remove}
+   * or {@link PlaylistApi.removeAt}; see {@link Player.destroy}.
    *
    * Throws if `sources` is empty or contains a source more than once, `options.replayMode` is unknown, a source
    * was destroyed, or (on iOS and tvOS) a source has an unsupported type.
