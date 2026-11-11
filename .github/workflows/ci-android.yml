@@ -125,7 +125,7 @@ jobs:
       - name: Verify Google IMA runtime dependency is present
         run: |
           cd example/android
-          ./gradlew :app:dependencies --configuration debugRuntimeClasspath \
+          ./gradlew :app:dependencies --no-configuration-cache --configuration debugRuntimeClasspath \
             --quiet --console=plain --no-daemon \
             > "$RUNNER_TEMP/android-example-runtime-dependencies.txt"
           if ! grep -q 'com.google.ads.interactivemedia.v3:interactivemedia' \
@@ -174,7 +174,7 @@ jobs:
       - name: Verify Google IMA runtime dependency is absent
         run: |
           cd integration_test/android
-          ./gradlew :app:dependencies --configuration debugRuntimeClasspath \
+          ./gradlew :app:dependencies --no-configuration-cache --configuration debugRuntimeClasspath \
             --quiet --console=plain --no-daemon \
             > "$RUNNER_TEMP/android-integration-runtime-dependencies.txt"
           if grep -q 'com.google.ads.interactivemedia.v3:interactivemedia' \
