@@ -509,6 +509,63 @@ export default (spec: TestScope) => {
       }
     );
 
+    spec.it(
+      'resolves a source that is removed and loaded again at the same time',
+      async () => {
+        const player = createPlayer();
+        try {
+          await player.initialize();
+          const first = new Source(Sources.artOfMotionHls);
+          const second = new Source(Sources.sintel);
+          player.loadPlaylist({ sources: [first, second] });
+          expect(await untilActive(player, first), 'Loaded').toBeTruthy();
+
+          const removal = player.playlist.remove(second);
+          player.loadPlaylist({ sources: [second] });
+          await removal;
+
+          expect(
+            await untilActive(player, second),
+            'Loaded source resolved'
+          ).toBeTruthy();
+          const sources = await player.playlist.getSources();
+          expect(sources, 'Sources of the playlist').toHaveLength(1);
+          expect(sources[0], 'Source of the playlist').toBe(second);
+          player.destroy();
+          expect(second.isDestroyed, 'Loaded source destroyed').toBeTruthy();
+        } finally {
+          player.destroy();
+        }
+      }
+    );
+
+    spec.it(
+      'resolves a source that is removed by index and loaded again at the same time',
+      async () => {
+        const player = createPlayer();
+        try {
+          await player.initialize();
+          const first = new Source(Sources.artOfMotionHls);
+          const second = new Source(Sources.sintel);
+          player.loadPlaylist({ sources: [first, second] });
+          expect(await untilActive(player, first), 'Loaded').toBeTruthy();
+
+          const removal = player.playlist.removeAt(1);
+          player.loadSource(second);
+          await removal;
+
+          expect(
+            await untilActive(player, second),
+            'Loaded source resolved'
+          ).toBeTruthy();
+          player.destroy();
+          expect(second.isDestroyed, 'Loaded source destroyed').toBeTruthy();
+        } finally {
+          player.destroy();
+        }
+      }
+    );
+
     spec.it('rejects adding a DASH source on iOS', async () => {
       // The iOS SDK only supports HLS, progressive and movpkg sources in a playlist.
       if (Platform.OS !== 'ios') {

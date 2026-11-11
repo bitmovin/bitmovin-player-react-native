@@ -61,8 +61,6 @@ export class PlaylistApi {
     this.knownSources.set(source.nativeId, source);
     await source.initialize();
     await PlaylistModule.add(this.nativeId, source.nativeId, index);
-    // A concurrent `remove` of this source can resolve between the two `set`s and delete it, so set it again.
-    this.knownSources.set(source.nativeId, source);
     this.takeOwnership([source]);
   };
 

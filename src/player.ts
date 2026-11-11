@@ -235,7 +235,11 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   private takeOwnership = (sources: Source[]) => {
     if (!this.isDestroyed) {
-      sources.forEach((source) => setSourceOwner(source, this.nativeId));
+      sources.forEach((source) => {
+        // A `remove` of the source that native ran before can resolve after the load or add registered it.
+        this.knownSources.set(source.nativeId, source);
+        setSourceOwner(source, this.nativeId);
+      });
       return;
     }
     // The player was destroyed while the load was pending, so native did not attach the sources. Destroy the
