@@ -15,6 +15,7 @@ public final class SharedCallbackResult: SharedObject {
         scope.condition.lock()
         guard let completion else { scope.condition.unlock(); return }
         self.completion = nil
+        scope.detach(self)
         let result = scope.isClosed ? nil : value
         scope.condition.unlock()
         completion(result)

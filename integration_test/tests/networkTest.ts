@@ -5,6 +5,7 @@ import {
   HttpResponse,
 } from 'bitmovin-player-react-native';
 import {
+  callPlayer,
   callPlayerAndExpectEvent,
   EventType,
   startPlayerTest,
@@ -14,6 +15,36 @@ import { expect } from './helper/Expect';
 
 export default (spec: TestScope) => {
   spec.describe('network preprocessing', () => {
+    spec.it(
+      'destroys a Player with an unresolved preprocessing callback',
+      async () => {
+        let invoked!: () => void;
+        const pendingRequest = new Promise<void>((resolve) => {
+          invoked = resolve;
+        });
+        await startPlayerTest(
+          {
+            networkConfig: {
+              preprocessHttpRequest: () => {
+                invoked();
+                return new Promise<HttpRequest>(() => {});
+              },
+            },
+          },
+          async () => {
+            await callPlayer(async (player) => {
+              await player.load(Sources.artOfMotionHls);
+              await pendingRequest;
+              await player.destroy();
+              expect(
+                player.isDestroyed,
+                'Player destroyed while callback is pending'
+              ).toBe(true);
+            });
+          }
+        );
+      }
+    );
     spec.it(
       'invokes preprocessHttpRequest and preprocessHttpResponse and still loads the source',
       async () => {

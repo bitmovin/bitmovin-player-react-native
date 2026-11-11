@@ -41,6 +41,8 @@
 
 ### Fixed
 
+- Complete pending HTTP preprocessing with its original request or response when the owning Player is destroyed, including when a JavaScript callback never settles
+
 - Android: Apply initial fullscreen requests to custom handlers even when they already report the requested state
 
 - Keep PlayerView unmounted when Player creation fails without producing additional unhandled Promise rejections

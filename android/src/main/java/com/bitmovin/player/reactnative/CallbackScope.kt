@@ -28,10 +28,16 @@ class CallbackScope(private val context: AppContext, callback: JavaScriptFunctio
     private val lock = ReentrantLock()
     private val changed = lock.newCondition()
     private var callback: JavaScriptFunction<JavaScriptValue>? = callback
+    private val pending = mutableSetOf<CallbackResult>()
 
-    fun close() = lock.withLock {
-        callback = null
-        changed.signalAll()
+    fun close() {
+        val cancelled = lock.withLock {
+            callback = null
+            changed.signalAll()
+            pending.toList().also { pending.clear() }
+        }
+        // SDK completions may reenter the scope, so never invoke them under its lock.
+        cancelled.forEach { it.resolve(null) }
     }
 
     internal fun <T : SharedObject> createSharedObject(factory: () -> T): T =
@@ -89,15 +95,27 @@ class CallbackScope(private val context: AppContext, callback: JavaScriptFunctio
         convert: (Any) -> T,
     ): CompletableFuture<T> {
         val future = CompletableFuture<T>()
-        val result = CallbackResult(context) { value ->
+        lateinit var result: CallbackResult
+        result = CallbackResult(context) { value ->
+            val response = lock.withLock {
+                pending.remove(result)
+                if (callback == null) null else value
+            }
             try {
-                future.complete(if (value == null) fallback else convert(value))
+                future.complete(if (response == null) fallback else convert(response))
             } catch (error: Exception) {
                 future.complete(fallback)
                 throw error
             }
         }
-        schedule(operation, args, result, fallbackArgument = fallbackArgument)
+        val active = lock.withLock {
+            if (callback == null) false else pending.add(result)
+        }
+        if (active) {
+            schedule(operation, args, result, fallbackArgument = fallbackArgument)
+        } else {
+            result.resolve(null)
+        }
         return future
     }
 }

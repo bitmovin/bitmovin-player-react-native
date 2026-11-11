@@ -10,6 +10,7 @@ nonisolated internal final class CallbackScope: LongLivedObject {
     private weak var context: AppContext?
     private weak var runtime: JavaScriptRuntime?
     private var function: JavaScriptRef<JavaScriptFunction>?
+    private var pending: [SharedCallbackResult] = []
 
     init(callback: JavaScriptValue, context: AppContext?) throws {
         guard let context else { throw Exceptions.AppContextLost() }
@@ -32,7 +33,11 @@ nonisolated internal final class CallbackScope: LongLivedObject {
         let function = self.function
         self.function = nil
         condition.broadcast()
+        let cancelled = pending
+        pending.removeAll()
         condition.unlock()
+        // SDK completions may reenter the scope, so invoke them outside its lock.
+        cancelled.forEach { $0.resolve(nil) }
         guard let function else { return }
         if let runtime {
             try? runtime.execute {
@@ -72,7 +77,20 @@ nonisolated internal final class CallbackScope: LongLivedObject {
         completion: @escaping (Any?) -> Void
     ) {
         let result = SharedCallbackResult(scope: self, completion: completion)
-        dispatch(operation, arguments: arguments, result: result, fallbackArgument: fallbackArgument)
+        condition.lock()
+        let active = !isClosed
+        if active { pending.append(result) }
+        condition.unlock()
+        if active {
+            dispatch(operation, arguments: arguments, result: result, fallbackArgument: fallbackArgument)
+        } else {
+            result.resolve(nil)
+        }
+    }
+
+    /// Called under `condition` before invoking the SDK completion.
+    func detach(_ result: SharedCallbackResult) {
+        pending.removeAll { $0 === result }
     }
 
     func notify(_ operation: String, arguments: [Any]) {

@@ -18,6 +18,8 @@ public final class SharedPlayer: SharedObject {
     }
 
     deinit {
+        // Cancel preprocessing before SDK cleanup can wait for its completion.
+        callback?.close()
         // Expo finalizers cannot await the SDK's required main-thread cleanup.
         let player = player
         let events = events
@@ -25,7 +27,6 @@ public final class SharedPlayer: SharedObject {
             player.remove(listener: events)
             if !player.isDestroyed { player.destroy() }
         }
-        callback?.close()
     }
 
     func destroy() {
