@@ -3,7 +3,7 @@ import type { CustomMessageSender } from './customMessageSender';
 import CustomMessageHandlerModule, {
   type NativeCustomMessage,
 } from './customMessageHandlerModule';
-import { NativeCallbacks } from '../native/nativeCallbacks';
+import { NativeConfigSerializer } from '../native/nativeConfigSerializer';
 
 /** Takes care of JS/Native communication for a CustomMessageHandler. */
 export class CustomMessageHandlerBridge implements CustomMessageSender {
@@ -12,21 +12,22 @@ export class CustomMessageHandlerBridge implements CustomMessageSender {
   private customMessageHandler?: CustomMessageHandler;
 
   constructor() {
-    this.native = new NativeCallbacks((operation, [message, data]) => {
-      if (operation === 'synchronousMessage') {
-        return this.customMessageHandler?.receivedSynchronousMessage(
+    const serializer = new NativeConfigSerializer();
+    const config = serializer.serialize({
+      synchronousMessage: (message: string, data: string | null) =>
+        this.customMessageHandler?.receivedSynchronousMessage(
           message,
           data ?? undefined
-        );
-      }
-      if (operation === 'asynchronousMessage') {
+        ),
+      asynchronousMessage: (message: string, data: string | null) =>
         this.customMessageHandler?.receivedAsynchronousMessage(
           message,
           data ?? undefined
-        );
-      }
-      return null;
-    }).create((callback) => CustomMessageHandlerModule.create(callback));
+        ),
+    });
+    this.native = serializer.dispatcher.create((callback) =>
+      CustomMessageHandlerModule.create(config, callback)
+    );
   }
 
   setCustomMessageHandler(customMessageHandler: CustomMessageHandler) {

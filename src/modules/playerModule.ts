@@ -1,6 +1,6 @@
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
-import type { BufferLevels } from '../bufferApi';
+import type { BufferLevels, BufferType } from '../bufferApi';
 import { requireNativeModule } from 'expo-modules-core';
 import type { AdBreak, AdItem, ImaSettings } from '../advertising';
 import type { NativeEventPayload } from '../utils/eventListeners';
@@ -40,7 +40,7 @@ export type PlayerModuleEvents = {
 export interface NativePlayer extends SharedObject {
   sendCustomDataEvent(customData: Record<string, any>): Promise<void>;
   getAnalyticsUserId(): Promise<string | null>;
-  getBufferLevel(type: string): Promise<BufferLevels | null>;
+  getBufferLevel(type: BufferType): Promise<BufferLevels>;
   setBufferTargetLevel(type: string, value: number): Promise<void>;
 }
 
