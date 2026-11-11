@@ -1,10 +1,15 @@
 import { Platform } from 'react-native';
-import { Source, type SourceConfig } from 'bitmovin-player-react-native';
+import {
+  Source,
+  type SourceConfig,
+  type SourceLoadedEvent,
+} from 'bitmovin-player-react-native';
 import { TestScope } from 'cavy';
 import {
   callPlayer,
   callPlayerAndExpectEvent,
   EventType,
+  FilteredEvent,
   startPlayerTest,
 } from '../playertesting';
 import { expect } from './helper/Expect';
@@ -12,6 +17,56 @@ import { Sources } from './helper/Sources';
 
 export default (spec: TestScope) => {
   spec.describe('Source ownership', () => {
+    spec.it('resolves the last of overlapping playlist loads', async () => {
+      await startPlayerTest({}, async () => {
+        const first = new Source(Sources.artOfMotionHls);
+        const second = new Source({
+          ...Sources.artOfMotionHls,
+          metadata: { item: 'second' },
+        });
+        await Promise.all([first.initialize(), second.initialize()]);
+        await callPlayerAndExpectEvent(
+          async (player) => {
+            await Promise.all([
+              player.loadPlaylist({ sources: [first] }),
+              player.loadPlaylist({ sources: [second] }),
+            ]);
+          },
+          FilteredEvent<SourceLoadedEvent>(
+            EventType.SourceLoaded,
+            (event) => event.source.metadata?.item === 'second'
+          )
+        );
+        await callPlayer(async (player) => {
+          expect(await player.getSource()).toBe(second);
+          const sources = await player.playlist.getSources();
+          expect(sources).toHaveLength(1);
+          expect(sources[0]).toBe(second);
+        });
+      });
+    });
+
+    spec.it('resolves a source removed and added concurrently', async () => {
+      await startPlayerTest({}, async () => {
+        const first = new Source(Sources.artOfMotionHls);
+        const second = new Source(Sources.sintel);
+        await callPlayerAndExpectEvent(
+          (player) => player.loadPlaylist({ sources: [first, second] }),
+          EventType.Ready
+        );
+        await callPlayer(async (player) => {
+          await Promise.all([
+            player.playlist.remove(second),
+            player.playlist.add(second),
+          ]);
+          const sources = await player.playlist.getSources();
+          expect(sources).toHaveLength(2);
+          expect(sources[0]).toBe(first);
+          expect(sources[1]).toBe(second);
+        });
+      });
+    });
+
     if (Platform.OS === 'android') {
       spec.it(
         'rejects malformed Source config with an invalid-argument error',

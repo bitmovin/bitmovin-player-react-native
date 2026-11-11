@@ -40,6 +40,72 @@ async function receiving(
 export default (spec: TestScope) => {
   spec.describe('native object events', () => {
     spec.it(
+      'keeps source listeners after removing and adding it again',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const first = new Source(Sources.artOfMotionHls);
+          const second = new Source(Sources.sintel);
+          await callPlayerAndExpectEvent(
+            (player) =>
+              player.loadPlaylist({
+                sources: [first, second],
+                options: { preloadAllSources: false },
+              }),
+            EventType.Ready
+          );
+          await receiving(
+            (listener) => second.on('sourceLoaded', listener),
+            () =>
+              callPlayer(async (player) => {
+                await player.playlist.remove(second);
+                await player.playlist.add(second);
+                await player.playlist.seek(second, 0);
+              })
+          );
+        });
+      }
+    );
+
+    spec.it(
+      'keeps retained sources usable after their player is destroyed',
+      async () => {
+        const player = new Player({
+          licenseKey: PlayerTestWorld.defaultLicenseKey,
+        });
+        const replacement = new Player({
+          licenseKey: PlayerTestWorld.defaultLicenseKey,
+        });
+        const first = new Source(Sources.artOfMotionHls);
+        const removed = new Source(Sources.sintel);
+        try {
+          await receiving(
+            (listener) => player.on('ready', listener),
+            () => player.loadPlaylist({ sources: [first, removed] })
+          );
+          await player.playlist.remove(removed);
+          await receiving(
+            (listener) => first.on('sourceUnloaded', listener),
+            () => player.destroy()
+          );
+          await receiving(
+            (listener) => replacement.on('ready', listener),
+            () => replacement.loadPlaylist({ sources: [first, removed] })
+          );
+          const sources = await replacement.playlist.getSources();
+          expect(sources).toHaveLength(2);
+          expect(sources[0]).toBe(first);
+          expect(sources[1]).toBe(removed);
+        } finally {
+          try {
+            await player.destroy();
+          } finally {
+            await replacement.destroy();
+          }
+        }
+      }
+    );
+
+    spec.it(
       'delivers headless events only to the owning player and source',
       async () => {
         await startPlayerTest({}, async () => {
