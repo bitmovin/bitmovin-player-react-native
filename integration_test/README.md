@@ -209,6 +209,15 @@ reachable host and port as the JavaScript assets, including a custom Metro port,
 without hard-coding an emulator address. The native player fetches the media
 over HTTP; its playback and subtitle handling remain real.
 
+### Advertising inputs
+
+Advertising lifecycle cases use the fixed VAST and VMAP XML in
+[`AdFixtures.ts`](./tests/helper/AdFixtures.ts), encoded as data URIs through the
+existing ad-tag API. Both advertising backends parse the same bytes and play the
+existing Bitmovin two-second ad media, without an ad-decision server or a local
+HTTP fixture service. The error cases use the native SDK tests' Bitmovin-hosted
+missing-media URL. Pause-ad cases keep their existing provider tag.
+
 ### Scope and limitations
 
 - This hosting code runs in Node on the maintainer's machine or CI runner. It is
