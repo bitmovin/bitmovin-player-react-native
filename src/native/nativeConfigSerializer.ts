@@ -1,6 +1,21 @@
 import { NativeCallbacks } from './nativeCallbacks';
 
-/** @internal */
+/**
+ * Serializes configuration data, replacing functions with string tokens. Native
+ * converters pass those tokens to the dispatcher to call the matching handler.
+ * Create the native owner through `dispatcher.create` or `createAsync` so the
+ * owner retains the dispatcher and its callbacks for its lifetime:
+ *
+ * ```ts
+ * const serializer = new NativeConfigSerializer();
+ * const values = serializer.serialize(config);
+ * return serializer.dispatcher.createAsync(callback => Module.create(values, callback));
+ * ```
+ *
+ * Callbacks normally read the current function from the original config.
+ * `capture` snapshots callbacks within one named field, such as advertising.
+ * @internal
+ */
 export class NativeConfigSerializer {
   private readonly handlers: ((args: any[]) => any)[] = [];
   readonly dispatcher = new NativeCallbacks((token, args) =>
