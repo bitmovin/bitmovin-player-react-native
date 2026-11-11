@@ -1094,6 +1094,7 @@ extension RCTConvert {
             "type": castPayload.type,
         ]
     }
+#endif
 
     static func pictureInPictureConfig(_ json: Any?) -> PictureInPictureConfig? {
         guard let json = json as? [String: Any?] else {
