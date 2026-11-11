@@ -23,6 +23,8 @@
 
 #### Other changes
 
+- Fix the Skip Ad and Suspend buttons in the examples
+
 - Attach PlayerView bindings after its native host is registered, avoiding early view-reference lookup failures
 
 - Android: Update the native SDK to [`3.174.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31740)

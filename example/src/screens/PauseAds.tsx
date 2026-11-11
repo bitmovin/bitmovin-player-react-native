@@ -94,7 +94,7 @@ export default function PauseAds() {
       <View style={styles.actionsContainer}>
         <Button
           title="Skip pause ad"
-          onPress={player.skipAd}
+          onPress={() => void player.skipAd()}
           disabled={!isPauseAdVisible}
         />
       </View>

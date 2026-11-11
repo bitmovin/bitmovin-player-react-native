@@ -252,7 +252,7 @@ export default function OfflinePlayback() {
         {downloadState === OfflineState.Downloading && (
           <Action
             text={'Suspend download'}
-            onPress={offlineContentManager?.suspend}
+            onPress={() => void offlineContentManager?.suspend()}
           />
         )}
         {downloadState === OfflineState.Suspended && (
