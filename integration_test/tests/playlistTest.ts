@@ -193,8 +193,6 @@ export default (spec: TestScope) => {
               'Active source of the other player'
             ).toBeUndefined();
 
-            // Checked before destroying the other player, which destroys every source passed to its
-            // `loadPlaylist`, including the rejected one.
             await callPlayer(async (player) => {
               expect(await player.getSource(), 'Active source').toBe(source);
               expect(await source.isActive(), 'Source is active').toBeTruthy();
@@ -202,6 +200,10 @@ export default (spec: TestScope) => {
           } finally {
             otherPlayer.destroy();
           }
+          expect(
+            source.isDestroyed,
+            'Source destroyed with the other player'
+          ).toBeFalsy();
         });
       }
     );
@@ -630,6 +632,100 @@ export default (spec: TestScope) => {
           playerA.destroy();
           playerB.destroy();
         }
+      }
+    );
+
+    spec.it(
+      'does not destroy a source loaded into another player since',
+      async () => {
+        const playerA = createPlayer();
+        const playerB = createPlayer();
+        try {
+          await playerA.initialize();
+          await playerB.initialize();
+          const moved = new Source(Sources.artOfMotionHls);
+          const next = new Source(Sources.sintel);
+          playerA.loadSource(moved);
+          expect(await untilActive(playerA, moved), 'Loaded in A').toBeTruthy();
+          playerA.loadSource(next);
+          expect(
+            await untilActive(playerA, next),
+            'Next source loaded in A'
+          ).toBeTruthy();
+          playerB.loadSource(moved);
+          expect(await untilActive(playerB, moved), 'Moved to B').toBeTruthy();
+
+          playerA.destroy();
+
+          expect(next.isDestroyed, 'Source of A').toBeTruthy();
+          expect(moved.isDestroyed, 'Source moved to B').toBeFalsy();
+          expect(await moved.isActive(), 'Source moved to B').toBeTruthy();
+        } finally {
+          playerA.destroy();
+          playerB.destroy();
+        }
+      }
+    );
+
+    spec.it(
+      'does not destroy a source of another player whose load or add failed',
+      async () => {
+        const playerA = createPlayer();
+        const playerB = createPlayer();
+        try {
+          await playerA.initialize();
+          await playerB.initialize();
+          const shared = new Source(Sources.artOfMotionHls);
+          playerA.loadPlaylist({ sources: [shared] });
+          expect(
+            await untilActive(playerA, shared),
+            'Loaded in A'
+          ).toBeTruthy();
+          const own = new Source(Sources.sintel);
+          playerB.loadPlaylist({ sources: [own] });
+          expect(await untilActive(playerB, own), 'Loaded in B').toBeTruthy();
+
+          let addError: unknown;
+          try {
+            await playerB.playlist.add(shared);
+          } catch (error) {
+            addError = error;
+          }
+          expect(addError, 'Adding the source of A to B').toBeDefined();
+          playerB.loadPlaylist({ sources: [shared] });
+          await untilPlaylistLoadIsSent(shared);
+          // Native handles calls in order, so this resolves after the rejected load.
+          expect(
+            await playerB.getSource(),
+            'Active source of B after the rejected load'
+          ).toNotBe(shared);
+
+          playerB.destroy();
+
+          expect(own.isDestroyed, 'Source of B').toBeTruthy();
+          expect(shared.isDestroyed, 'Source of A').toBeFalsy();
+          expect(await shared.isActive(), 'Source of A').toBeTruthy();
+        } finally {
+          playerA.destroy();
+          playerB.destroy();
+        }
+      }
+    );
+
+    spec.it(
+      'destroys a source whose load was pending when the player was destroyed',
+      async () => {
+        const player = createPlayer();
+        await player.initialize();
+        const source = new Source(Sources.artOfMotionHls);
+        player.loadSource(source);
+
+        player.destroy();
+
+        expect(
+          await waitUntil(() => source.isDestroyed),
+          'Source destroyed'
+        ).toBeTruthy();
       }
     );
   });

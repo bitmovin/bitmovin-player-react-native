@@ -18,7 +18,7 @@
 - Android: `onPlayerActive` not being emitted
 - Android: `com.google.android.gms.permission.AD_ID` being added to apps with Google IMA disabled, which makes Google Play require an advertising ID declaration. Apps with Google IMA disabled that rely on the advertising ID, e.g. through an analytics SDK, may need to add `com.google.android.gms:play-services-ads-identifier` to their own dependencies
 - iOS: Data race in `NetworkConfig` HTTP request and response preprocessing now that the native SDK invokes the callbacks on a background thread
-- A source destroyed while it was initializing, e.g. by `Player.destroy()` right after `Player.load()`, being created natively afterwards and keeping its DRM config
+- A source destroyed while it was initializing, e.g. by `Source.destroy()` right after `Player.loadSource()`, being created natively afterwards and keeping its DRM config
 
 ### Changed
 
@@ -28,12 +28,10 @@
 - **Breaking change:** `SourceUnloadedEvent.source` is now optional. Android does not provide it for events received via `Player.on` or the `PlayerView` event props, as the native event does not carry the source. It is provided for events received via `Source.on`.
 - `PlayerView` event props are delivered through the player's event subscriptions on all platforms. The order of fullscreen and picture-in-picture events relative to player events can differ slightly. On Android, events emitted right after loading (e.g. `onPlayerActive`) are no longer lost, and two `PlayerView`s showing the same player now both receive the events. On iOS, `onEvent` now only receives the events of the documented `PlayerView` props, instead of every event of the native player.
 - **Breaking change:** Replace the `Player.source` property with `Player.getSource()`, which returns the currently active source of the native player
-- `Player.destroy()` destroys every source loaded into the player or added to its playlist, including ones it no longer plays, instead of only the source loaded last. Sources removed via `PlaylistApi.remove` or `PlaylistApi.removeAt` are not destroyed
+- `Player.destroy()` destroys every source the player was the last to load or add to its playlist, including ones it no longer plays, instead of only the source loaded last. Sources loaded into another player since, or removed via `PlaylistApi.remove` or `PlaylistApi.removeAt`, are not destroyed
 
 ### Known Issues
 
-- `Player.destroy()` also destroys a source that left the player through `Player.unload()` or a later load, even if the source was loaded into another player since. To move a source to another player, remove it via `PlaylistApi.remove` first (not possible for the active source), or use a new `Source`
-- `Player.destroy()` also destroys a source passed to a load or `PlaylistApi.add` that failed, e.g. because the source is attached to another player
 - Sources that left a player through `Player.unload()` or a later load stay allocated until the player is destroyed. Sources removed via `PlaylistApi.remove` or `PlaylistApi.removeAt` must be destroyed via `Source.destroy()` once they are no longer needed
 - `Source.on` listeners do not receive the final `sourceUnloaded` of a source that `Player.destroy()` destroys, as the source is destroyed before the native player unloads it. `Player.on` listeners and the `PlayerView` `onSourceUnloaded` prop receive it for the active source
 

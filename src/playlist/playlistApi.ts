@@ -1,5 +1,6 @@
 import PlaylistModule from '../modules/PlaylistModule';
 import type { Source } from '../source';
+import { releaseSourceOwner } from '../utils/sourceOwners';
 
 /**
  * Provides the means to manage multiple {@link Source}s inside a playback session.
@@ -17,10 +18,16 @@ export class PlaylistApi {
   readonly nativeId: string;
 
   private readonly knownSources: Map<string, Source>;
+  private readonly takeOwnership: (sources: Source[]) => void;
 
-  constructor(playerId: string, knownSources: Map<string, Source>) {
+  constructor(
+    playerId: string,
+    knownSources: Map<string, Source>,
+    takeOwnership: (sources: Source[]) => void
+  ) {
     this.nativeId = playerId;
     this.knownSources = knownSources;
+    this.takeOwnership = takeOwnership;
   }
 
   /**
@@ -54,8 +61,9 @@ export class PlaylistApi {
     this.knownSources.set(source.nativeId, source);
     await source.initialize();
     await PlaylistModule.add(this.nativeId, source.nativeId, index);
-    // A removal of this source that native ran before this addition can resolve after the first `set`.
+    // A concurrent `remove` of this source can resolve between the two `set`s and delete it, so set it again.
     this.knownSources.set(source.nativeId, source);
+    this.takeOwnership([source]);
   };
 
   /**
@@ -70,6 +78,7 @@ export class PlaylistApi {
   remove = async (source: Source): Promise<void> => {
     if (await PlaylistModule.remove(this.nativeId, source.nativeId)) {
       this.knownSources.delete(source.nativeId);
+      releaseSourceOwner(source, this.nativeId);
     }
   };
 
@@ -83,7 +92,11 @@ export class PlaylistApi {
   removeAt = async (index: number): Promise<void> => {
     const removedNativeId = await PlaylistModule.removeAt(this.nativeId, index);
     if (removedNativeId) {
+      const removed = this.knownSources.get(removedNativeId);
       this.knownSources.delete(removedNativeId);
+      if (removed) {
+        releaseSourceOwner(removed, this.nativeId);
+      }
     }
   };
 
