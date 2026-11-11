@@ -2,52 +2,45 @@ import BitmovinPlayer
 import ExpoModulesCore
 
 public final class SharedSource: SharedObject {
-    private let initialization: SharedObjectInitialization<Source>
-    var fairplayRequests: SourceFairplayRequests {
-        get throws { SourceFairplayRequests.attached(to: try source) }
-    }
+    private let factory: () -> Source
+    var fairplayRequests: SourceFairplayRequests { SourceFairplayRequests.attached(to: source) }
     private(set) var configSnapshot: [String: Any]?
     private let events = SharedObjectEvents()
     private let callback: CallbackScope?
-    private var isObserving = false
-
-    init(source: Source, callback: CallbackScope?) {
-        initialization = SharedObjectInitialization(value: source)
-        self.callback = callback
+    private weak var initializedSource: Source?
+    private(set) lazy var source: Source = {
+        let source = factory()
+        source.add(listener: events)
         configSnapshot = Self.snapshot(source.sourceConfig)
+        initializedSource = source
+        return source
+    }()
+
+    private init(factory: @escaping () -> Source, callback: CallbackScope?) {
+        self.factory = factory
+        self.callback = callback
         super.init()
         events.owner = self
-        source.add(listener: events)
-        isObserving = true
     }
 
-    init(config: [String: Any]?, analytics: [String: Any]?, callback: CallbackScope?) {
-        self.callback = callback
-        initialization = SharedObjectInitialization {
-            guard let sourceConfig = RCTConvert.sourceConfig(config, callback: callback) else {
-                throw Exception(name: "InvalidArgument", description: "Invalid source configuration")
-            }
-            if let metadata = RCTConvert.analyticsSourceMetadata(analytics) {
+    convenience init(source: Source, callback: CallbackScope?) {
+        self.init(factory: { source }, callback: callback)
+        // SDK-created offline sources must already emit events when the JS query resolves.
+        _ = self.source
+    }
+
+    convenience init(config: [String: Any]?, analytics: [String: Any]?, callback: CallbackScope?) throws {
+        guard let sourceConfig = RCTConvert.sourceConfig(config, callback: callback) else {
+            callback?.close()
+            throw Exception(name: "InvalidArgument", description: "Invalid source configuration")
+        }
+        let metadata = RCTConvert.analyticsSourceMetadata(analytics)
+        self.init(factory: {
+            if let metadata {
                 return SourceFactory.createSource(from: sourceConfig, sourceMetadata: metadata)
             }
             return SourceFactory.createSource(from: sourceConfig)
-        }
-        super.init()
-        events.owner = self
-    }
-
-    var source: Source {
-        get throws {
-            do {
-                let source = try initialization.get()
-                if !isObserving {
-                    source.add(listener: events)
-                    isObserving = true
-                    configSnapshot = Self.snapshot(source.sourceConfig)
-                }
-                return source
-            } catch { callback?.close(); throw error }
-        }
+        }, callback: callback)
     }
 
     private static func snapshot(_ config: SourceConfig) -> [String: Any]? {
@@ -74,7 +67,7 @@ public final class SharedSource: SharedObject {
 
     deinit {
         callback?.close()
-        guard let source = initialization.initializedValue else { return }
+        guard let source = initializedSource else { return }
         let events = events
         DispatchQueue.main.async { source.remove(listener: events) }
     }

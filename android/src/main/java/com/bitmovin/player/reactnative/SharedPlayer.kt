@@ -23,27 +23,30 @@ class SharedPlayer private constructor(
     private val callbacks: CallbackScope,
     val mediaSessionPlaybackManager: MediaSessionPlaybackManager,
 ) : SharedObject(appContext) {
-    private val initialization = SharedObjectInitialization {
-        runCatching { factory().also { observePlayerEvents(it) } }.onFailure { callbacks.close() }.getOrThrow()
+    private var isDestroyed = false
+    private val playerDelegate = lazy {
+        check(!isDestroyed) { "Destroyed before SDK creation" }
+        factory().also { observePlayerEvents(it) }
     }
 
-    val player: Player
-        get() = initialization.get()
+    val player: Player by playerDelegate
 
     fun destroy() {
         callbacks.close()
+        if (isDestroyed) return
+        isDestroyed = true
+        if (!playerDelegate.isInitialized()) return
         try {
-            initialization.initializedValue?.let { mediaSessionPlaybackManager.destroy(it) }
+            mediaSessionPlaybackManager.destroy(player)
         } finally {
-            initialization.initializedValue?.destroy()
-            initialization.cancel()
+            player.destroy()
         }
     }
 
     override fun sharedObjectDidRelease() {
         callbacks.close()
         Dispatchers.Main.dispatch(EmptyCoroutineContext) {
-            if (initialization.initializedValue?.isDestroyed != true) destroy()
+            if (!isDestroyed) destroy()
         }
     }
 

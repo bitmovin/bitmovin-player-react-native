@@ -10,7 +10,6 @@ import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.reactnative.CallbackScope
 import com.bitmovin.player.reactnative.SharedOfflineEvents
-import com.bitmovin.player.reactnative.SharedObjectInitialization
 import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.EmptyCoroutineContext
 import com.bitmovin.player.reactnative.converter.toJson
@@ -25,12 +24,12 @@ class OfflineContentManagerBridge(
     factory: (OfflineContentManagerListener) -> OfflineContentManager,
 ) : SharedObject(appContext), OfflineContentManagerListener {
     private var contentOptions: OfflineContentOptions? = null
-    private val initialization = SharedObjectInitialization {
-        runCatching { factory(this) }.onFailure { callbacks.close() }.getOrThrow()
+    private val managerDelegate = lazy {
+        check(!isReleased) { "Destroyed before SDK creation" }
+        factory(this)
     }
     private var isReleased = false
-    val offlineContentManager: OfflineContentManager
-        get() = initialization.get()
+    val offlineContentManager: OfflineContentManager by managerDelegate
 
     enum class OfflineEventType(val eventName: String) {
         ON_COMPLETED("onCompleted"),
@@ -44,7 +43,7 @@ class OfflineContentManagerBridge(
     }
 
     val state: OfflineOptionEntryState
-        get() { initialization.get(); return aggregateState(contentOptions) }
+        get() { offlineContentManager; return aggregateState(contentOptions) }
 
     fun getOptions() {
         offlineContentManager.getOptions()
@@ -125,8 +124,7 @@ class OfflineContentManagerBridge(
         callbacks.close()
         if (isReleased) return
         isReleased = true
-        initialization.initializedValue?.release()
-        initialization.cancel()
+        if (managerDelegate.isInitialized()) offlineContentManager.release()
     }
 
     override fun sharedObjectDidRelease() {

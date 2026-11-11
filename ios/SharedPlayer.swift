@@ -4,34 +4,41 @@ import ExpoModulesCore
 import Foundation
 
 public final class SharedPlayer: SharedObject {
-    /// SDK player for native integrations. Retain this owner while using the player.
-    private let initialization: SharedObjectInitialization<Player>
+    private let factory: () -> Player
     private let events = SharedObjectEvents()
     private let callback: CallbackScope?
+    private var isDestroyed = false
+    // Cleanup must not evaluate the lazy property for an unused player.
+    private weak var initializedPlayer: Player?
+    private lazy var sdkPlayer: Player = {
+        let player = factory()
+        player.add(listener: events)
+        initializedPlayer = player
+        return player
+    }()
 
-    private init(factory: @escaping () throws -> Player, callback: CallbackScope?) {
-        initialization = SharedObjectInitialization(factory)
+    private init(factory: @escaping () -> Player, callback: CallbackScope?) {
+        self.factory = factory
         self.callback = callback
         super.init()
         events.owner = self
     }
 
+    /// SDK player for native integrations. Access on main and retain this owner while using the player.
     public var player: Player {
         get throws {
-            do {
-                let player = try initialization.get()
-                if !isObserving { player.add(listener: events); isObserving = true }
-                return player
-            } catch { callback?.close(); throw error }
+            guard !isDestroyed || initializedPlayer != nil else {
+                throw Exception(name: "DestroyedObject", description: "Destroyed before SDK creation")
+            }
+            return sdkPlayer
         }
     }
-    private var isObserving = false
 
     deinit {
         // Cancel preprocessing before SDK cleanup can wait for its completion.
         callback?.close()
         // Expo finalizers cannot await the SDK's required main-thread cleanup.
-        guard let player = initialization.initializedValue else { return }
+        guard let player = initializedPlayer else { return }
         let events = events
         DispatchQueue.main.async {
             player.remove(listener: events)
@@ -41,9 +48,10 @@ public final class SharedPlayer: SharedObject {
 
     func destroy() {
         callback?.close()
+        guard !isDestroyed else { return }
+        isDestroyed = true
         // Keep listeners attached for the SDK's final DestroyEvent.
-        initialization.initializedValue?.destroy()
-        initialization.cancel()
+        initializedPlayer?.destroy()
     }
 
     static func create(
@@ -51,25 +59,22 @@ public final class SharedPlayer: SharedObject {
         analyticsConfig: [String: Any]?,
         callback: CallbackScope?
     ) throws -> SharedPlayer {
-        SharedPlayer(factory: {
         let playerConfig = RCTConvert.playerConfig(config, callback: callback)
         let analytics = analyticsConfig.flatMap { RCTConvert.analyticsConfig($0) }
         guard analyticsConfig == nil || analytics != nil else {
             callback?.close()
             throw Exception(name: "InvalidArgument", description: "Invalid analytics configuration")
         }
-        let player: Player
-        if let analytics {
-            let metadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfig)
-            player = PlayerFactory.create(
-                playerConfig: playerConfig,
-                analyticsConfig: analytics,
-                defaultMetadata: metadata ?? DefaultMetadata()
-            )
-        } else {
-            player = PlayerFactory.create(playerConfig: playerConfig)
-        }
-        return player
+        let metadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfig)
+        return SharedPlayer(factory: {
+            if let analytics {
+                return PlayerFactory.create(
+                    playerConfig: playerConfig,
+                    analyticsConfig: analytics,
+                    defaultMetadata: metadata ?? DefaultMetadata()
+                )
+            }
+            return PlayerFactory.create(playerConfig: playerConfig)
         }, callback: callback)
     }
 }

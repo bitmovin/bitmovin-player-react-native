@@ -10,54 +10,58 @@ public final class SharedOffline: SharedObject {
         let manager: OfflineContentManager
         let bridge: OfflineContentManagerBridge
     }
-    private let initialization: SharedObjectInitialization<Resource>
-    var offlineContentManager: OfflineContentManager { get throws { try initialization.get().manager } }
-    var bridge: OfflineContentManagerBridge { get throws { try initialization.get().bridge } }
+    private let identifier: String
+    private let sourceConfig: SourceConfig
+    private var resource: Resource?
+    private var isDestroyed = false
+    var offlineContentManager: OfflineContentManager { get throws { try getResource().manager } }
+    var bridge: OfflineContentManagerBridge { get throws { try getResource().bridge } }
+#endif
 
-    init(config: [String: Any], callback: CallbackScope?, events: SharedOfflineEvents) {
+    init(config: [String: Any], callback: CallbackScope?, events: SharedOfflineEvents) throws {
         self.callback = callback
         self.events = events
-        initialization = SharedObjectInitialization {
-            do {
-                guard let identifier = config["identifier"] as? String,
-                      let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"], callback: callback) else {
-                    throw Exception(
-                        name: "InvalidArgument", description: "Invalid offline identifier or source configuration"
-                    )
-                }
-                let manager = try OfflineManager.sharedInstance().offlineContentManager(
-                    for: sourceConfig, id: identifier
-                )
-                return Resource(manager: manager, bridge: OfflineContentManagerBridge(
-                    forManager: manager, events: events, identifier: identifier
-                ))
-            } catch {
-                callback?.close()
-                throw error
-            }
+#if os(iOS)
+        guard let identifier = config["identifier"] as? String,
+              let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"], callback: callback) else {
+            callback?.close()
+            throw Exception(name: "InvalidArgument", description: "Invalid offline identifier or source configuration")
         }
+        self.identifier = identifier
+        self.sourceConfig = sourceConfig
+#endif
         super.init()
     }
-#else
-    init(config: [String: Any], callback: CallbackScope?, events: SharedOfflineEvents) {
-        self.callback = callback
-        self.events = events
-        super.init()
+
+#if os(iOS)
+    // The SDK factory throws, so use a throwing getter rather than a nonthrowing lazy property.
+    private func getResource() throws -> Resource {
+        if let resource { return resource }
+        guard !isDestroyed else {
+            throw Exception(name: "DestroyedObject", description: "Destroyed before SDK creation")
+        }
+        let manager = try OfflineManager.sharedInstance().offlineContentManager(for: sourceConfig, id: identifier)
+        let resource = Resource(manager: manager, bridge: OfflineContentManagerBridge(
+            forManager: manager, events: events, identifier: identifier
+        ))
+        self.resource = resource
+        return resource
     }
 #endif
 
     func destroy() {
         callback?.close()
 #if os(iOS)
-        initialization.initializedValue?.bridge.release()
-        initialization.cancel()
+        guard !isDestroyed else { return }
+        isDestroyed = true
+        resource?.bridge.release()
 #endif
     }
 
     deinit {
         callback?.close()
 #if os(iOS)
-        guard let resource = initialization.initializedValue else { return }
+        guard let resource else { return }
         DispatchQueue.main.async {
             resource.bridge.release()
             withExtendedLifetime(resource.manager) {}
@@ -67,7 +71,7 @@ public final class SharedOffline: SharedObject {
 
     func download(_ request: [String: Any]?) throws {
 #if os(iOS)
-        let resource = try initialization.get()
+        let resource = try getResource()
         guard let request, let tracks = resource.bridge.currentTrackSelection else { return }
         if let audioOptionIds = request["audioOptionIds"] as? [String], !audioOptionIds.isEmpty {
             tracks.audioTracks.forEach { $0.action = audioOptionIds.contains($0.label) ? .download : .none }

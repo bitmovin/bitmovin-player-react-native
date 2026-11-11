@@ -21,18 +21,16 @@ class SharedSource private constructor(
         this.source
     }
 
-    private val initialization = SharedObjectInitialization {
-        runCatching {
-            factory().also { source -> observeSourceEvents(source); configSnapshot = snapshot(source) }
-        }.onFailure { callbacks?.close() }.getOrThrow()
+    val source: Source by lazy {
+        factory().also { source ->
+            observeSourceEvents(source)
+            configSnapshot = snapshot(source)
+        }
     }
     var configSnapshot: Map<String, Any?>? = null
         private set
 
     override fun sharedObjectDidRelease() { callbacks?.close() }
-
-    val source: Source
-        get() = initialization.get()
 
     companion object {
         private fun snapshot(source: Source): Map<String, Any?> = with(source.config) {

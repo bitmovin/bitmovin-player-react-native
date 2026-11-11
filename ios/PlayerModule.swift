@@ -153,20 +153,20 @@ public class PlayerModule: Module {
             AsyncFunction("loadPlaylist") { (owner: SharedPlayer, config: SharedPlaylistConfig) in
                 let sources = config.sources
                 let options = config.options
-                try sources.forEach { try ensureSourceAvailable((try $0.source), player: (try owner.player)) }
+                try sources.forEach { try ensureSourceAvailable($0.source, player: (try owner.player)) }
                 let config = try playlistConfig(sources: sources, options: options)
                 (try owner.player).load(playlistConfig: config)
             }.runOnQueue(.main)
             AsyncFunction("getSource") { (owner: SharedPlayer, known: [SharedSource]) -> SharedSource? in
-                try (try owner.player).source.map { source in
-                    try known.first { (try $0.source) === source } ?? SharedSource(source: source, callback: nil)
+                try owner.player.source.map { source in
+                    known.first { $0.source === source } ?? SharedSource(source: source, callback: nil)
                 }
             }.runOnQueue(.main)
 
             AsyncFunction("loadSource") { (owner: SharedPlayer, source: SharedSource) in
-                try ensurePlaylistSourceType((try source.source))
-                try ensureSourceAvailable((try source.source), player: (try owner.player))
-                (try owner.player).load(source: (try source.source))
+                try ensurePlaylistSourceType(source.source)
+                try ensureSourceAvailable(source.source, player: (try owner.player))
+                (try owner.player).load(source: source.source)
             }.runOnQueue(.main)
         }
         Class("BufferApi", SharedBuffer.self) {
@@ -208,26 +208,26 @@ public class PlayerModule: Module {
         Class("PlaylistApi", SharedPlaylist.self) {
             Constructor { (owner: SharedPlayer) in SharedPlaylist(owner: owner) }
             AsyncFunction("getSources") { (owner: SharedPlaylist, known: [SharedSource]) -> [SharedSource] in
-                try (try owner.player).playlist.sources.map { source in
-                    try known.first { (try $0.source) === source } ?? SharedSource(source: source, callback: nil)
+                try owner.player.playlist.sources.map { source in
+                    known.first { $0.source === source } ?? SharedSource(source: source, callback: nil)
                 }
             }.runOnQueue(.main)
             AsyncFunction("add") { (owner: SharedPlaylist, source: SharedSource, index: Int?) in
-                try ensurePlaylistSourceType((try source.source))
-                guard !(try source.source).isAttachedToPlayer else {
+                try ensurePlaylistSourceType(source.source)
+                guard !source.source.isAttachedToPlayer else {
                     throw Exception(
                         name: "SourceAlreadyAttached", description: "Source is already attached to a player"
                     )
                 }
                 if let index {
-                    (try owner.player).playlist.add(source: (try source.source), at: index)
+                    (try owner.player).playlist.add(source: source.source, at: index)
                 } else {
-                    (try owner.player).playlist.add(source: (try source.source))
+                    (try owner.player).playlist.add(source: source.source)
                 }
             }.runOnQueue(.main)
             AsyncFunction("remove") { (owner: SharedPlaylist, source: SharedSource) in
-                if let index = try (try owner.player).playlist.sources.firstIndex(where: {
-                    $0 === (try source.source)
+                if let index = try owner.player.playlist.sources.firstIndex(where: {
+                    $0 === source.source
                 }) {
                     (try owner.player).playlist.remove(sourceAt: index)
                 }
@@ -236,7 +236,7 @@ public class PlayerModule: Module {
                 (try owner.player).playlist.remove(sourceAt: index)
             }.runOnQueue(.main)
             AsyncFunction("seek") { (owner: SharedPlaylist, source: SharedSource, time: Double) in
-                (try owner.player).playlist.seek(source: (try source.source), time: time)
+                (try owner.player).playlist.seek(source: source.source, time: time)
             }.runOnQueue(.main)
         }
     }
@@ -254,12 +254,12 @@ private func playlistConfig(sources: [SharedSource], options: [String: Any]?) th
     }
     var seen = Set<ObjectIdentifier>()
     for source in sources {
-        try ensurePlaylistSourceType((try source.source))
-        guard seen.insert(ObjectIdentifier((try source.source))).inserted else {
+        try ensurePlaylistSourceType(source.source)
+        guard seen.insert(ObjectIdentifier(source.source)).inserted else {
             throw Exception(name: "DuplicatePlaylistSource", description: "A source is listed more than once")
         }
     }
-    return PlaylistConfig(sources: try sources.map { try $0.source }, options: PlaylistOptions(
+    return PlaylistConfig(sources: sources.map { $0.source }, options: PlaylistOptions(
         preloadAllSources: options?["preloadAllSources"] as? Bool ?? false,
         replayMode: try RCTConvert.toReplayMode(options?["replayMode"])
     ))

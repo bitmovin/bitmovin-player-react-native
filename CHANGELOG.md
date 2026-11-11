@@ -11,7 +11,7 @@
 
 #### Breaking changes
 
-- Remove `Player.initialize()`, `Source.initialize()`, `OfflineContentManager.initialize()` and their `isInitialized` flags. Constructors create the native SharedObject immediately; the first SDK operation or PlayerView attachment creates SDK resources automatically. Creation failures reject that operation
+- Remove `Player.initialize()`, `Source.initialize()`, `OfflineContentManager.initialize()` and their `isInitialized` flags. Constructors create the native SharedObject immediately; the first SDK operation or PlayerView attachment creates SDK resources automatically. SDK creation failures reject that operation
 - Guard the optional `SourceUnloadedEvent.source` field. Android Player subscriptions and PlayerView events do not identify the unloaded Source; Source subscriptions include its snapshot. iOS provides it on all subscription paths
 - Pass `NetworkConfig` and `DrmConfig` objects directly; the configuration-only `Network` and `Drm` wrapper classes have been removed
 - Check `source.config.drmConfig` for DRM configuration. `source.drm` is now an always-present, read-only property exposing runtime APIs, including for clear content. Move standalone `Drm.fairplay` usage to `source.drm.fairplay`
@@ -34,7 +34,7 @@
 - Android: Retain loaded content without adding properties to the native SharedRef, allowing source loading and cleanup to complete
 
 - Player commands such as `play()`, `load()`, and `destroy()`, and `Source.setMetadata()` now return `Promise<void>`, allowing callers to await the native call and catch failures. Playback readiness still uses events. Fire-and-forget calls remain supported; strict Promise linting may require an explicit `await` or `void`
-- Player, Source, and OfflineContentManager constructors create their native SharedObjects synchronously. SDK resources are created once on the first native operation, with failures cached for later operations. `new Player()` remains valid and uses native SDK defaults
+- Player, Source, and OfflineContentManager constructors create their native SharedObjects synchronously. SDK resources are created on the first native operation and reused after successful creation. `new Player()` remains valid and uses native SDK defaults
 - Android: Keep synchronous DRM, decoder-priority, and custom-message callbacks within 250 ms, matching iOS. Callbacks that miss the deadline use the SDK fallback
 - iOS: Bitmovin Advertising Module ad subtitles now follow the subtitle selected for the main content and remain off when main-content subtitles are off, instead of using the ad manifest's default subtitle track
 - Offline download requests accepted by the native SDK are no longer rejected by extra bitrate or download-state checks
@@ -68,7 +68,7 @@
 - iOS: Keep FairPlay license renewal available on Source handles returned by player and playlist queries
 - Deliver `PlayerView` playback and source callbacks through the attached Player's public event API
 
-- iOS: Invalid source, analytics, and offline configuration, or failed offline manager creation, now reject instead of reporting success without a usable instance
+- iOS: Invalid source, analytics, and offline configuration now throws from the constructor. Failed offline manager creation rejects the native operation
 - iOS: Avoid inconsistent HTTP preprocessing results when the native SDK processes requests and responses concurrently
 - Allow abandoned offline managers and custom UI handlers to be collected even when native code retains their callback forwarders
 - iOS: Preserve metadata set before loading a Source and return it from `Source.metadata()`
