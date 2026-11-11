@@ -207,6 +207,7 @@ public class PlayerModule: Module {
                 owner.player.playlist.seek(source: source.source, time: time)
             }.runOnQueue(.main)
             AsyncFunction("loadSource") { (owner: SharedPlayer, source: SharedSource) in
+                try ensurePlaylistSourceType(source.source)
                 try ensureSourceAvailable(source.source, player: owner.player)
                 owner.player.load(source: source.source)
             }.runOnQueue(.main)
