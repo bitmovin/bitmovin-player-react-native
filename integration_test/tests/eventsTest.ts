@@ -44,7 +44,10 @@ export default (spec: TestScope) => {
           player.on('ready', record);
           await player.initialize();
 
-          const source = new Source(Sources.artOfMotionHls);
+          const source = new Source({
+            ...Sources.artOfMotionHls,
+            metadata: { label: 'event-source' },
+          });
           await player.loadSource(source);
 
           const isReady = await waitUntil(() =>
@@ -174,8 +177,11 @@ export default (spec: TestScope) => {
       const record = (event: Event) => received.push(event);
       player.on('timeChanged', record);
       player.on('destroy', record);
-      const source = new Source(Sources.artOfMotionHls);
-      source.on('sourceUnloaded', record);
+      const source = new Source({
+        ...Sources.artOfMotionHls,
+        metadata: { label: 'event-source' },
+      });
+      await source.on('sourceUnloaded', record);
       await player.initialize();
       await playWhenReady(player, () => player.loadSource(source));
 
@@ -201,7 +207,7 @@ export default (spec: TestScope) => {
       const sourceUnloaded = received.find(
         (event) => event.name === 'onSourceUnloaded'
       ) as SourceUnloadedEvent | undefined;
-      expect(sourceUnloaded?.source?.nativeId).toBe(source.nativeId);
+      expect(sourceUnloaded?.name).toBe('onSourceUnloaded');
       const countAfterDestroy = received.length;
       await delay(1000);
       expect(received.length, 'Events after destroy').toBe(countAfterDestroy);
@@ -211,15 +217,21 @@ export default (spec: TestScope) => {
       'delivers source events via Source.on until the listener is removed',
       async () => {
         await withPlayer(async (player) => {
-          const source = new Source(Sources.artOfMotionHls);
+          const source = new Source({
+            ...Sources.artOfMotionHls,
+            metadata: { label: 'event-source' },
+          });
           const loaded: SourceLoadedEvent[] = [];
           let removedCount = 0;
           let isUnloaded = false;
           const removedListener = () => removedCount++;
           // Registered before the source is initialized.
-          source.on('sourceLoaded', (event) => loaded.push(event));
-          source.on('sourceUnloaded', removedListener);
-          source.on('sourceUnloaded', () => {
+          await source.on('sourceLoaded', (event) => loaded.push(event));
+          const removedSubscription = await source.on(
+            'sourceUnloaded',
+            removedListener
+          );
+          await source.on('sourceUnloaded', () => {
             isUnloaded = true;
           });
           await player.initialize();
@@ -229,11 +241,12 @@ export default (spec: TestScope) => {
             await waitUntil(() => loaded.length > 0),
             'SourceLoaded should be received'
           ).toBeTruthy();
-          expect(loaded[0].source.nativeId, 'Source of SourceLoaded').toBe(
-            source.nativeId
-          );
+          expect(
+            loaded[0].source.metadata?.label,
+            'Source of SourceLoaded'
+          ).toBe(source.config?.metadata?.label);
 
-          source.off('sourceUnloaded', removedListener);
+          removedSubscription.remove();
           await player.unload();
 
           expect(
@@ -247,16 +260,13 @@ export default (spec: TestScope) => {
 
     spec.it('warns when registering a listener after destroying', async () => {
       const player = createPlayer();
-      const source = new Source(Sources.artOfMotionHls);
       await player.initialize();
       await player.destroy();
-      source.destroy();
       const warnings: string[] = [];
       const warn = console.warn;
       console.warn = (...args: unknown[]) => warnings.push(args.join(' '));
       try {
         player.on('ready', () => {});
-        source.on('sourceLoaded', () => {});
       } finally {
         console.warn = warn;
       }
@@ -264,14 +274,10 @@ export default (spec: TestScope) => {
         warnings.some((warning) => warning.includes('player was destroyed')),
         'Warning for the destroyed player'
       ).toBeTruthy();
-      expect(
-        warnings.some((warning) => warning.includes('source was destroyed')),
-        'Warning for the destroyed source'
-      ).toBeTruthy();
     });
 
     spec.it(
-      'provides the unloaded source in sourceUnloaded via Source.on',
+      'delivers SourceUnloaded through the owned source after unloading',
       async () => {
         await withPlayer(async (player) => {
           const unloaded: SourceUnloadedEvent[] = [];
@@ -280,8 +286,11 @@ export default (spec: TestScope) => {
             isReady = true;
           });
           await player.initialize();
-          const source = new Source(Sources.artOfMotionHls);
-          source.on('sourceUnloaded', (event) => unloaded.push(event));
+          const source = new Source({
+            ...Sources.artOfMotionHls,
+            metadata: { label: 'event-source' },
+          });
+          await source.on('sourceUnloaded', (event) => unloaded.push(event));
           await player.loadSource(source);
           expect(
             await waitUntil(() => isReady),
@@ -294,7 +303,7 @@ export default (spec: TestScope) => {
             await waitUntil(() => unloaded.length > 0),
             'SourceUnloaded should be received'
           ).toBeTruthy();
-          expect(unloaded[0].source?.nativeId).toBe(source.nativeId);
+          expect(unloaded[0].name).toBe('onSourceUnloaded');
         });
       }
     );

@@ -61,6 +61,11 @@ const testRegistrations = [
     () => require('./sourceMetadataTest').default
   ),
   testSuite('network', androidAndIos, () => require('./networkTest').default),
+  testSuite(
+    'source-ownership',
+    androidAndIos,
+    () => require('./sourceOwnershipTest').default
+  ),
   testSuite('playback', androidAndIos, () => require('./playbackTest').default),
   testSuite('playlist', androidAndIos, () => require('./playlistTest').default),
   testSuite(

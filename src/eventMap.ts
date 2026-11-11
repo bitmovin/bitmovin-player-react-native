@@ -68,7 +68,7 @@ import type {
 
 /**
  * All events a {@link Source} emits, keyed by event name.
- * Used with {@link Source.on} and {@link Source.off}.
+ * Payload types retained by the Player's event map during the event migration.
  */
 export interface SourceEventMap {
   /** Emitted when the source starts loading. */

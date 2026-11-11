@@ -42,7 +42,13 @@ export type PlayerModuleEvents = {
 
 /** @internal Shared handle used by migrated Player APIs. */
 export interface NativePlayer extends SharedObject {
-  getPlaylistSourceIds(): Promise<string[]>;
+  getSource(knownSources: NativeSource[]): Promise<NativeSource | null>;
+  getPlaylistSources(knownSources: NativeSource[]): Promise<NativeSource[]>;
+  loadSource(source: NativeSource): Promise<void>;
+  loadPlaylist(
+    sources: NativeSource[],
+    options?: Record<string, any>
+  ): Promise<void>;
   playlistAdd(source: NativeSource, index?: number): Promise<void>;
   playlistRemove(source: NativeSource): Promise<void>;
   playlistRemoveAt(index: number): Promise<void>;
@@ -198,27 +204,6 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
     config?: Record<string, any>,
     callback?: NativeCallback
   ): Promise<NativePlayer>;
-
-  /**
-   * Load source into the player.
-   * Requires SourceModule dependency.
-   */
-  loadSource(nativeId: string, sourceNativeId: string): Promise<void>;
-
-  /**
-   * Load a playlist into the player.
-   * Requires SourceModule dependency.
-   */
-  loadPlaylist(
-    nativeId: string,
-    sourceNativeIds: string[],
-    options?: Record<string, any>
-  ): Promise<void>;
-
-  /**
-   * Get the native id of the active source.
-   */
-  source(nativeId: string): Promise<string | null>;
 }
 
 export default requireNativeModule<PlayerModule>('PlayerModule');

@@ -29,7 +29,7 @@ import Casting from './screens/Casting';
 import BackgroundPlayback from './screens/BackgroundPlayback';
 import AudioFocusHandling from './screens/AudioFocusHandling';
 import EnableDisableMediaControls from './screens/EnableDisableMediaControls';
-import Playlist from './screens/Playlist';
+import Playlist from './screens/BasicPlaylist';
 import * as Device from 'expo-device';
 
 export type RootStackParamsList = {

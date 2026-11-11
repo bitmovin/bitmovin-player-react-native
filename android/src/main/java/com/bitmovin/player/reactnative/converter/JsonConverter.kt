@@ -93,7 +93,6 @@ import com.bitmovin.player.reactnative.CallbackScope
 import com.bitmovin.player.reactnative.PictureInPictureAction
 import com.bitmovin.player.reactnative.PictureInPictureConfig
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
-import com.bitmovin.player.reactnative.SourceRegistry
 import com.bitmovin.player.reactnative.UserInterfaceType
 import com.bitmovin.player.reactnative.converter.toPictureInPictureActions
 import com.bitmovin.player.reactnative.extensions.getArray
@@ -310,7 +309,6 @@ fun LoadingState.toJson(): Int = when (this) {
 }
 
 fun Source.toJson(): Map<String, Any> = mapOf(
-    "nativeId" to SourceRegistry.getNativeId(this),
     "duration" to duration,
     "isActive" to isActive,
     "isAttachedToPlayer" to isAttachedToPlayer,

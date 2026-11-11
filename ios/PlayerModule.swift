@@ -16,9 +16,6 @@ public class PlayerModule: Module {
             "event": event.eventPayload(),
         ])
     }
-    private lazy var removedSourceReleaser = RemovedSourceReleaser { [weak self] nativeId in
-        self?.appContext?.moduleRegistry.get(SourceModule.self)?.releaseSource(nativeId: nativeId)
-    }
 
     // swiftlint:disable:next function_body_length cyclomatic_complexity
     public func definition() -> ModuleDefinition {
@@ -30,8 +27,23 @@ public class PlayerModule: Module {
             return owner
         }.runOnQueue(.main)
         Class("Player", SharedPlayer.self) {
-            AsyncFunction("getPlaylistSourceIds") { (owner: SharedPlayer) -> [NativeId] in
-                owner.player.playlist.sources.compactMap { SourceRegistry.nativeId(of: $0) }
+            AsyncFunction("getSource") { (owner: SharedPlayer, known: [SharedSource]) -> SharedSource? in
+                owner.player.source.map { source in
+                    known.first { $0.source === source } ?? SharedSource(source: source, callback: nil)
+                }
+            }.runOnQueue(.main)
+            AsyncFunction("getPlaylistSources") { (owner: SharedPlayer, known: [SharedSource]) -> [SharedSource] in
+                owner.player.playlist.sources.map { source in
+                    known.first { $0.source === source } ?? SharedSource(source: source, callback: nil)
+                }
+            }.runOnQueue(.main)
+            AsyncFunction("loadSource") { (owner: SharedPlayer, source: SharedSource) in
+                try ensureSourceAvailable(source.source, player: owner.player)
+                owner.player.load(source: source.source)
+            }.runOnQueue(.main)
+            AsyncFunction("loadPlaylist") { (owner: SharedPlayer, sources: [SharedSource], options: [String: Any]?) in
+                try sources.forEach { try ensureSourceAvailable($0.source, player: owner.player) }
+                owner.player.load(playlistConfig: try playlistConfig(sources: sources, options: options))
             }.runOnQueue(.main)
             AsyncFunction("playlistAdd") { (owner: SharedPlayer, source: SharedSource, index: Int?) in
                 try ensurePlaylistSourceType(source.source)
@@ -215,7 +227,6 @@ public class PlayerModule: Module {
             DispatchQueue.main.async { [self] in
                 // Cancel the event subscriptions first, so destroying the players does not emit into this module.
                 eventRelay.clear()
-                removedSourceReleaser.clear()
                 PlayerRegistry.getAllNativeIds().forEach {
                     PlayerRegistry.getSharedPlayer(nativeId: $0)?.closeCallbacks()
                 }
@@ -245,8 +256,7 @@ public class PlayerModule: Module {
                 owner.player.destroy()
                 PlayerRegistry.unregister(nativeId: nativeId)
             }
-            // Detach only after destroying, so the sources that `destroy` removes while unloading are released.
-            self?.removedSourceReleaser.detach(nativeId: nativeId)
+            // Detach after destroying so Player listeners receive the destroy event.
             self?.eventRelay.offAll(nativeId: nativeId)
         }.runOnQueue(.main)
         AsyncFunction("setPreparedImaSettings") { [weak self] (id: Int, settings: [String: Any]?) in
@@ -263,95 +273,12 @@ public class PlayerModule: Module {
                 nativeId: nativeId, config: config, callbackValue: callback, analyticsConfigJson: analytics
             )
         }.runOnQueue(.main)
-        AsyncFunction("loadSource") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId) in
-            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
-                  let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self),
-                  let source = sourceModule.retrieve(sourceNativeId) else { return }
-            player.load(source: source)
-        }.runOnQueue(.main)
-        AsyncFunction("loadPlaylist") { [weak self] (nativeId: NativeId, sourceNativeIds: [NativeId], options: [String: Any]?) in // swiftlint:disable:this line_length
-            try self?.loadPlaylist(nativeId: nativeId, sourceNativeIds: sourceNativeIds, options: options)
-        }.runOnQueue(.main)
-        AsyncFunction("source") { (nativeId: NativeId) -> NativeId? in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.source.flatMap { SourceRegistry.nativeId(of: $0) }
-        }.runOnQueue(.main)
     }
 
     /// This needs to stay stable to maintain compatibility for cross-module access..
     @objc
     public func retrieve(_ nativeId: NativeId) -> Player? {
         PlayerRegistry.getPlayer(nativeId: nativeId)
-    }
-
-    private func loadPlaylist(nativeId: NativeId, sourceNativeIds: [NativeId], options: [String: Any]?) throws {
-        guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
-              let sourceModule = appContext?.moduleRegistry.get(SourceModule.self) else { return }
-        let sources = try sourceNativeIds.map { sourceNativeId in
-            guard let source = sourceModule.retrieve(sourceNativeId) else {
-                throw Exception(
-                    name: "SOURCE_NOT_INITIALIZED",
-                    description: "Source \(sourceNativeId) is not initialized"
-                )
-            }
-            return source
-        }
-        // The SDK unloads the current session and then raises a `fatalError` for an invalid playlist config,
-        // so everything is validated before loading.
-        try Self.validatePlaylistSources(sources, sourceNativeIds: sourceNativeIds, player: player)
-        let playlistOptions = try RCTConvert.playlistOptions(options)
-        player.load(playlistConfig: PlaylistConfig(sources: sources, options: playlistOptions))
-    }
-
-    private static let supportedPlaylistSourceTypes: [SourceType] = [.hls, .progressive, .movpkg]
-
-    /// Throws if the iOS SDK cannot play `source` as part of a playlist.
-    internal static func validatePlaylistSourceType(_ source: Source, sourceNativeId: NativeId) throws {
-        guard supportedPlaylistSourceTypes.contains(source.sourceConfig.type) else {
-            throw Exception(
-                name: "UNSUPPORTED_PLAYLIST_SOURCE",
-                description: "Source \(sourceNativeId) cannot be part of a playlist on iOS: only HLS, progressive and movpkg sources are supported" // swiftlint:disable:this line_length
-            )
-        }
-    }
-
-    private static func validatePlaylistSources(
-        _ sources: [Source],
-        sourceNativeIds: [NativeId],
-        player: Player
-    ) throws {
-        guard !sources.isEmpty else {
-            throw Exception(name: "EMPTY_PLAYLIST", description: "Playlist config has no sources")
-        }
-        let sourcesWithNativeIds = zip(sources, sourceNativeIds)
-        for (source, sourceNativeId) in sourcesWithNativeIds {
-            try validatePlaylistSourceType(source, sourceNativeId: sourceNativeId)
-        }
-        // The SDK ignores a source listed more than once and only logs a warning.
-        var seenSources = Set<ObjectIdentifier>()
-        for (source, sourceNativeId) in sourcesWithNativeIds
-        where !seenSources.insert(ObjectIdentifier(source as AnyObject)).inserted {
-            throw Exception(
-                name: "DUPLICATE_PLAYLIST_SOURCE",
-                description: "Source \(sourceNativeId) is part of the playlist more than once"
-            )
-        }
-        // The SDK raises a `fatalError` for a source attached to another player. Sources of this player's
-        // current session are fine, as loading unloads the session first.
-        let sessionSources = Set(player.playlist.sources.map { ObjectIdentifier($0 as AnyObject) })
-        for (source, sourceNativeId) in sourcesWithNativeIds
-        where source.isAttachedToPlayer && !sessionSources.contains(ObjectIdentifier(source as AnyObject)) {
-            throw Exception(
-                name: "SOURCE_ALREADY_ATTACHED",
-                description: "Source \(sourceNativeId) is already attached to another player"
-            )
-        }
-    }
-
-    /**
-     Keeps `source` registered if its release is pending, see `RemovedSourceReleaser.keep(_:)`.
-     */
-    internal func keepSource(_ source: Source) {
-        removedSourceReleaser.keep(source)
     }
 
     private func initializePlayer(
@@ -367,7 +294,9 @@ public class PlayerModule: Module {
             throw Exception(name: "InvalidPlayerConfig", description: "Invalid player configuration")
         }
         #if os(iOS)
-        setupRemoteControlConfig(playerConfig.remoteControlConfig)
+        if let remote = RCTConvert.remoteControlConfig(config?["remoteControlConfig"], callback: callback) {
+            playerConfig.remoteControlConfig = remote
+        }
         #endif
         if let network = RCTConvert.networkConfig(config?["networkConfig"], callback: callback) {
             playerConfig.networkConfig = network
@@ -388,24 +317,11 @@ public class PlayerModule: Module {
             player = PlayerFactory.create(playerConfig: playerConfig)
         }
         PlayerRegistry.register(player: player, nativeId: nativeId, callback: callback)
-        removedSourceReleaser.attach(nativeId: nativeId, player: player)
         guard let owner = PlayerRegistry.getSharedPlayer(nativeId: nativeId) else {
             callback?.close()
             throw Exception(name: "PlayerNotInitialized", description: "Player registration failed")
         }
         return owner
-    }
-
-    private func setupRemoteControlConfig(_ remoteControlConfig: RemoteControlConfig) {
-        remoteControlConfig.prepareSource = { [weak self] _, sourceConfig in
-            guard let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self),
-                  let sourceNativeId = sourceModule.nativeId(where: { $0.sourceConfig === sourceConfig }),
-                  let castSourceConfig = sourceModule.retrieveCastSourceConfig(sourceNativeId) else {
-                return nil
-            }
-
-            return castSourceConfig
-        }
     }
 
     private func setupShouldLoadAdItem(
@@ -464,6 +380,26 @@ public class PlayerModule: Module {
             RCTConvert.applyImaSettings(settings, from: updated)
         }
     }
+}
+
+private func ensureSourceAvailable(_ source: Source, player: Player) throws {
+    guard !source.isAttachedToPlayer || player.playlist.sources.contains(where: { $0 === source }) else {
+        throw Exception(name: "SourceAlreadyAttached", description: "Source is attached to another player")
+    }
+}
+
+private func playlistConfig(sources: [SharedSource], options: [String: Any]?) throws -> PlaylistConfig {
+    guard !sources.isEmpty else {
+        throw Exception(name: "InvalidPlaylist", description: "A playlist requires at least one source")
+    }
+    var seen = Set<ObjectIdentifier>()
+    for source in sources {
+        try ensurePlaylistSourceType(source.source)
+        guard seen.insert(ObjectIdentifier(source.source)).inserted else {
+            throw Exception(name: "DuplicatePlaylistSource", description: "A source is listed more than once")
+        }
+    }
+    return PlaylistConfig(sources: sources.map(\.source), options: try RCTConvert.playlistOptions(options))
 }
 
 // The SDK can fail fatally or unload the active session before rejecting unsupported sources.

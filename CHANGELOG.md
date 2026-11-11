@@ -4,6 +4,8 @@
 
 ### Changed
 
+- Sources create their native object automatically and keep it when removed from a player. Source event subscriptions now return a subscription to remove, and source queries preserve the original Source object and config while it is reachable. Source binding IDs are removed; event payloads keep source metadata, and SDK content and track IDs are unchanged. iOS remote source selection moves from `Source.remoteControl` to `PlayerConfig.remoteControlConfig.prepareSource`
+
 - Player commands return promises for native acceptance and completion. Await playback events such as Ready or Playing for playback readiness
 
 - PlayerView attaches the owned native Player directly. Picture-in-picture actions and enabled state belong to the native view, so remounting a view does not depend on a player-ID lookup

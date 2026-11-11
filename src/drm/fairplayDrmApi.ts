@@ -11,7 +11,7 @@ import type { NativeSource } from '../modules/sourceModule';
  */
 export class FairplayDrmApi {
   /** @internal */
-  constructor(private readonly nativeSource: () => Promise<NativeSource>) {}
+  constructor(private readonly nativeSource: Promise<NativeSource>) {}
 
   /**
    * Renews an expiring FairPlay license for the provided content key request.
@@ -27,7 +27,7 @@ export class FairplayDrmApi {
       console.warn('renewExpiringLicense is not available on Android.');
       return;
     }
-    return (await this.nativeSource()).drmFairplayRenewExpiringLicense(
+    return (await this.nativeSource).drmFairplayRenewExpiringLicense(
       contentKeyRequest.skdUri
     );
   };

@@ -381,6 +381,53 @@ extension RCTConvert {
         return sourceConfig
     }
 
+    static func toJson(sourceConfig: SourceConfig) -> [String: Any] {
+        var json: [String: Any?] = [
+            "url": sourceConfig.url.absoluteString,
+            "type": [SourceType.hls: "hls", .dash: "dash", .progressive: "progressive"][sourceConfig.type] ?? "none",
+            "title": sourceConfig.title,
+            "description": sourceConfig.sourceDescription,
+            "poster": sourceConfig.posterSource?.absoluteString,
+            "isPosterPersistent": sourceConfig.isPosterPersistent,
+            "metadata": sourceConfig.metadata,
+            "subtitleTracks": sourceConfig.tracks.compactMap { ($0 as? SubtitleTrack).flatMap(Self.subtitleTrackJson) },
+            "thumbnailTrack": sourceConfig.thumbnailTrack?.url?.absoluteString,
+            "drmConfig": Self.toJson(drmConfig: sourceConfig.drmConfig),
+            "options": [
+                "startOffset": sourceConfig.options.startOffset,
+                "startOffsetTimelineReference": [
+                    TimelineReferencePoint.start: "start", .end: "end"
+                ][sourceConfig.options.startOffsetTimelineReference]
+            ].compactMapValues { $0 }
+        ]
+        if #available(iOS 18, tvOS 18, visionOS 2, *) {
+            json["cmcdConfig"] = ["isEnabled": sourceConfig.cmcdConfig.isEnabled]
+        }
+        return json.compactMapValues { $0 }
+    }
+
+    static func toJson(drmConfig: DrmConfig?) -> [String: Any]? {
+        if let fairplay = drmConfig as? FairplayConfig {
+            return [
+                "fairplay": [
+                    "licenseUrl": fairplay.licenseUrl?.absoluteString,
+                    "certificateUrl": fairplay.certificateUrl?.absoluteString,
+                    "licenseRequestHeaders": fairplay.licenseRequestHeaders,
+                    "certificateRequestHeaders": fairplay.certificateRequestHeaders
+                ].compactMapValues { $0 }
+            ]
+        }
+        if let widevine = drmConfig as? WidevineConfig {
+            return [
+                "widevine": [
+                    "licenseUrl": widevine.licenseUrl?.absoluteString,
+                    "httpHeaders": widevine.licenseRequestHeaders
+                ].compactMapValues { $0 }
+            ]
+        }
+        return nil
+    }
+
     static func sourceOptions(_ json: Any?) -> SourceOptions {
         let sourceOptions = SourceOptions()
         guard let json = json as? [String: Any?] else {
@@ -992,7 +1039,7 @@ extension RCTConvert {
         ]
     }
 
-    static func remoteControlConfig(_ json: Any?) -> RemoteControlConfig? {
+    static func remoteControlConfig(_ json: Any?, callback: CallbackScope? = nil) -> RemoteControlConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
         }
@@ -1015,6 +1062,16 @@ extension RCTConvert {
         if let sendDrmLicenseRequestsWithCredentials = json["sendDrmLicenseRequestsWithCredentials"] as? Bool {
             remoteControlConfig.sendDrmLicenseRequestsWithCredentials = sendDrmLicenseRequestsWithCredentials
         }
+#if os(iOS)
+        if let token = json["prepareSource"] as? String {
+            remoteControlConfig.prepareSource = { type, sourceConfig in
+                guard let prepared = callback?.call(
+                    token, arguments: [type.rawValue, Self.toJson(sourceConfig: sourceConfig)]
+                ) as? [String: Any] else { return nil }
+                return Self.sourceConfig(prepared, drmConfig: prepared["drmConfig"].flatMap(Self.drmConfig)?.widevine)
+            }
+        }
+#endif
         return remoteControlConfig
     }
 
@@ -1037,21 +1094,6 @@ extension RCTConvert {
             "type": castPayload.type,
         ]
     }
-
-    static func sourceRemoteControlConfig(_ json: Any?) -> SourceRemoteControlConfig? {
-        guard let json = json as? [String: Any?],
-              let castSourceConfigJson = json["castSourceConfig"] as? [String: Any?] else {
-            return nil
-        }
-
-        return SourceRemoteControlConfig(
-            castSourceConfig: Self.sourceConfig(
-                castSourceConfigJson,
-                drmConfig: castSourceConfigJson["drmConfig"].flatMap(Self.drmConfig)?.widevine
-            )
-        )
-    }
-#endif
 
     static func pictureInPictureConfig(_ json: Any?) -> PictureInPictureConfig? {
         guard let json = json as? [String: Any?] else {

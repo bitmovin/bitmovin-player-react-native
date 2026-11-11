@@ -40,9 +40,6 @@ class PlayerModule : Module() {
     private val shouldLoadAdItemWaiter = ResultWaiter<Boolean>()
     private val shouldPlayAdBreakWaiter = ResultWaiter<Boolean>()
     private val imaSettingsWaiter = ResultWaiter<Map<String, Any?>>()
-    private val removedSourceReleaser = RemovedSourceReleaser {
-        appContext.registry.getModule<SourceModule>()?.releaseSource(it)
-    }
 
     private val eventRelay = EventRelay<Event>(PlayerEventTypes.player) { nativeId, eventName, event ->
         sendEvent(
@@ -63,8 +60,22 @@ class PlayerModule : Module() {
         }.runOnQueue(Queues.MAIN)
 
         Class(SharedPlayer::class) {
-            AsyncFunction("getPlaylistSourceIds") { owner: SharedPlayer ->
-                owner.player.playlist.sources.mapNotNull { SourceRegistry.getNativeId(it) }
+            AsyncFunction("getSource") { shared: SharedPlayer, known: List<SharedSource> ->
+                shared.player.source?.let { source ->
+                    known.firstOrNull { it.source === source } ?: SharedSource(appContext, source)
+                }
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("getPlaylistSources") { shared: SharedPlayer, known: List<SharedSource> ->
+                shared.player.playlist.sources.map { source ->
+                    known.firstOrNull { it.source === source } ?: SharedSource(appContext, source)
+                }
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("loadSource") { shared: SharedPlayer, source: SharedSource ->
+                shared.player.load(source.source)
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("loadPlaylist") { shared: SharedPlayer, sources: List<SharedSource>,
+                options: Map<String, Any?>?, ->
+                shared.player.load(PlaylistConfig(sources.map { it.source }, options?.toPlaylistOptions() ?: PlaylistOptions()))
             }.runOnQueue(Queues.MAIN)
             AsyncFunction("playlistAdd") { shared: SharedPlayer, source: SharedSource, index: Int? ->
                 if (index == null) {
@@ -266,7 +277,6 @@ class PlayerModule : Module() {
             Handler(Looper.getMainLooper()).post {
                 // Detach the listeners first, so destroying the players does not emit into this module.
                 eventRelay.clear { PlayerRegistry.getPlayer(it) }
-                removedSourceReleaser.clear { PlayerRegistry.getPlayer(it) }
                 PlayerRegistry.getAllNativeIds().forEach { PlayerRegistry.getSharedPlayer(it)?.closeCallbacks() }
                 // Clean up all players when module is destroyed
                 PlayerRegistry.getAllPlayers().forEach { player ->
@@ -305,7 +315,6 @@ class PlayerModule : Module() {
                 PlayerRegistry.unregister(nativeId)
             }
             eventRelay.offAll(nativeId, player)
-            removedSourceReleaser.detach(nativeId, player)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("setPreparedImaSettings") { id: Int, settings: Map<String, Any?>? ->
@@ -330,32 +339,7 @@ class PlayerModule : Module() {
             initializePlayer(nativeId, config, analyticsConfigJson, callback)
         }.runOnQueue(Queues.MAIN)
 
-        AsyncFunction("loadSource") { nativeId: NativeId, sourceNativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            val source = SourceRegistry.getSource(sourceNativeId)
-            if (player != null && source != null) {
-                player.load(source)
-            }
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("loadPlaylist") { nativeId: NativeId, sourceNativeIds: List<NativeId>,
-            options: Map<String, Any?>?, ->
-            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
-            val sources = sourceNativeIds.map {
-                SourceRegistry.getSource(it) ?: throw SourceException.SourceNotInitialized(it)
-            }
-            player.load(PlaylistConfig(sources, options?.toPlaylistOptions() ?: PlaylistOptions()))
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("source") { nativeId: NativeId ->
-            PlayerRegistry.getPlayer(nativeId)?.source?.let { SourceRegistry.getNativeId(it) }
-        }.runOnQueue(Queues.MAIN)
     }
-
-    /**
-     * Keeps [source] registered if its release is pending, see [RemovedSourceReleaser.keep].
-     */
-    fun keepSource(source: Source) = removedSourceReleaser.keep(source)
 
     private fun initializePlayer(
         nativeId: NativeId,
@@ -412,7 +396,6 @@ class PlayerModule : Module() {
                 Player.create(applicationContext, playerConfig)
             }
             PlayerRegistry.register(player, nativeId, appContext, callbacks)
-            removedSourceReleaser.attach(nativeId, player)
 
             try {
                 if (enableMediaSession) mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)

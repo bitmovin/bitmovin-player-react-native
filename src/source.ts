@@ -1,15 +1,13 @@
+import type { EventSubscription } from 'expo-modules-core';
+import type { SourceEvents } from './events';
+import { subscribeToNativeEvent } from './nativeEvents';
 import type { CmcdConfig } from './cmcdConfig';
 import type { DrmConfig } from './drm';
 import { SourceDrmApi } from './drm/sourceDrmApi';
-import type { NativeInstanceConfig } from './nativeInstance';
-import NativeInstance from './nativeInstance';
 import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
 import SourceModule, { type NativeSource } from './modules/sourceModule';
-import type { SourceEventMap } from './eventMap';
-import { EventListeners } from './utils/eventListeners';
-import { SourceRegistry } from './utils/sourceRegistry';
 import { NativeConfigSerializer } from './native/nativeConfigSerializer';
 
 /**
@@ -89,7 +87,7 @@ export enum TimelineReferencePoint {
 /**
  * Represents a source configuration that be loaded into a player instance.
  */
-export interface SourceConfig extends NativeInstanceConfig {
+export interface SourceConfig {
   /**
    *  The url for this source configuration.
    */
@@ -97,7 +95,7 @@ export interface SourceConfig extends NativeInstanceConfig {
   /**
    * The `SourceType` for this configuration.
    */
-  type?: SourceType;
+  type: SourceType;
   /**
    * The title of the video source.
    */
@@ -148,202 +146,88 @@ export interface SourceConfig extends NativeInstanceConfig {
 }
 
 /**
- * The remote control config for a source.
- * @platform iOS
- */
-export interface SourceRemoteControlConfig {
-  /**
-   * The `SourceConfig` for casting.
-   * Enables to play different content when casting.
-   * This can be useful when the remote playback device supports different streaming formats,
-   * DRM systems, etc. than the local device.
-   * If not set, the local source config will be used for casting.
-   */
-  castSourceConfig?: SourceConfig | null;
-}
-
-/**
  * Represents audio and video content that can be loaded into a player.
  */
-export class Source extends NativeInstance<SourceConfig> {
-  /**
-   * Provides DRM runtime APIs for this Source. Read `config.drmConfig` for configuration.
-   */
-  readonly drm: SourceDrmApi = new SourceDrmApi(() => this.native);
-  /**
-   * The remote control config for this source.
-   * This is only supported on iOS.
-   *
-   * @platform iOS
-   */
-  remoteControl: SourceRemoteControlConfig | null = null;
-  /**
-   * Whether the native {@link Source} object has been created.
-   * The native source is released once it is removed from a player or its player is destroyed, and
-   * {@link Source.initialize} creates it again, e.g. when the source is loaded again.
-   */
-  isInitialized = false;
-  /**
-   * Whether the native {@link Source} object has been disposed via {@link Source.destroy}.
-   *
-   * @internal
-   */
-  isDestroyed = false;
-
-  private initialization?: Promise<void>;
-  private nativeSource?: Promise<NativeSource>;
-
+export class Source {
   /** @internal */
-  get native(): Promise<NativeSource> {
-    // Legacy Source aliases can outlive another alias's release notification.
-    // Refresh through the current registry generation until Source owns its lifetime.
-    const attempt = this.initialize().then(() =>
-      SourceModule.getSharedSource(this.nativeId)
+  readonly native: Promise<NativeSource>;
+
+  private static readonly sources = new WeakMap<
+    NativeSource,
+    WeakRef<Source>
+  >();
+
+  readonly config: SourceConfig | undefined;
+
+  constructor(config: SourceConfig);
+  /** @internal Adopts a native-owned source without creating another one. */
+  constructor(native: NativeSource);
+  constructor(configOrNative: SourceConfig | NativeSource) {
+    this.config = 'url' in configOrNative ? configOrNative : undefined;
+    if ('url' in configOrNative) {
+      this.native = this.createNative().then((owner) => {
+        Source.sources.set(owner, new WeakRef(this));
+        this.isInitialized = true;
+        return owner;
+      });
+    } else {
+      this.native = Promise.resolve(configOrNative);
+      Source.sources.set(configOrNative, new WeakRef(this));
+      this.isInitialized = true;
+    }
+    this.drm = new SourceDrmApi(this.native);
+    // Keep creation failures available to initialize() and runtime methods.
+    void this.native.catch(() => {});
+  }
+
+  /** @internal Reuses the original wrapper while it is still reachable. */
+  static fromNative(native: NativeSource): Source {
+    return Source.sources.get(native)?.deref() ?? new Source(native);
+  }
+
+  private async createNative(): Promise<NativeSource> {
+    const callbacks = new NativeConfigSerializer();
+    const native = await callbacks.dispatcher.createAsync((callback) =>
+      SourceModule.create(
+        callbacks.serialize(this.config),
+        callbacks.serialize(this.config?.analyticsSourceMetadata),
+        callback
+      )
     );
-    this.nativeSource = attempt;
-    void attempt.catch(() => {
-      if (this.nativeSource === attempt) this.nativeSource = undefined;
-    });
-    return attempt;
+    return native;
   }
 
   /**
-   * The instance id of the native source, as resolved by its creation.
+   * Provides access to DRM runtime APIs for this source.
+   * Use `drm.fairplay` to access {@link FairplayDrmApi} for FairPlay-specific APIs such as {@link FairplayDrmApi.renewExpiringLicense}.
+   * Available for every source. Read {@link SourceConfig.drmConfig} to inspect DRM configuration.
    */
-  private nativeInstanceId?: number;
-  private readonly eventListeners = new EventListeners<SourceEventMap>(
-    this.nativeId,
-    SourceModule,
-    (listener) => SourceModule.addListener('onSourceEvent', listener)
-  );
+  readonly drm: SourceDrmApi;
 
   /**
-   * Allocates the native {@link Source} instance and its resources natively, or again if it has been released.
-   * Calls made while an initialization is in progress share it.
+   * Whether the native {@link Source} object has been created.
    */
-  initialize = (): Promise<void> => {
-    this.initialization ??= this.initializeNative().finally(() => {
-      this.initialization = undefined;
-    });
-    return this.initialization;
-  };
+  isInitialized = false;
 
-  private initializeNative = async (): Promise<void> => {
-    const sourceMetadata = this.config?.analyticsSourceMetadata;
-    const serializer = new NativeConfigSerializer();
-    const native = await serializer.dispatcher.createAsync((callback) =>
-      sourceMetadata
-        ? SourceModule.initializeWithAnalyticsConfig(
-            this.nativeId,
-            serializer.serialize(this.config),
-            this.remoteControl || undefined,
-            sourceMetadata,
-            callback
-          )
-        : SourceModule.initializeWithConfig(
-            this.nativeId,
-            serializer.serialize(this.config),
-            this.remoteControl || undefined,
-            callback
-          )
-    );
-    const instanceId = native.legacyInstanceId;
-    const isCreated =
-      SourceRegistry.get(this.nativeId)?.nativeInstanceId !== instanceId;
-    this.nativeInstanceId = instanceId;
-    this.nativeSource = Promise.resolve(native);
-    SourceRegistry.register(this);
-    this.isInitialized = true;
-    this.isDestroyed = false;
-    if (isCreated) {
-      // A released native source is created again without the native listeners of the released one.
-      this.eventListeners.reattachNative();
-    } else {
-      this.eventListeners.attachNative();
-    }
+  /**
+   * Waits for the native {@link Source} creation started by the constructor.
+   */
+  initialize = async (): Promise<void> => {
+    await this.native;
   };
 
   /**
-   * Releases the JS resources of the native source once native released it, e.g. after its player removed it.
-   * {@link Source.initialize} allocates them again. Ignores the release of a previous native source, as the
-   * source may have been created again for the same `nativeId` since.
-   *
-   * @internal
+   * Subscribes to native events, even without a PlayerView. For example,
+   * `await source.on('sourceLoaded', listener)`.
+   * Use `event` to listen to all supported native object events.
+   * Await registration before triggering events. Call `remove()` on the resolved
+   * subscription to stop listening.
    */
-  handleNativeRelease = (instanceId: number) => {
-    if (this.initialization) {
-      // Decide once it is known whether the initialization created a new native source.
-      const handle = () => this.handleNativeRelease(instanceId);
-      void this.initialization.then(handle, handle);
-      return;
-    }
-    if (instanceId !== this.nativeInstanceId) {
-      return;
-    }
-    this.nativeInstanceId = undefined;
-    this.nativeSource = undefined;
-    SourceRegistry.unregister(this);
-    this.isInitialized = false;
-  };
-
-  /**
-   * Destroys the native {@link Source} and releases all of its allocated resources.
-   * All listeners are removed. The source can be initialized again afterwards.
-   *
-   * @internal
-   */
-  destroy = () => {
-    if (!this.isDestroyed) {
-      SourceRegistry.unregister(this);
-      this.nativeInstanceId = undefined;
-      this.nativeSource = undefined;
-      void SourceModule.destroy(this.nativeId);
-      this.eventListeners.removeAll();
-      this.isDestroyed = true;
-      this.isInitialized = false;
-    }
-  };
-
-  /**
-   * Registers `listener` to be called whenever this source emits `eventName`.
-   *
-   * Unlike {@link Player.on}, which only receives the source events of the active source, the source
-   * emits all of its events, including while it is inactive, e.g. `sourceLoaded` of a preloaded playlist
-   * source. Listeners registered before the source is initialized are attached during
-   * {@link Source.initialize}. Listeners are kept when the native source is released, e.g. once it is removed
-   * from a player, and are attached again when it is loaded again. Calling it on a destroyed source has no
-   * effect and logs a warning.
-   * Registering the same `listener` again for `eventName` has no effect; use {@link Source.off} to remove it.
-   *
-   * @param eventName - The name of the event, e.g. `sourceLoaded`.
-   * @param listener - The function called with the event.
-   */
-  on = <K extends keyof SourceEventMap>(
-    eventName: K,
-    listener: (event: SourceEventMap[K]) => void
-  ): void => {
-    if (this.isDestroyed) {
-      console.warn(
-        `[Source ${this.nativeId}] The source was destroyed and must not be used any more, therefore on has no effect.`
-      );
-      return;
-    }
-    this.eventListeners.on(eventName, listener);
-  };
-
-  /**
-   * Removes a `listener` previously registered for `eventName` via {@link Source.on}.
-   * Has no effect if the listener is not registered.
-   *
-   * @param eventName - The name of the event.
-   * @param listener - The function passed to {@link Source.on}.
-   */
-  off = <K extends keyof SourceEventMap>(
-    eventName: K,
-    listener: (event: SourceEventMap[K]) => void
-  ): void => {
-    this.eventListeners.off(eventName, listener);
-  };
+  on = async <Name extends keyof SourceEvents>(
+    event: Name,
+    listener: SourceEvents[Name]
+  ): Promise<EventSubscription> =>
+    subscribeToNativeEvent(this.native, event, listener);
 
   /**
    * The duration of the source in seconds if it’s a VoD or `INFINITY` if it’s a live stream.

@@ -154,11 +154,6 @@ export type PlaybackFinishedEvent = Event;
  */
 export interface EventSource {
   /**
-   * The {@link Source.nativeId} of this event's source.
-   * Not set for sources that were not created through a {@link Source} instance (e.g. offline content).
-   */
-  nativeId?: string;
-  /**
    * Event's source duration in seconds.
    */
   duration: number;
@@ -1147,3 +1142,25 @@ export interface FairplayLicenseAcquiredEvent extends Event {
    */
   contentKeyRequest: FairplayContentKeyRequest;
 }
+
+/** Events emitted by a Source, and forwarded by its attached Player. */
+export type SourceEvents = {
+  downloadFinished: (event: DownloadFinishedEvent) => void;
+  videoDownloadQualityChanged: (
+    event: VideoDownloadQualityChangedEvent
+  ) => void;
+  metadataParsed: (event: MetadataParsedEvent) => void;
+  sourceError: (event: SourceErrorEvent) => void;
+  sourceLoad: (event: SourceLoadEvent) => void;
+  sourceLoaded: (event: SourceLoadedEvent) => void;
+  sourceUnloaded: (event: SourceUnloadedEvent) => void;
+  sourceWarning: (event: SourceWarningEvent) => void;
+  audioAdded: (event: AudioAddedEvent) => void;
+  audioChanged: (event: AudioChangedEvent) => void;
+  audioRemoved: (event: AudioRemovedEvent) => void;
+  subtitleAdded: (event: SubtitleAddedEvent) => void;
+  subtitleChanged: (event: SubtitleChangedEvent) => void;
+  subtitleRemoved: (event: SubtitleRemovedEvent) => void;
+  fairplayLicenseAcquired: (event: FairplayLicenseAcquiredEvent) => void;
+  event: (event: Event) => void;
+};

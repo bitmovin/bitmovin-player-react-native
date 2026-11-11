@@ -1,4 +1,5 @@
 import type { NativeOffline } from './offline/offlineModule';
+import type { NativeSource } from './modules/sourceModule';
 import type { EventSubscription } from 'expo-modules-core';
 import { Platform } from 'react-native';
 import PlayerModule, { type NativePlayer } from './modules/playerModule';
@@ -20,7 +21,6 @@ import { PlaylistApi } from './playlist';
 import { validatePlaylistConfig } from './playlist/validatePlaylistConfig';
 import type { PlayerEventMap } from './eventMap';
 import { EventListeners } from './utils/eventListeners';
-import { SourceRegistry } from './utils/sourceRegistry';
 import { NativeConfigSerializer } from './native/nativeConfigSerializer';
 
 /**
@@ -62,7 +62,7 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * The {@link PlaylistApi} for interactions regarding the playlist of the playback session.
    */
-  playlist: PlaylistApi = new PlaylistApi(() => this.native);
+  playlist: PlaylistApi = new PlaylistApi(this);
 
   private onShouldLoadAdItemSubscription?: EventSubscription;
   private onShouldPlayAdBreakSubscription?: EventSubscription;
@@ -70,14 +70,19 @@ export class Player extends NativeInstance<PlayerConfig> {
   private initialization?: Promise<void>;
   private destruction?: Promise<void>;
   private sharedPlayer?: Promise<NativePlayer>;
-  private static readonly loadedOffline = new WeakMap<
+  private static readonly loadedContent = new WeakMap<
     NativePlayer,
-    NativeOffline
+    {
+      sources: Set<NativeSource>;
+      offline?: NativeOffline;
+    }
   >();
 
   private clearLoadedOffline = async (): Promise<void> => {
     const native = await this.sharedPlayer?.catch(() => undefined);
-    if (native) Player.loadedOffline.delete(native);
+    if (native) {
+      Player.loadedContent.delete(native);
+    }
   };
 
   /** @internal */
@@ -121,6 +126,12 @@ export class Player extends NativeInstance<PlayerConfig> {
             this.config.playbackConfig.decoderConfig
           ),
         };
+      }
+
+      if (this.config?.remoteControlConfig) {
+        config.remoteControlConfig = serializer.serialize(
+          this.config.remoteControlConfig
+        );
       }
 
       const native = await serializer.dispatcher.createAsync((callback) =>
@@ -225,30 +236,54 @@ export class Player extends NativeInstance<PlayerConfig> {
       offlineContentManager.native,
     ]);
     if (await native.loadOfflineContent(offline, options)) {
-      Player.loadedOffline.set(native, offline);
+      Player.loadedContent.set(native, { sources: new Set(), offline });
     }
   };
 
   /**
    * Loads the given {@link Source} into the player.
    */
-  loadSource = async (source: Source) => {
-    await this.native;
-    return source
-      .initialize()
-      .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId))
-      .then(this.clearLoadedOffline);
+  loadSource = async (source: Source): Promise<void> => {
+    const [native, nativeSource] = await Promise.all([
+      this.native,
+      source.native,
+    ]);
+    await native.loadSource(nativeSource);
+    Player.loadedContent.set(native, { sources: new Set([nativeSource]) });
   };
 
   /**
    * Gets the currently active {@link Source} of the playback session.
    *
-   * @returns the active source, or `undefined` if there is no active playback session or the active source was
-   * not created through a {@link Source} instance (e.g. offline content).
+   * @returns the active source, or `undefined` if there is no active playback session including native-owned sources such as offline content.
    */
   getSource = async (): Promise<Source | undefined> => {
-    const sourceNativeId = await PlayerModule.source(this.nativeId);
-    return sourceNativeId ? SourceRegistry.get(sourceNativeId) : undefined;
+    const native = await this.native;
+    const source = await native.getSource([
+      ...(Player.loadedContent.get(native)?.sources ?? []),
+    ]);
+    if (!source) return undefined;
+    this.retainSource(native, source);
+    return Source.fromNative(source);
+  };
+
+  /** @internal Keeps callback peers available while this SDK playback session owns their sources. */
+  retainSource = (native: NativePlayer, source: NativeSource): void => {
+    const content = Player.loadedContent.get(native) ?? {
+      sources: new Set<NativeSource>(),
+    };
+    content.sources.add(source);
+    Player.loadedContent.set(native, content);
+  };
+
+  /** @internal Queries owned source handles without a source-ID registry. */
+  getPlaylistSources = async (): Promise<Source[]> => {
+    const native = await this.native;
+    const sources = await native.getPlaylistSources([
+      ...(Player.loadedContent.get(native)?.sources ?? []),
+    ]);
+    sources.forEach((source) => this.retainSource(native, source));
+    return sources.map(Source.fromNative);
   };
 
   /**
@@ -266,20 +301,14 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Throws if `sources` is empty or contains a source more than once, `options.replayMode` is unknown, or (on
    * iOS and tvOS) a source has an unsupported type.
    */
-  loadPlaylist = async (playlistConfig: PlaylistConfig) => {
+  loadPlaylist = async (playlistConfig: PlaylistConfig): Promise<void> => {
     validatePlaylistConfig(playlistConfig);
-    await this.native;
-    return Promise.all(
-      playlistConfig.sources.map((source) => source.initialize())
-    )
-      .then(() =>
-        PlayerModule.loadPlaylist(
-          this.nativeId,
-          playlistConfig.sources.map((source) => source.nativeId),
-          playlistConfig.options
-        )
-      )
-      .then(this.clearLoadedOffline);
+    const [native, sources] = await Promise.all([
+      this.native,
+      Promise.all(playlistConfig.sources.map((source) => source.native)),
+    ]);
+    await native.loadPlaylist(sources, playlistConfig.options);
+    Player.loadedContent.set(native, { sources: new Set(sources) });
   };
 
   /**

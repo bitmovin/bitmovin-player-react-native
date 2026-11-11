@@ -86,24 +86,13 @@ test('throws for an unknown replay mode', () => {
   );
 });
 
-test('throws for a destroyed source and names it', () => {
-  const { validatePlaylistConfig } = load();
-  assert.throws(
-    () =>
-      validatePlaylistConfig({
-        sources: [source('a'), source('b', { isDestroyed: true })],
-      }),
-    /Source b was destroyed/
-  );
-});
-
 test('throws for a source listed more than once and names it', () => {
   const { validatePlaylistConfig } = load();
   const duplicate = source('b');
   assert.throws(
     () =>
       validatePlaylistConfig({ sources: [source('a'), duplicate, duplicate] }),
-    /Source b is part of the playlist more than once/
+    /A source is part of the playlist more than once/
   );
 });
 
@@ -120,7 +109,7 @@ test('throws for a source type that iOS cannot play in a playlist', () => {
           validatePlaylistConfig({
             sources: [source('a'), source('b', { type })],
           }),
-        /Source b cannot be part of a playlist on iOS/
+        /Only HLS and progressive sources are supported in an iOS playlist/
       );
     }
   } finally {

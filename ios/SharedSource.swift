@@ -3,18 +3,25 @@ import ExpoModulesCore
 
 public final class SharedSource: SharedObject {
     let source: Source
-    let legacyInstanceId: Int
     let fairplayRequests: SourceFairplayRequests
+    private let events = SharedObjectEvents()
     private let callback: CallbackScope?
 
-    init(source: Source, legacyInstanceId: Int, callback: CallbackScope?) {
+    init(source: Source, callback: CallbackScope?) {
         self.source = source
-        self.legacyInstanceId = legacyInstanceId
         self.callback = callback
         fairplayRequests = SourceFairplayRequests.attached(to: source)
         super.init()
+        events.owner = self
+        source.add(listener: events)
     }
-
-    deinit { callback?.close() }
+    deinit {
+        callback?.close()
+        let source = source
+        let events = events
+        DispatchQueue.main.async {
+            source.remove(listener: events)
+        }
+    }
     override public func sharedObjectWillRelease() { callback?.close() }
 }
