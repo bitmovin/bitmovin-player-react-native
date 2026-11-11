@@ -21,8 +21,9 @@ export type NativeCallback = (
 const callbackOwner = Symbol('callbackOwner');
 
 /**
- * Dispatches native calls to JavaScript and delivers their results.
- * Wraps synchronous and asynchronous SharedObject factories with weak callbacks.
+ * Wraps synchronous and asynchronous SharedObject factories with weak callbacks
+ * to avoid strong reference loops. Synchronous SDK decisions return immediately;
+ * only asynchronous replies use a per-call completion object.
  * @internal
  */
 export class NativeCallbacks {
@@ -41,23 +42,26 @@ export class NativeCallbacks {
       void this.complete(operation, args, completion, fallbackArgument);
       return null;
     }
+    return this.synchronous(operation, args, mutating);
+  };
+
+  private synchronous(operation: string, args: any[], mutating: boolean): any {
     try {
       const result = this.invoke(operation, args);
       if (result != null && typeof result.then === 'function') {
-        // SDK decisions are synchronous; consume unexpected Promise failures.
+        // SDK decisions cannot wait for a Promise; consume rejected results.
         void Promise.resolve(result).catch(() => {});
         return null;
       }
-      return mutating
-        ? {
-            ...args[0],
-            ...(result && typeof result === 'object' ? result : {}),
-          }
-        : (result ?? null);
+      if (!mutating) return result ?? null;
+      return {
+        ...args[0],
+        ...(result && typeof result === 'object' ? result : {}),
+      };
     } catch {
       return null;
     }
-  };
+  }
 
   create<T extends SharedObject>(create: (callback: NativeCallback) => T): T {
     return this.attach(create(this.weak()));
