@@ -78,16 +78,25 @@ export default (spec: TestScope) => {
       });
     });
 
-    spec.it('throws for an empty playlist', async () => {
-      await startPlayerTest({}, async () => {
-        await callPlayer(async (player) => {
-          expect(
-            getError(() => player.loadPlaylist({ sources: [] })),
-            'loadPlaylist should throw'
-          ).toBeDefined();
+    spec.it(
+      'throws for an empty playlist and keeps the current session',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const source = new Source(Sources.artOfMotionHls);
+          await callPlayerAndExpectEvent((player) => {
+            player.loadPlaylist({ sources: [source] });
+          }, EventType.Ready);
+
+          await callPlayer(async (player) => {
+            expect(
+              getError(() => player.loadPlaylist({ sources: [] })),
+              'loadPlaylist should throw'
+            ).toBeDefined();
+            expect(await player.getSource()).toBe(source);
+          });
         });
-      });
-    });
+      }
+    );
 
     spec.it('throws for an unknown replay mode', async () => {
       await startPlayerTest({}, async () => {
@@ -196,6 +205,28 @@ export default (spec: TestScope) => {
         });
       }
     );
+
+    spec.it('resolves the active source after overlapping loads', async () => {
+      await startPlayerTest({}, async () => {
+        const first = new Source(Sources.artOfMotionHls);
+        const second = new Source(Sources.sintel);
+
+        await callPlayer(async (player) => {
+          player.loadPlaylist({ sources: [first] });
+          player.loadPlaylist({ sources: [second] });
+          // The loads are sent in call order, so the second one ends up active.
+          const isSecondActive = await waitUntil(
+            async () => (await player.getSource()) === second
+          );
+          expect(isSecondActive, 'Second source is active').toBeTruthy();
+          const sources = await player.playlist.getSources();
+          expect(
+            sources.map((source) => source.nativeId),
+            'Sources of the playlist'
+          ).toEqual([second.nativeId]);
+        });
+      });
+    });
 
     spec.it('preloads all sources when enabled', async () => {
       await startPlayerTest({}, async () => {
@@ -412,6 +443,70 @@ export default (spec: TestScope) => {
       });
     });
 
+    spec.it(
+      'keeps the listeners of a removed source that is added again',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const first = new Source(Sources.artOfMotionHls);
+          const second = new Source(Sources.sintel);
+          const secondLoaded: SourceLoadedEvent[] = [];
+          second.on('sourceLoaded', (event) => secondLoaded.push(event));
+
+          await callPlayerAndExpectEvent((player) => {
+            player.loadPlaylist({ sources: [first, second] });
+          }, EventType.Ready);
+
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.playlist.remove(second);
+          }, EventType.SourceRemoved);
+          // The removed source stays initialized, so adding it again reuses its native source.
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.playlist.add(second);
+          }, EventType.SourceAdded);
+          await callPlayer(async (player) => {
+            const sources = await player.playlist.getSources();
+            expect(sources.map((source) => source.nativeId)).toEqual([
+              first.nativeId,
+              second.nativeId,
+            ]);
+            // Only count the events of the re-added source from here on.
+            secondLoaded.length = 0;
+            await player.playlist.seek(second, 0);
+          });
+
+          const isLoaded = await waitUntil(async () => secondLoaded.length > 0);
+          expect(isLoaded, 'SourceLoaded of the re-added source').toBeTruthy();
+        });
+      }
+    );
+
+    spec.it(
+      'resolves a source that is removed and added again at the same time',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const first = new Source(Sources.artOfMotionHls);
+          const second = new Source(Sources.sintel);
+          await callPlayerAndExpectEvent((player) => {
+            player.loadPlaylist({ sources: [first, second] });
+          }, EventType.Ready);
+
+          await callPlayer(async (player) => {
+            await Promise.all([
+              player.playlist.remove(second),
+              player.playlist.add(second),
+            ]);
+            const isReAdded = await waitUntil(async () => {
+              const sources = await player.playlist.getSources();
+              return sources.length === 2;
+            });
+            expect(isReAdded, 'Both sources in the playlist').toBeTruthy();
+            const sources = await player.playlist.getSources();
+            expect(sources[1], 'Re-added source').toBe(second);
+          });
+        });
+      }
+    );
+
     spec.it('rejects adding a DASH source on iOS', async () => {
       // The iOS SDK only supports HLS, progressive and movpkg sources in a playlist.
       if (Platform.OS !== 'ios') {
@@ -505,6 +600,39 @@ export default (spec: TestScope) => {
       });
     });
   });
+
+  spec.describe('destroying a player', () => {
+    spec.it(
+      'destroys its sources, but not the ones removed from its playlist',
+      async () => {
+        const playerA = createPlayer();
+        const playerB = createPlayer();
+        try {
+          await playerA.initialize();
+          await playerB.initialize();
+          const kept = new Source(Sources.artOfMotionHls);
+          const removed = new Source(Sources.sintel);
+          playerA.loadPlaylist({ sources: [kept, removed] });
+          expect(await untilActive(playerA, kept), 'Loaded in A').toBeTruthy();
+          await playerA.playlist.remove(removed);
+
+          playerA.destroy();
+
+          expect(kept.isDestroyed, 'Source of A').toBeTruthy();
+          expect(removed.isDestroyed, 'Source removed from A').toBeFalsy();
+          playerB.loadPlaylist({ sources: [removed] });
+          expect(
+            await untilActive(playerB, removed),
+            'Removed source loaded into B'
+          ).toBeTruthy();
+          expect(await removed.isActive(), 'Removed source').toBeTruthy();
+        } finally {
+          playerA.destroy();
+          playerB.destroy();
+        }
+      }
+    );
+  });
 };
 
 const getError = (fn: () => void): unknown => {
@@ -524,3 +652,9 @@ const untilPlaylistLoadIsSent = async (source: Source) => {
   await source.initialize();
   await new Promise((resolve) => setTimeout(resolve, 0));
 };
+
+/**
+ * Waits until `source` is the active source of `player`, e.g. after loading it.
+ */
+const untilActive = (player: Player, source: Source) =>
+  waitUntil(async () => (await player.getSource()) === source);
