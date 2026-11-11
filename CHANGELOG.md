@@ -31,6 +31,7 @@
 - `Player.destroy()` also destroys a source that left the player through `Player.unload()` or a later load, even if the source was loaded into another player since. To move a source to another player, remove it via `PlaylistApi.remove` first (not possible for the active source), or use a new `Source`
 - `Player.destroy()` also destroys a source passed to a load or `PlaylistApi.add` that failed, e.g. because the source is attached to another player
 - Sources that left a player through `Player.unload()` or a later load stay allocated until the player is destroyed. Sources removed via `PlaylistApi.remove` or `PlaylistApi.removeAt` must be destroyed via `Source.destroy()` once they are no longer needed
+- `Source.on` listeners do not receive the final `sourceUnloaded` of a source that `Player.destroy()` destroys, as the source is destroyed before the native player unloads it. `Player.on` listeners and the `PlayerView` `onSourceUnloaded` prop receive it for the active source
 
 ## [1.30.0] - 2026-10-29
 
