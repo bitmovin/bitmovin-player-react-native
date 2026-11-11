@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { Source } from 'bitmovin-player-react-native';
 import { TestScope } from 'cavy';
 import {
@@ -11,6 +12,33 @@ import { Sources } from './helper/Sources';
 
 export default (spec: TestScope) => {
   spec.describe('Source ownership', () => {
+    if (Platform.OS === 'ios') {
+      spec.it(
+        'rejects unsupported source loading without replacing playback',
+        async () => {
+          await startPlayerTest({}, async () => {
+            const current = new Source(Sources.artOfMotionHls);
+            await callPlayerAndExpectEvent(async (player) => {
+              await player.loadSource(current);
+            }, EventType.Ready);
+            await callPlayer(async (player) => {
+              let rejection;
+              try {
+                await player.loadSource(new Source(Sources.artOfMotionDash));
+              } catch (error) {
+                rejection = error;
+              }
+              expect(rejection, 'Unsupported source rejects').toBeDefined();
+              expect(
+                await player.getSource(),
+                'Existing source remains active'
+              ).toBe(current);
+            });
+          });
+        }
+      );
+    }
+
     spec.it(
       'preserves distinct original sources through load, add and queries',
       async () => {
