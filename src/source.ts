@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import type { CmcdConfig } from './cmcdConfig';
 import type { DrmConfig } from './drm';
 import { Drm } from './drm';
@@ -7,6 +8,8 @@ import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
 import SourceModule from './modules/SourceModule';
+import type { SourceEventMap } from './eventMap';
+import { EventListeners } from './utils/eventListeners';
 
 /**
  * Types of media that can be handled by the player.
@@ -185,10 +188,25 @@ export class Source extends NativeInstance<SourceConfig> {
    */
   isDestroyed = false;
 
+  private initialization?: Promise<void>;
+  private readonly eventListeners = new EventListeners<SourceEventMap>(
+    this.nativeId,
+    SourceModule,
+    (listener) => SourceModule.addListener('onSourceEvent', listener)
+  );
+
   /**
    * Allocates the native {@link Source} instance and its resources natively.
+   * Calls made while an initialization is in progress share it.
    */
-  initialize = async (): Promise<void> => {
+  initialize = (): Promise<void> => {
+    this.initialization ??= this.initializeNative().finally(() => {
+      this.initialization = undefined;
+    });
+    return this.initialization;
+  };
+
+  private initializeNative = async (): Promise<void> => {
     if (!this.isInitialized) {
       const sourceMetadata = this.config?.analyticsSourceMetadata;
       if (this.config?.drmConfig) {
@@ -212,19 +230,67 @@ export class Source extends NativeInstance<SourceConfig> {
         );
       }
       this.isInitialized = true;
+      this.eventListeners.attachNative();
     }
     return Promise.resolve();
   };
 
   /**
    * Destroys the native {@link Source} and releases all of its allocated resources.
+   * All listeners are removed.
    */
   destroy = () => {
     if (!this.isDestroyed) {
       void SourceModule.destroy(this.nativeId);
       void this.drm?.destroy();
+      this.eventListeners.removeAll();
       this.isDestroyed = true;
     }
+  };
+
+  /**
+   * Registers `listener` to be called whenever this source emits `eventName`.
+   *
+   * Unlike {@link Player.on}, which only receives the source events of the active source, the source
+   * emits all of its events, including while it is inactive. Listeners registered before the source is
+   * initialized are attached during {@link Source.initialize}. Calling it on a destroyed source has no effect
+   * and logs a warning.
+   * Registering the same `listener` again for `eventName` has no effect; use {@link Source.off} to remove it.
+   *
+   * @param eventName - The name of the event, e.g. `sourceLoaded`.
+   * @param listener - The function called with the event.
+   * @platform Android
+   */
+  on = <K extends keyof SourceEventMap>(
+    eventName: K,
+    listener: (event: SourceEventMap[K]) => void
+  ): void => {
+    if (this.isDestroyed) {
+      console.warn(
+        `[Source ${this.nativeId}] The source was destroyed and must not be used any more, therefore on has no effect.`
+      );
+      return;
+    }
+    // TODO(#1157): Remove, once the iOS bridge supports Source.on.
+    if (Platform.OS !== 'android') {
+      return;
+    }
+    this.eventListeners.on(eventName, listener);
+  };
+
+  /**
+   * Removes a `listener` previously registered for `eventName` via {@link Source.on}.
+   * Has no effect if the listener is not registered.
+   *
+   * @param eventName - The name of the event.
+   * @param listener - The function passed to {@link Source.on}.
+   * @platform Android
+   */
+  off = <K extends keyof SourceEventMap>(
+    eventName: K,
+    listener: (event: SourceEventMap[K]) => void
+  ): void => {
+    this.eventListeners.off(eventName, listener);
   };
 
   /**

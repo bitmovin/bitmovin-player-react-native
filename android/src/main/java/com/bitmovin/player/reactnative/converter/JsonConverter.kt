@@ -34,6 +34,7 @@ import com.bitmovin.player.api.casting.RemoteControlConfig
 import com.bitmovin.player.api.decoder.DecoderPriorityProvider.DecoderContext
 import com.bitmovin.player.api.decoder.MediaCodecInfo
 import com.bitmovin.player.api.drm.WidevineConfig
+import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.CastPayload
@@ -87,6 +88,7 @@ import com.bitmovin.player.reactnative.PictureInPictureConfig
 import com.bitmovin.player.reactnative.RNBufferLevels
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.RNStyleConfigWrapper
+import com.bitmovin.player.reactnative.SourceRegistry
 import com.bitmovin.player.reactnative.UserInterfaceType
 import com.bitmovin.player.reactnative.converter.toPictureInPictureActions
 import com.bitmovin.player.reactnative.extensions.getArray
@@ -289,6 +291,7 @@ fun LoadingState.toJson(): Int = when (this) {
 }
 
 fun Source.toJson(): Map<String, Any> = mapOf(
+    "nativeId" to SourceRegistry.getNativeId(this),
     "duration" to duration,
     "isActive" to isActive,
     "isAttachedToPlayer" to isAttachedToPlayer,
@@ -381,6 +384,12 @@ fun SourceEvent.toJson(): Map<String, Any> {
         }
     }
     return baseMap.filterNotNullValues()
+}
+
+fun Event.toJson(): Map<String, Any> = when (this) {
+    is PlayerEvent -> toJson()
+    is SourceEvent -> toJson()
+    else -> throw IllegalArgumentException("Unsupported event: ${javaClass.name}")
 }
 
 @OptIn(ExperimentalBitmovinApi::class)

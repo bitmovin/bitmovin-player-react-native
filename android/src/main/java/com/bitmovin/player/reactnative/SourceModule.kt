@@ -1,20 +1,47 @@
 package com.bitmovin.player.reactnative
 
+import android.os.Handler
+import android.os.Looper
 import com.bitmovin.player.api.analytics.create
+import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.toAnalyticsSourceMetadata
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toSourceConfig
+import com.bitmovin.player.reactnative.util.NonFiniteSanitizer
 import expo.modules.kotlin.exception.CodedException
+import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
 class SourceModule : Module() {
+    private val eventRelay = EventRelay<SourceEvent>(PlayerEventTypes.source) { nativeId, eventName, event ->
+        when (event) {
+            is SourceEvent.Unloaded -> sendUnloadedEvent(nativeId, eventName, event)
+            else -> sendSourceEvent(nativeId, eventName, event.toJson())
+        }
+    }
+
+    private fun sendSourceEvent(nativeId: NativeId, eventName: String, eventJson: Map<String, Any>) {
+        sendEvent(
+            "onSourceEvent",
+            mapOf(
+                "nativeId" to nativeId,
+                "eventName" to eventName,
+                "event" to NonFiniteSanitizer.sanitizeEventData(eventJson),
+            ),
+        )
+    }
+
     /**
-     * In-memory mapping from [NativeId]s to [Source] instances.
-     * This must match the Registry pattern from legacy SourceModule
+     * The native `Unloaded` event carries no source. Unlike the player, which emits it for any of its sources,
+     * the source emitting it is known here, so it is added to the event.
      */
-    private val sources: Registry<Source> = mutableMapOf()
+    private fun sendUnloadedEvent(nativeId: NativeId, eventName: String, event: SourceEvent.Unloaded) {
+        val source = SourceRegistry.getSource(nativeId)
+        val eventJson = if (source == null) event.toJson() else event.toJson() + ("source" to source.toJson())
+        sendSourceEvent(nativeId, eventName, eventJson)
+    }
 
     override fun definition() = ModuleDefinition {
         Name("SourceModule")
@@ -24,9 +51,26 @@ class SourceModule : Module() {
         }
 
         OnDestroy {
-            // Clean up sources
-            sources.clear()
+            // `OnDestroy` has no `runOnQueue` and is not guaranteed to run on the main thread, which the event relay
+            // requires. Post to the main looper directly: Expo cancels its `mainQueue` right after `OnDestroy`, which
+            // would drop a block launched on it.
+            Handler(Looper.getMainLooper()).post {
+                eventRelay.clear { SourceRegistry.getSource(it) }
+                // Only this module's sources, not those of a new module instance, e.g. after a reload.
+                SourceRegistry.unregisterAll(owner = this@SourceModule)
+            }
         }
+
+        Events("onSourceEvent")
+
+        AsyncFunction("on") { nativeId: NativeId, eventName: String ->
+            val source = SourceRegistry.getSource(nativeId) ?: return@AsyncFunction
+            eventRelay.on(nativeId, source, eventName)
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("off") { nativeId: NativeId, eventName: String ->
+            eventRelay.off(nativeId, SourceRegistry.getSource(nativeId), eventName)
+        }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("initializeWithConfig") { nativeId: NativeId, drmNativeId: NativeId?,
             config: Map<String, Any>?, sourceRemoteControlConfig: Map<String, Any>?, ->
@@ -40,37 +84,38 @@ class SourceModule : Module() {
         }
 
         AsyncFunction("destroy") { nativeId: NativeId ->
-            sources.remove(nativeId)
+            eventRelay.offAll(nativeId, SourceRegistry.getSource(nativeId))
+            SourceRegistry.unregister(nativeId)
             // Don't return the removed value: Expo can't convert it to a JS value and rejects the promise.
             Unit
-        }
+        }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("isAttachedToPlayer") { nativeId: NativeId ->
-            sources[nativeId]?.isAttachedToPlayer
+            SourceRegistry.getSource(nativeId)?.isAttachedToPlayer
         }
 
         AsyncFunction("isActive") { nativeId: NativeId ->
-            sources[nativeId]?.isActive
+            SourceRegistry.getSource(nativeId)?.isActive
         }
 
         AsyncFunction("duration") { nativeId: NativeId ->
-            sources[nativeId]?.duration
+            SourceRegistry.getSource(nativeId)?.duration
         }
 
         AsyncFunction("loadingState") { nativeId: NativeId ->
-            sources[nativeId]?.loadingState?.toJson()
+            SourceRegistry.getSource(nativeId)?.loadingState?.toJson()
         }
 
         AsyncFunction("getMetadata") { nativeId: NativeId ->
-            sources[nativeId]?.config?.metadata
+            SourceRegistry.getSource(nativeId)?.config?.metadata
         }
 
         AsyncFunction("setMetadata") { nativeId: NativeId, metadata: Map<String, Any>? ->
-            sources[nativeId]?.config?.metadata = metadata?.mapValues { it.value.toString() }
+            SourceRegistry.getSource(nativeId)?.config?.metadata = metadata?.mapValues { it.value.toString() }
         }
 
         AsyncFunction("getThumbnail") { nativeId: NativeId, time: Double ->
-            sources[nativeId]?.getThumbnail(time)?.toJson()
+            SourceRegistry.getSource(nativeId)?.getThumbnail(time)?.toJson()
         }
     }
 
@@ -81,7 +126,7 @@ class SourceModule : Module() {
         sourceRemoteControlConfig: Map<String, Any>?,
         analyticsSourceMetadata: Map<String, Any>?,
     ) {
-        if (sources.containsKey(nativeId)) {
+        if (SourceRegistry.getSource(nativeId) != null) {
             return // Source already exists
         }
 
@@ -93,11 +138,12 @@ class SourceModule : Module() {
 
         val sourceMetadata = analyticsSourceMetadata?.toAnalyticsSourceMetadata()
         try {
-            sources[nativeId] = if (sourceMetadata != null) {
+            val source = if (sourceMetadata != null) {
                 Source.create(sourceConfig, sourceMetadata)
             } else {
                 Source.create(sourceConfig)
             }
+            SourceRegistry.register(nativeId, source, owner = this)
         } catch (e: Exception) {
             throw SourceException.SourceCreationFailed(e.message ?: "Unknown error")
         }
@@ -105,7 +151,7 @@ class SourceModule : Module() {
 
     // CRITICAL: This method must remain available for cross-module access
     // Called by PlayerModule.loadSource()
-    fun getSourceOrNull(nativeId: NativeId): Source? = sources[nativeId]
+    fun getSourceOrNull(nativeId: NativeId): Source? = SourceRegistry.getSource(nativeId)
 }
 
 // MARK: - Exception Definitions

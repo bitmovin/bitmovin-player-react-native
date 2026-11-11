@@ -7,6 +7,8 @@
 - iOS: Support for VMAP ad tags with the Bitmovin Advertising Module (`AdSourceType.BITMOVIN`), included in native iOS SDK `3.131.0`. VMAP no longer requires Google IMA on iOS, matching Android
 - Android: `onPlaybackSpeedChanged` event to indicate playback speed changes. The event is already available in iOS
 - `onPlayerInactive` event prop on `PlayerView` to indicate when the active playback session ends and the player becomes inactive
+- Android: `EventSource.nativeId` to map sources in event payloads to their `Source` instances
+- Android: `Player.on`/`Player.off` and `Source.on`/`Source.off` to receive player and source events independently of a `PlayerView`
 
 ### Fixed
 
@@ -21,6 +23,7 @@
 - Update Bitmovin's native Android SDK version to [`3.174.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31740)
 - iOS: Bitmovin Advertising Module ads no longer start with the subtitle track marked as default in the ad manifest. The ad subtitle now follows the subtitle selected for the main content, and stays off if the main content subtitles are off. This comes with native iOS SDK `3.131.0`
 - Update Bitmovin's native iOS SDK version to [`3.131.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31310)
+- **Breaking change:** `SourceUnloadedEvent.source` is now optional. Android does not provide it for events received via `Player.on` or the `PlayerView` event props, as the native event does not carry the source. It is provided for events received via `Source.on`.
 
 ## [1.30.0] - 2026-10-29
 
