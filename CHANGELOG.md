@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Android: Use Expo 57's Gradle plugin. For apps without root-project SDK overrides, the library's compile SDK and target SDK defaults are now API 36, so install Android SDK Platform 36. The minimum SDK stays API 24, existing host overrides are honored, and the app keeps its own target SDK
+
 ### Fixed
 
 - Android: Release pending media-session service bindings and ignore stale connection callbacks after Player destruction.
@@ -29,6 +33,7 @@
 - A source destroyed while it was initializing, e.g. by `Source.destroy()` right after `Player.loadSource()`, being created natively afterwards and keeping its DRM config
 
 ### Changed
+
 
 - Update Bitmovin's native Android SDK version to [`3.174.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31740)
 - iOS: Bitmovin Advertising Module ads no longer start with the subtitle track marked as default in the ad manifest. The ad subtitle now follows the subtitle selected for the main content, and stays off if the main content subtitles are off. This comes with native iOS SDK `3.131.0`
