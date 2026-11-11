@@ -154,11 +154,7 @@ export class Source extends NativeSource {
   readonly config?: SourceConfig;
   declare private readonly ready: Promise<void>;
 
-  constructor(config: SourceConfig);
-  /** @internal Adopt an existing native source peer. */
-  constructor(native: NativeSource);
-  constructor(config: SourceConfig | NativeSource) {
-    if (config instanceof NativeSource) return Source.fromNative(config);
+  constructor(config: SourceConfig) {
     const callbacks = new NativeConfigSerializer();
     super(
       callbacks.serialize(config),
