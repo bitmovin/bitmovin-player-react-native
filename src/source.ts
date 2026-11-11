@@ -6,7 +6,7 @@ import NativeInstance from './nativeInstance';
 import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
-import SourceModule from './modules/SourceModule';
+import SourceModule from './modules/sourceModule';
 import type { SourceEventMap } from './eventMap';
 import { EventListeners } from './utils/eventListeners';
 

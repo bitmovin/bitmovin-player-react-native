@@ -1,6 +1,6 @@
 import type { EventSubscription } from 'expo-modules-core';
 import { Platform } from 'react-native';
-import PlayerModule from './modules/PlayerModule';
+import PlayerModule from './modules/playerModule';
 import NativeInstance from './nativeInstance';
 import type { SourceConfig } from './source';
 import { Source } from './source';
@@ -8,7 +8,7 @@ import type { AudioTrack } from './audioTrack';
 import type { SubtitleTrack } from './subtitleTrack';
 import type { OfflineContentManager, OfflineSourceOptions } from './offline';
 import type { Thumbnail } from './thumbnail';
-import { AnalyticsApi } from './analytics/player';
+import { AnalyticsApi } from './analytics/analyticsApi';
 import type { PlayerConfig } from './playerConfig';
 import type { AdBreak, AdItem, ImaSettings } from './advertising';
 import { BufferApi } from './bufferApi';
