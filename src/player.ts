@@ -63,8 +63,6 @@ export class Player extends NativeInstance<PlayerConfig> {
   private readonly knownSources = new Map<string, Source>();
   /**
    * The {@link PlaylistApi} for interactions regarding the playlist of the playback session.
-   *
-   * @platform Android
    */
   playlist: PlaylistApi = new PlaylistApi(this.nativeId, this.knownSources);
 
@@ -232,9 +230,10 @@ export class Player extends NativeInstance<PlayerConfig> {
    * is also emitted for inactive sources, without identifying the source. Ads scheduled
    * via the advertising config only apply to the first source.
    *
-   * Throws if `sources` is empty, `options.replayMode` is unknown or a source was destroyed.
+   * On iOS and tvOS, only HLS, progressive and `movpkg` sources can be part of a playlist.
    *
-   * @platform Android
+   * Throws if `sources` is empty or contains a source more than once, `options.replayMode` is unknown, a source
+   * was destroyed, or (on iOS and tvOS) a source has an unsupported type.
    */
   loadPlaylist = (playlistConfig: PlaylistConfig) => {
     validatePlaylistConfig(playlistConfig);

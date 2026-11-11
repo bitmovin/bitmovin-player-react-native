@@ -65,6 +65,9 @@ internal enum PlayerEventTypes {
             "metadataParsed": activeSourceEvent(MetadataParsedEvent.self),
             "playbackSpeedChanged": playerEvent(PlaybackSpeedChangedEvent.self),
             "fairplayLicenseAcquired": activeSourceEvent(FairplayLicenseAcquiredEvent.self),
+            "sourceAdded": playerEvent(SourceAddedEvent.self),
+            "sourceRemoved": playerEvent(SourceRemovedEvent.self),
+            "playlistTransition": playerEvent(PlaylistTransitionEvent.self),
         ]
 #if os(iOS)
         // Casting is only supported on iOS.
