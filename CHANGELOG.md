@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- A source whose DRM initialization failed keeping the failed DRM config and its event subscriptions until the source was destroyed
+
 ### Changed
 
 - Update Bitmovin's native Android SDK version to [`3.175.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31750)

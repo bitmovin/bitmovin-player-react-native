@@ -164,6 +164,58 @@ test('initializes a source natively once for overlapping initialize calls', asyn
   ]);
 });
 
+test('initializes the DRM again after its initialization failed', async (t) => {
+  const { nativeModules } = require(
+    path.join(root, 'node_modules/expo-modules-core')
+  );
+  t.after(() => {
+    delete nativeModules.SourceModule;
+    delete nativeModules.DrmModule;
+  });
+  const calls = [];
+  let isDrmFailing = true;
+  nativeModules.SourceModule = {
+    addListener: () => ({ remove: () => {} }),
+    initializeWithConfig: async (nativeId, drmNativeId) =>
+      calls.push(['source.initialize', drmNativeId]),
+    on: async () => {},
+    off: async () => {},
+  };
+  nativeModules.DrmModule = {
+    addListener: () => ({ remove: () => calls.push(['drm.unsubscribe']) }),
+    initializeWithConfig: async () => {
+      calls.push(['drm.initialize']);
+      if (isDrmFailing) {
+        throw new Error('DRM initialization failed');
+      }
+    },
+    destroy: async () => calls.push(['drm.destroy']),
+  };
+  const { Source } = require(path.join(root, 'source'));
+  const source = new Source({
+    url: 'https://example.com/a.mpd',
+    type: 'dash',
+    drmConfig: { widevine: { licenseUrl: 'https://example.com/license' } },
+  });
+
+  await assert.rejects(source.initialize(), /DRM initialization failed/);
+  await new Promise(setImmediate);
+  assert.equal(source.drm, undefined, 'No DRM is kept after the failure');
+  assert.ok(
+    calls.some(([call]) => call === 'drm.destroy'),
+    'The failed DRM is released'
+  );
+  assert.ok(
+    calls.some(([call]) => call === 'drm.unsubscribe'),
+    'The subscriptions of the failed DRM are removed'
+  );
+
+  isDrmFailing = false;
+  await source.initialize();
+  assert.ok(source.drm, 'DRM of the source');
+  assert.deepEqual(calls.at(-1), ['source.initialize', 'random-id']);
+});
+
 // Several JS instances (e.g. `Player`s created with the same `nativeId`) can
 // share one native instance and its native module.
 function sharedFixture() {
