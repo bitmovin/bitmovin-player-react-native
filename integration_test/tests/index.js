@@ -102,13 +102,15 @@ function retryFailedTestsOnce(spec) {
   };
 }
 
-function createSpecs() {
+function createSpecs(platform = require('react-native').Platform.OS) {
   const selectedTags = (process.env.EXPO_PUBLIC_CAVY_ONLY_TAGS || '')
     .split(',')
     .map((tag) => tag.trim());
   return testRegistrations
     .filter(
-      ({ name, selectionOnly }) => !selectionOnly || selectedTags.includes(name)
+      ({ name, platforms, selectionOnly }) =>
+        platforms.includes(platform) &&
+        (!selectionOnly || selectedTags.includes(name))
     )
     .map(({ name, load }) => {
       const registerSuite = load();
