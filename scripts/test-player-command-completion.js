@@ -84,7 +84,7 @@ test('play waits for native command acceptance', async (t) => {
   let completed = false;
   const playing = player.play().then(() => (completed = true));
   await invoked;
-  await Promise.resolve();
+  await new Promise((resolve) => setImmediate(resolve));
   assert.equal(completed, false);
   accept();
   await playing;
