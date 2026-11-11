@@ -227,6 +227,20 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
     }
 
+    fun attachBindings(
+        owner: SharedPlayer,
+        fullscreen: SharedFullscreen?,
+        messages: SharedCustomMessage?,
+        config: Map<String, Any>?,
+    ) {
+        check(!owner.player.isDestroyed) { "Cannot attach a destroyed player" }
+        configure(config ?: emptyMap())
+        attachFullscreenHandler(fullscreen)
+        attachCustomMessageHandler(messages)
+        bindSharedPlayer(owner)
+        attachConfiguredPlayer()
+    }
+
     fun bindSharedPlayer(shared: SharedPlayer?) {
         if (sharedPlayer !== shared) {
             playerInMediaSessionService = null
@@ -513,12 +527,11 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     fun attachFullscreenHandler(handler: SharedFullscreen?) {
+        if (fullscreenHandler === handler) return
         fullscreenHandler = handler
-        if (handler != null) {
-            playerView?.let { view ->
-                view.setFullscreenHandler(handler)
-                applyPendingFullscreenRequest(view)
-            }
+        playerView?.let { view ->
+            view.setFullscreenHandler(handler)
+            applyPendingFullscreenRequest(view)
         }
     }
 
@@ -530,8 +543,9 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     fun attachCustomMessageHandler(handler: SharedCustomMessage?) {
+        if (customMessageHandler === handler) return
         customMessageHandler = handler
-        handler?.let { playerView?.setCustomMessageHandler(it.customMessageHandler) }
+        playerView?.setCustomMessageHandler(handler?.customMessageHandler)
     }
 
     fun updatePictureInPictureActions(pictureInPictureActions: List<PictureInPictureAction>) {

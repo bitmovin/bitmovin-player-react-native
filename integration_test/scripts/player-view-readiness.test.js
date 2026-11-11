@@ -11,16 +11,20 @@ const React = req('react');
 const ts = req('typescript');
 const scheduler = req('scheduler/unstable_mock');
 let committedView;
-let sharedObjectId = 0;
+const bindings = new Map();
 function nativePlayer() {
-  return { __expo_shared_object_id__: ++sharedObjectId };
+  return {};
 }
-function playerWith(native = Promise.resolve(nativePlayer())) {
-  return { config: {}, native, on: async () => mockEventSubscription() };
+function playerWith(ready = Promise.resolve()) {
+  return {
+    config: {},
+    initialize: () => ready.then(() => undefined),
+    on: async () => mockEventSubscription(),
+  };
 }
 const viewConfig = {
   uiViewClassName: 'ProbePlayerView',
-  validAttributes: { config: true, player: true },
+  validAttributes: { style: true, isFullscreenRequested: true },
   directEventTypes: {},
   bubblingEventTypes: {},
 };
@@ -34,7 +38,15 @@ const privateInterface = {
   ReactFiberErrorDialog: { showErrorDialog: () => true },
   RawEventEmitter: { emit() {} },
   createPublicRootInstance: (tag) => ({ tag }),
-  createPublicInstance: (tag, config, handle) => ({ tag, handle }),
+  createPublicInstance: (tag, config, handle) => ({
+    tag,
+    handle,
+    attachBindings(player, fullscreen, custom, config) {
+      return new Promise((resolve) =>
+        bindings.set(tag, { player, fullscreen, custom, config, resolve })
+      );
+    },
+  }),
   createAttributePayload: (props) => props,
   diffAttributePayloads: (old, next) => next,
   deepFreezeAndThrowOnMutationInDev() {},
@@ -112,7 +124,17 @@ const playerViewContext = vm.createContext({
     if (name === 'expo-keep-awake') return { useKeepAwake() {} };
     if (name === './native') return { NativePlayerView: 'ProbePlayerView' };
     if (name.endsWith('/useProxy')) return { useProxy: () => (x) => x };
-    if (name.endsWith('/fullscreenHandlerBridge')) return {};
+    if (name.endsWith('/fullscreenHandlerBridge'))
+      return {
+        FullscreenHandlerBridge: class {
+          setFullscreenHandler(handler) {
+            this.handler = handler;
+          }
+          async destroy() {
+            this.destroyed = true;
+          }
+        },
+      };
     if (name.endsWith('/customMessageHandlerBridge')) return {};
     if (name.endsWith('/metadataPlatform')) return {};
     throw new Error('Unexpected PlayerView dependency: ' + name);
@@ -148,7 +170,7 @@ function render(props) {
 }
 
 function acknowledge(view = committedView) {
-  view.props.onBmpPlayerViewReady({ nativeEvent: {} });
+  bindings.get(view.tag)?.resolve();
 }
 
 test('readiness waits for native listeners and follows the current player', async () => {
@@ -166,15 +188,22 @@ test('readiness waits for native listeners and follows the current player', asyn
   render(props);
   await flush();
   assert.ok(committedView, 'initialized player renders a native view');
-  assert.equal(committedView.props.player, await player.native);
+  assert.equal(bindings.get(committedView.tag).player, player);
+  assert.equal(Object.hasOwn(committedView.props, 'player'), false);
+  assert.equal(
+    Object.hasOwn(committedView.props, 'customMessageHandler'),
+    false
+  );
   assert.equal(
     notifications,
     0,
     'JS effects must not announce native readiness'
   );
   acknowledge();
+  await flush();
   assert.equal(notifications, 1);
   acknowledge();
+  await flush();
   assert.equal(notifications, 1, 'duplicate acknowledgments are ignored');
   render({
     ...props,
@@ -184,10 +213,21 @@ test('readiness waits for native listeners and follows the current player', asyn
   });
   await flush();
   acknowledge();
+  await flush();
   assert.equal(
     notifications,
     1,
     'callback identity changes do not repeat readiness'
+  );
+
+  render({ ...props, config: {} });
+  await flush();
+  acknowledge();
+  await flush();
+  assert.equal(
+    notifications,
+    1,
+    'fresh inline config does not replay readiness'
   );
 
   const previousView = committedView;
@@ -205,12 +245,15 @@ test('readiness waits for native listeners and follows the current player', asyn
     'replacement waits for its own initialization'
   );
   acknowledge(previousView);
+  await flush();
   assert.equal(notifications, 1, 'retired player cannot notify a replacement');
   finishInitialization();
   await flush();
   acknowledge(previousView);
+  await flush();
   assert.equal(notifications, 1);
   acknowledge();
+  await flush();
   assert.equal(
     notifications,
     2,
@@ -239,19 +282,23 @@ test('readiness waits for native listeners and follows the current player', asyn
   assert.equal(committedView, undefined, 'obsolete initialization is ignored');
   finishCurrent();
   await flush();
-  assert.equal(committedView.props.player, await current.native);
+  assert.equal(bindings.get(committedView.tag).player, current);
   acknowledge();
+  await flush();
   assert.equal(notifications, 3);
   const retiredView = committedView;
   const silentPlayer = playerWith();
   render({ player: silentPlayer });
   await flush();
   acknowledge(retiredView);
+  await flush();
   assert.equal(notifications, 3, 'a retired handler cannot announce readiness');
   acknowledge();
+  await flush();
   render({ ...props, player: silentPlayer });
   await flush();
   acknowledge();
+  await flush();
   assert.equal(
     notifications,
     3,
@@ -261,6 +308,7 @@ test('readiness waits for native listeners and follows the current player', asyn
   rendererModule.exports.render(null, 11, null, true, {});
   await flush();
   acknowledge(unmountedView);
+  await flush();
   assert.equal(notifications, 3, 'unmounted views cannot announce readiness');
 });
 
@@ -275,9 +323,59 @@ test('switching A to B to A announces each attachment once', async () => {
     });
     await flush();
     acknowledge();
+    await flush();
     acknowledge();
+    await flush();
   }
   assert.deepEqual(notifications, [first, second, first]);
+
+  // Returning before B initializes remounts A: readiness belongs to the new view.
+  let finishPending;
+  const pending = playerWith(
+    new Promise((resolve) => {
+      finishPending = resolve;
+    })
+  );
+  const fullscreenHandler = {};
+  render({
+    player: first,
+    fullscreenHandler,
+    onPlayerViewReady: () => notifications.push(first),
+  });
+  await flush();
+  acknowledge();
+  await flush();
+  const bridge = bindings.get(committedView.tag).fullscreen;
+  const oldView = committedView;
+  render({ player: pending, fullscreenHandler });
+  await flush();
+  assert.equal(committedView, undefined);
+  render({
+    player: first,
+    fullscreenHandler,
+    onPlayerViewReady: () => notifications.push(first),
+  });
+  await flush();
+  assert.notEqual(committedView.tag, oldView.tag);
+  assert.equal(bindings.get(committedView.tag).fullscreen, bridge);
+  assert.equal(
+    bridge.destroyed,
+    undefined,
+    'the view component owns its bridge across players'
+  );
+  acknowledge(oldView);
+  await flush();
+  assert.equal(notifications.length, 3);
+  acknowledge();
+  await flush();
+  assert.equal(
+    notifications.length,
+    4,
+    'returning to A announces its new native view'
+  );
+  finishPending();
+  await flush();
+  assert.equal(bindings.get(committedView.tag).player, first);
   rendererModule.exports.render(null, 11, null, true, {});
   await flush();
 });

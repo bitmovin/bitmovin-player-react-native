@@ -1,5 +1,5 @@
 import type { RefObject } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, StyleSheet } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
 import type { NativePlayerViewConfig, NativePlayerViewRef } from './native';
@@ -61,14 +61,20 @@ export function PlayerView({
     fullscreenBridge.current.setFullscreenHandler(fullscreenHandler);
   }
 
-  const nativePlayerViewConfig: NativePlayerViewConfig = {
-    enableBackgroundPlayback:
-      player.config.playbackConfig?.isBackgroundPlaybackEnabled,
-    isPictureInPictureEnabledOnPlayer:
-      player.config.playbackConfig?.isPictureInPictureEnabled,
-    userInterfaceTypeName: player.config.styleConfig?.userInterfaceType,
-    playerViewConfig: config,
-  };
+  const nativePlayerViewConfig: NativePlayerViewConfig = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries({
+          enableBackgroundPlayback:
+            player.config.playbackConfig?.isBackgroundPlaybackEnabled,
+          isPictureInPictureEnabledOnPlayer:
+            player.config.playbackConfig?.isPictureInPictureEnabled,
+          userInterfaceTypeName: player.config.styleConfig?.userInterfaceType,
+          playerViewConfig: config,
+        }).filter(([, value]) => value !== undefined)
+      ),
+    [player, config]
+  );
 
   const [resolvedPlayer, setResolvedPlayer] = useState<{
     player: typeof player;
@@ -76,9 +82,72 @@ export function PlayerView({
   }>();
   const nativePlayer =
     resolvedPlayer?.player === player ? resolvedPlayer.native : undefined;
-  const didNotifyPlayerViewReady = useRef<typeof player | undefined>(undefined);
+  const didNotifyPlayerViewReady = useRef<
+    | {
+        player: typeof player;
+        view: NativePlayerViewRef;
+      }
+    | undefined
+  >(undefined);
   const currentPlayer = useRef<typeof player | undefined>(player);
   currentPlayer.current = player;
+
+  const notifyReady = useRef<(view: NativePlayerViewRef) => void>(() => {});
+  notifyReady.current = (view) => {
+    if (
+      currentPlayer.current !== player ||
+      (didNotifyPlayerViewReady.current?.player === player &&
+        didNotifyPlayerViewReady.current.view === view)
+    )
+      return;
+    if (viewRef) viewRef.current = view;
+    if (pictureInPictureActionsJson != null) {
+      void nativeView.current?.updatePictureInPictureActions(
+        JSON.parse(pictureInPictureActionsJson)
+      );
+    }
+    if (isPictureInPictureEnabled != null) {
+      void nativeView.current?.setIsPictureInPictureEnabled(
+        isPictureInPictureEnabled
+      );
+    }
+    didNotifyPlayerViewReady.current = { player, view };
+    onPlayerViewReady?.();
+  };
+
+  useEffect(() => {
+    const target = nativeView.current;
+    if (!nativePlayer || !target) return;
+    let cancelled = false;
+    // Method arguments cross Expo directly; public objects never become Fabric host props.
+    void target
+      .attachBindings(
+        nativePlayer,
+        fullscreenHandler ? fullscreenBridge.current : undefined,
+        customMessageHandler,
+        nativePlayerViewConfig
+      )
+      .then(
+        () => {
+          if (
+            !cancelled &&
+            nativeView.current === target &&
+            currentPlayer.current === player
+          )
+            notifyReady.current(target);
+        },
+        () => {}
+      );
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    nativePlayer,
+    player,
+    fullscreenHandler,
+    customMessageHandler,
+    nativePlayerViewConfig,
+  ]);
 
   useEffect(() => {
     const subscriptions = [
@@ -207,10 +276,16 @@ export function PlayerView({
       if (currentPlayer.current === player) {
         currentPlayer.current = undefined;
       }
+    };
+  }, [player]);
+
+  useEffect(
+    () => () => {
       void fullscreenBridge.current?.destroy();
       fullscreenBridge.current = undefined;
-    };
-  }, [player, fullscreenBridge]);
+    },
+    []
+  );
 
   useEffect(() => {
     if (!nativePlayer || !nativeView.current) {
@@ -254,37 +329,9 @@ export function PlayerView({
     <NativePlayerView
       ref={nativeView}
       style={nativeViewStyle}
-      player={nativePlayer}
-      config={nativePlayerViewConfig}
       isFullscreenRequested={isFullscreenRequested}
       isPictureInPictureRequested={isPictureInPictureRequested}
       scalingMode={scalingMode}
-      fullscreenHandler={fullscreenBridge.current}
-      customMessageHandler={customMessageHandler}
-      onBmpPlayerViewReady={() => {
-        if (
-          currentPlayer.current !== player ||
-          didNotifyPlayerViewReady.current === player
-        ) {
-          return;
-        }
-        // Make the ref available inside the callback even if the effect has not run.
-        if (viewRef) {
-          viewRef.current = nativeView.current;
-        }
-        if (pictureInPictureActionsJson != null) {
-          void nativeView.current?.updatePictureInPictureActions(
-            JSON.parse(pictureInPictureActionsJson)
-          );
-        }
-        if (isPictureInPictureEnabled != null) {
-          void nativeView.current?.setIsPictureInPictureEnabled(
-            isPictureInPictureEnabled
-          );
-        }
-        didNotifyPlayerViewReady.current = player;
-        onPlayerViewReady?.();
-      }}
       onBmpPictureInPictureAvailabilityChanged={proxy(
         props.onPictureInPictureAvailabilityChanged
       )}

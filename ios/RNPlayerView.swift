@@ -77,6 +77,22 @@ public class RNPlayerView: ExpoView {
         maybeFixAVPlayerViewControllerVisibility()
     }
 
+    internal func attachBindings(
+        owner: SharedPlayer,
+        fullscreen: SharedFullscreen?,
+        messages: SharedCustomMessage?,
+        config: [String: Any]?
+    ) throws {
+        guard !(try owner.player).isDestroyed else {
+            throw Exception(name: "DestroyedPlayer", description: "Cannot attach a destroyed player")
+        }
+        configurePlayer(playerViewConfig: RCTConvert.rnPlayerViewConfig(config?["playerViewConfig"]))
+        setFullscreenHandler(fullscreen)
+        setCustomMessageHandler(messages)
+        setSharedPlayer(owner)
+        attachConfiguredPlayer()
+    }
+
     internal func setSharedPlayer(_ owner: SharedPlayer?) {
         guard sharedPlayer !== owner else { return }
         detachSharedPlayer()

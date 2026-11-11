@@ -21,7 +21,6 @@ export interface NativePlayerViewConfig {
  * Mostly maps the event props defined in native code.
  */
 export interface NativePlayerViewProps extends NativePlayerViewEvents {
-  player: NativePlayer;
   ref?: RefObject<NativePlayerViewRef | null>;
   onBmpPlayerViewReady?: (
     event: NativeSyntheticEvent<Record<string, never>>
@@ -30,12 +29,15 @@ export interface NativePlayerViewProps extends NativePlayerViewEvents {
   scalingMode?: ScalingMode;
   isPictureInPictureRequested?: boolean;
   style?: ViewStyle;
-  config: NativePlayerViewConfig;
-  fullscreenHandler?: NativeFullscreen;
-  customMessageHandler?: NativeCustomMessage;
 }
 
 export interface NativePlayerViewRef {
+  attachBindings(
+    player: NativePlayer,
+    fullscreenHandler: NativeFullscreen | undefined,
+    customMessageHandler: NativeCustomMessage | undefined,
+    config: NativePlayerViewConfig
+  ): Promise<void>;
   updatePictureInPictureActions(
     actions: PictureInPictureAction[]
   ): Promise<void>;

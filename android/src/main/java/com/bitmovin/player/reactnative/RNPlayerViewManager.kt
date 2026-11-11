@@ -31,19 +31,6 @@ class RNPlayerViewManager : Module() {
                 view.dispose()
             }
 
-            Prop("player") { view: RNPlayerView, shared: SharedPlayer? ->
-                view.bindSharedPlayer(shared)
-            }
-
-            Prop("config") { view: RNPlayerView, playerInfo: Map<String, Any>? ->
-                view.configure(playerInfo)
-            }
-
-            OnViewDidUpdateProps { view: RNPlayerView ->
-                view.attachConfiguredPlayer()
-                updateAutoPictureInPictureRegistration(view)
-            }
-
             Prop("scalingMode") { view: RNPlayerView, scalingMode: String? ->
                 view.setScalingMode(scalingMode)
             }
@@ -56,12 +43,10 @@ class RNPlayerViewManager : Module() {
                 view.setPictureInPicture(isPictureInPicture)
             }
 
-            Prop("fullscreenHandler") { view: RNPlayerView, handler: SharedFullscreen? ->
-                view.attachFullscreenHandler(handler)
-            }
-
-            Prop("customMessageHandler") { view: RNPlayerView, handler: SharedCustomMessage? ->
-                view.attachCustomMessageHandler(handler)
+            AsyncFunction("attachBindings") { view: RNPlayerView, owner: SharedPlayer,
+                fullscreen: SharedFullscreen?, messages: SharedCustomMessage?, config: Map<String, Any>?, ->
+                view.attachBindings(owner, fullscreen, messages, config)
+                updateAutoPictureInPictureRegistration(view)
             }
 
             AsyncFunction("updatePictureInPictureActions") { view: RNPlayerView, actions: List<String> ->

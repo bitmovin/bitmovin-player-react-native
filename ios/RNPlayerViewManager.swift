@@ -5,17 +5,6 @@ public class RNPlayerViewManager: Module {
         Name("RNPlayerViewManager")
 
         View(RNPlayerView.self) {
-            Prop("player") { (view: RNPlayerView, owner: SharedPlayer?) in
-                view.setSharedPlayer(owner)
-            }
-            Prop("config") { (view: RNPlayerView, playerInfo: [String: Any]?) in
-                view.configurePlayer(
-                    playerViewConfig: RCTConvert.rnPlayerViewConfig(playerInfo?["playerViewConfig"] as? [String: Any])
-                )
-            }
-            OnViewDidUpdateProps { (view: RNPlayerView) in
-                view.attachConfiguredPlayer()
-            }
             Prop("scalingMode") { (view: RNPlayerView, scalingMode: String?) in
                 view.setScalingMode(scalingMode: scalingMode)
             }
@@ -25,11 +14,9 @@ public class RNPlayerViewManager: Module {
             Prop("isPictureInPictureRequested") { (view: RNPlayerView, isPictureInPictureRequested: Bool) in
                 view.setPictureInPicture(enterPictureInPicture: isPictureInPictureRequested)
             }
-            Prop("fullscreenHandler") { (view: RNPlayerView, handler: SharedFullscreen?) in
-                view.setFullscreenHandler(handler)
-            }
-            Prop("customMessageHandler") { (view: RNPlayerView, handler: SharedCustomMessage?) in
-                view.setCustomMessageHandler(handler)
+            AsyncFunction("attachBindings") { (view: RNPlayerView, owner: SharedPlayer,
+                fullscreen: SharedFullscreen?, messages: SharedCustomMessage?, config: [String: Any]?) in
+                try view.attachBindings(owner: owner, fullscreen: fullscreen, messages: messages, config: config)
             }
             AsyncFunction("updatePictureInPictureActions") { (view: RNPlayerView, actions: [String]) in
                 view.updatePictureInPictureActions(actions: RCTConvert.pictureInPictureActions(actions))
