@@ -53,6 +53,9 @@ import type {
   SourceLoadedEvent,
   SourceLoadEvent,
   SourceUnloadedEvent,
+  SourceAddedEvent,
+  SourceRemovedEvent,
+  PlaylistTransitionEvent,
   SourceWarningEvent,
   AudioAddedEvent,
   AudioChangedEvent,
@@ -369,6 +372,24 @@ export type PlayerViewEvents = {
    * Event emitted when the current source has been unloaded.
    */
   onSourceUnloaded?: (event: SourceUnloadedEvent) => void;
+  /**
+   * Event emitted when a source was added to an active playback session.
+   *
+   * @platform Android
+   */
+  onSourceAdded?: (event: SourceAddedEvent) => void;
+  /**
+   * Event emitted when a source was removed from an active playback session.
+   *
+   * @platform Android
+   */
+  onSourceRemoved?: (event: SourceRemovedEvent) => void;
+  /**
+   * Event emitted when the player transitions between two sources in a playlist.
+   *
+   * @platform Android
+   */
+  onPlaylistTransition?: (event: PlaylistTransitionEvent) => void;
   /**
    * Event emitted when a source warning occurred.
    */

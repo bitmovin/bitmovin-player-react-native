@@ -42,12 +42,15 @@ import type {
   PlayerWarningEvent,
   PlayEvent,
   PlayingEvent,
+  PlaylistTransitionEvent,
   ReadyEvent,
   SeekedEvent,
   SeekEvent,
+  SourceAddedEvent,
   SourceErrorEvent,
   SourceLoadedEvent,
   SourceLoadEvent,
+  SourceRemovedEvent,
   SourceUnloadedEvent,
   SourceWarningEvent,
   StallEndedEvent,
@@ -154,6 +157,12 @@ export interface PlayerEventMap extends SourceEventMap {
   stallEnded: StallEndedEvent;
   /** Emitted when the current playback time has changed. */
   timeChanged: TimeChangedEvent;
+  /** Emitted when a source has been added to the playback session. */
+  sourceAdded: SourceAddedEvent;
+  /** Emitted when a source has been removed from the playback session. */
+  sourceRemoved: SourceRemovedEvent;
+  /** Emitted when the player transitions between two sources of a playlist. */
+  playlistTransition: PlaylistTransitionEvent;
   /** Emitted when an ad break has finished. */
   adBreakFinished: AdBreakFinishedEvent;
   /** Emitted when an ad break has started. */

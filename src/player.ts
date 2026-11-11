@@ -16,6 +16,9 @@ import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
 import { Network } from './network';
 import { DecoderConfigBridge } from './decoder';
+import type { PlaylistConfig } from './playlist';
+import { PlaylistApi } from './playlist';
+import { validatePlaylistConfig } from './playlist/validatePlaylistConfig';
 import type { PlayerEventMap } from './eventMap';
 import { EventListeners } from './utils/eventListeners';
 
@@ -38,10 +41,6 @@ export class Player extends NativeInstance<PlayerConfig> {
    */
   isDestroyed = false;
   /**
-   * Currently active source, or `null` if none is active.
-   */
-  source?: Source;
-  /**
    * The `AnalyticsApi` for interactions regarding the `Player`'s analytics.
    *
    * `undefined` if the player was created without analytics support.
@@ -57,6 +56,17 @@ export class Player extends NativeInstance<PlayerConfig> {
    * @platform iOS, tvOS
    */
   mediaControls: MediaControlsApi = new MediaControlsApi(this.nativeId);
+  /**
+   * All {@link Source}s handed to the native player, keyed by {@link Source.nativeId}.
+   * Used to resolve native sources back to their JS instances.
+   */
+  private readonly knownSources = new Map<string, Source>();
+  /**
+   * The {@link PlaylistApi} for interactions regarding the playlist of the playback session.
+   *
+   * @platform Android
+   */
+  playlist: PlaylistApi = new PlaylistApi(this.nativeId, this.knownSources);
 
   private network?: Network;
 
@@ -125,7 +135,8 @@ export class Player extends NativeInstance<PlayerConfig> {
       void PlayerModule.destroy(this.nativeId).finally(() => {
         this.eventListeners.removeAll();
       });
-      void this.source?.destroy();
+      this.knownSources.forEach((source) => void source.destroy());
+      this.knownSources.clear();
       void this.network?.destroy();
       void this.decoderConfig?.destroy();
       this.onShouldLoadAdItemSubscription?.remove();
@@ -194,10 +205,51 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Loads the given {@link Source} into the player.
    */
   loadSource = (source: Source) => {
-    this.source = source;
+    this.knownSources.set(source.nativeId, source);
     void source
       .initialize()
       .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId));
+  };
+
+  /**
+   * Gets the currently active {@link Source} of the playback session.
+   *
+   * @returns the active source, or `undefined` if there is no active playback session or the active source was
+   * not created through a {@link Source} instance (e.g. offline content).
+   */
+  getSource = async (): Promise<Source | undefined> => {
+    const sourceNativeId = await PlayerModule.source(this.nativeId);
+    return sourceNativeId ? this.knownSources.get(sourceNativeId) : undefined;
+  };
+
+  /**
+   * Starts a new playback session consisting of {@link PlaylistConfig.sources}.
+   * The first source becomes active immediately. An already active playback session is unloaded first.
+   *
+   * Only one source is active at a time and all player APIs (e.g. time, duration, seeking) act on the active
+   * source; there is no playlist-wide time. Source events of inactive sources, such as `SourceLoaded` of a
+   * preloaded source, are not emitted by the player; use {@link Source.on} to receive them. Only `sourceError`
+   * is also emitted for inactive sources, without identifying the source. Ads scheduled
+   * via the advertising config only apply to the first source.
+   *
+   * Throws if `sources` is empty, `options.replayMode` is unknown or a source was destroyed.
+   *
+   * @platform Android
+   */
+  loadPlaylist = (playlistConfig: PlaylistConfig) => {
+    validatePlaylistConfig(playlistConfig);
+    playlistConfig.sources.forEach((source) =>
+      this.knownSources.set(source.nativeId, source)
+    );
+    void Promise.all(
+      playlistConfig.sources.map((source) => source.initialize())
+    ).then(() =>
+      PlayerModule.loadPlaylist(
+        this.nativeId,
+        playlistConfig.sources.map((source) => source.nativeId),
+        playlistConfig.options
+      )
+    );
   };
 
   /**

@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { TestScope } from 'cavy';
 import {
   callPlayer,
@@ -15,6 +16,7 @@ import { Sources } from './helper/Sources';
 import {
   DownloadFinishedEvent,
   HttpRequestType,
+  Source,
   SourceConfig,
 } from 'bitmovin-player-react-native';
 import { expect } from './helper/Expect';
@@ -172,7 +174,75 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
   }
 
   loadingSourceTests(Sources.artOfMotionHls, 'VOD');
-  if (!vodOnly) loadingSourceTests(Sources.iReplayTestLiveHls, 'live');
+  if (vodOnly) return;
+
+  spec.describe('getting the active source', () => {
+    spec.it(
+      'returns the loaded source and nothing after unloading',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const source = new Source(Sources.artOfMotionHls);
+          await callPlayerAndExpectEvent((player) => {
+            player.loadSource(source);
+          }, EventType.Ready);
+          await callPlayer(async (player) => {
+            expect(await player.getSource(), 'Active source').toBe(source);
+          });
+
+          await callPlayerAndExpectEvent((player) => {
+            player.unload();
+          }, EventType.SourceUnloaded);
+          await callPlayer(async (player) => {
+            expect(
+              await player.getSource(),
+              'Active source after unloading'
+            ).toBeUndefined();
+          });
+        });
+      }
+    );
+  });
+
+  loadingSourceTests(Sources.iReplayTestLiveHls, 'live');
+
+  // Only registered on Android, as the source uses Widevine.
+  if (Platform.OS === 'android') {
+    spec.describe('loading a DRM source', () => {
+      spec.it(
+        'applies the DRM config of a source that is initialized concurrently',
+        async () => {
+          await startPlayerTest({}, async () => {
+            const config = Sources.widevineDrmWithBrokenLicense;
+            let isLicenseRequested = false;
+            const source = new Source({
+              ...config,
+              drmConfig: {
+                widevine: {
+                  ...config.drmConfig!.widevine!,
+                  // Only called if the native source was created with its DRM config.
+                  prepareMessage: (message) => {
+                    isLicenseRequested = true;
+                    return message;
+                  },
+                },
+              },
+            });
+
+            await callPlayer(async (player) => {
+              void source.initialize();
+              player.loadSource(source);
+            });
+
+            const deadline = Date.now() + 10000;
+            while (!isLicenseRequested && Date.now() < deadline) {
+              await new Promise((resolve) => setTimeout(resolve, 250));
+            }
+            expect(isLicenseRequested, 'License requested').toBeTruthy();
+          });
+        }
+      );
+    });
+  }
 }
 
 export function loadingVodTests(spec: TestScope) {

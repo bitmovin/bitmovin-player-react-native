@@ -251,9 +251,9 @@ export class Source extends NativeInstance<SourceConfig> {
    * Registers `listener` to be called whenever this source emits `eventName`.
    *
    * Unlike {@link Player.on}, which only receives the source events of the active source, the source
-   * emits all of its events, including while it is inactive. Listeners registered before the source is
-   * initialized are attached during {@link Source.initialize}. Calling it on a destroyed source has no effect
-   * and logs a warning.
+   * emits all of its events, including while it is inactive, e.g. `sourceLoaded` of a preloaded playlist
+   * source. Listeners registered before the source is initialized are attached during
+   * {@link Source.initialize}. Calling it on a destroyed source has no effect and logs a warning.
    * Registering the same `listener` again for `eventName` has no effect; use {@link Source.off} to remove it.
    *
    * @param eventName - The name of the event, e.g. `sourceLoaded`.
