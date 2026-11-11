@@ -15,9 +15,12 @@ internal final class SharedObjectInitialization<Value> {
             throw Exception(name: "InvalidThread", description: "SDK objects must be accessed on the main thread")
         }
         if let result { return try result.get() }
-        let result = Result { try factory!() }
+        guard let factory else {
+            throw Exception(name: "DestroyedObject", description: "SDK initializer is no longer available")
+        }
+        let result = Result(catching: factory)
         self.result = result
-        factory = nil
+        self.factory = nil
         return try result.get()
     }
 
