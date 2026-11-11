@@ -12,13 +12,9 @@ const ts = req('typescript');
 const scheduler = req('scheduler/unstable_mock');
 let committedView;
 const bindings = new Map();
-function nativePlayer() {
-  return {};
-}
-function playerWith(ready = Promise.resolve()) {
+function playerWith() {
   return {
     config: {},
-    initialize: () => ready.then(() => undefined),
     on: async () => mockEventSubscription(),
   };
 }
@@ -42,8 +38,15 @@ const privateInterface = {
     tag,
     handle,
     attachBindings(player, fullscreen, custom, config) {
-      return new Promise((resolve) =>
-        bindings.set(tag, { player, fullscreen, custom, config, resolve })
+      return new Promise((resolve, reject) =>
+        bindings.set(tag, {
+          player,
+          fullscreen,
+          custom,
+          config,
+          resolve,
+          reject,
+        })
       );
     },
   }),
@@ -111,7 +114,9 @@ const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
 }).outputText;
 const playerViewModule = { exports: {} };
+const viewWarnings = [];
 const playerViewContext = vm.createContext({
+  console: { ...console, warn: (...values) => viewWarnings.push(values) },
   module: playerViewModule,
   exports: playerViewModule.exports,
   require(name) {
@@ -142,15 +147,17 @@ const playerViewContext = vm.createContext({
 });
 vm.runInContext(compiled, playerViewContext);
 const { PlayerView } = playerViewModule.exports;
-// Use the installed Fabric renderer so effects, refs and asynchronous initialization
-// run as they do in the app. Only the native mount and acknowledgment are controlled.
+// Use the installed Fabric renderer for real effect/ref ordering.
+// Only native attachment acceptance and failure are controlled here.
 const laidOutViews = new Set();
 async function flush() {
   for (let i = 0; i < 6; i++) {
     scheduler.unstable_flushAllWithoutAsserting();
     if (committedView && !laidOutViews.has(committedView.tag)) {
       laidOutViews.add(committedView.tag);
-      committedView.handle.memoizedProps.onLayout?.();
+      committedView.handle.memoizedProps.onBmpViewAttached?.({
+        nativeEvent: {},
+      });
     }
     await new Promise(setImmediate);
   }
@@ -174,11 +181,18 @@ function render(props) {
   );
 }
 
-function acknowledge(view = committedView) {
-  bindings.get(view.tag)?.resolve();
+function acknowledge(request = bindings.get(committedView.tag)) {
+  request?.resolve();
 }
 
-test('readiness waits for native listeners and follows the current player', async () => {
+test.afterEach(async () => {
+  rendererModule.exports.render(null, 11, null, true, {});
+  await flush();
+  bindings.clear();
+  viewWarnings.length = 0;
+});
+
+test('readiness waits for native attachment and is announced once', async () => {
   let notifications = 0;
   const viewRef = { current: null };
   const player = playerWith();
@@ -192,29 +206,28 @@ test('readiness waits for native listeners and follows the current player', asyn
   };
   render(props);
   await flush();
-  assert.ok(committedView, 'initialized player renders a native view');
-  assert.equal(bindings.get(committedView.tag).player, player);
-  assert.equal(Object.hasOwn(committedView.props, 'player'), false);
-  assert.equal(
-    Object.hasOwn(committedView.props, 'customMessageHandler'),
-    false
+  assert.ok(
+    committedView,
+    'the native host mounts without a JS initialization stage'
   );
+  assert.equal(bindings.get(committedView.tag).player, player);
+  for (const prop of ['player', 'fullscreenHandler', 'customMessageHandler'])
+    assert.equal(Object.hasOwn(committedView.props, prop), false);
   assert.equal(
     notifications,
     0,
-    'JS effects must not announce native readiness'
+    'JS effects cannot announce native acceptance'
   );
   acknowledge();
   await flush();
-  assert.equal(notifications, 1);
   acknowledge();
   await flush();
   assert.equal(notifications, 1, 'duplicate acknowledgments are ignored');
+
   render({
     ...props,
-    onPlayerViewReady: () => {
-      notifications += 10;
-    },
+    config: {},
+    onPlayerViewReady: () => (notifications += 10),
   });
   await flush();
   acknowledge();
@@ -222,194 +235,103 @@ test('readiness waits for native listeners and follows the current player', asyn
   assert.equal(
     notifications,
     1,
-    'callback identity changes do not repeat readiness'
+    'callback/config changes do not repeat readiness'
   );
 
-  render({ ...props, config: {} });
+  const silent = playerWith();
+  render({ player: silent });
+  await flush();
+  acknowledge();
+  await flush();
+  render({ ...props, player: silent });
   await flush();
   acknowledge();
   await flush();
   assert.equal(
     notifications,
     1,
-    'fresh inline config does not replay readiness'
+    'adding a callback after acceptance does not replay it'
   );
 
-  const previousView = committedView;
-  let finishInitialization;
-  const replacement = playerWith(
-    new Promise((resolve) => {
-      finishInitialization = () => resolve(nativePlayer());
-    })
-  );
-  render({ ...props, player: replacement });
+  render({ ...props, player: playerWith() });
   await flush();
-  assert.equal(
-    committedView,
-    undefined,
-    'replacement waits for its own initialization'
-  );
-  acknowledge(previousView);
-  await flush();
-  assert.equal(notifications, 1, 'retired player cannot notify a replacement');
-  finishInitialization();
-  await flush();
-  acknowledge(previousView);
-  await flush();
-  assert.equal(notifications, 1);
-  acknowledge();
-  await flush();
-  assert.equal(
-    notifications,
-    2,
-    'replacement announces its own native readiness'
-  );
-
-  // An obsolete initialization must not mount the next player prematurely.
-  let finishObsolete;
-  let finishCurrent;
-  const obsolete = playerWith(
-    new Promise((resolve) => {
-      finishObsolete = () => resolve(nativePlayer());
-    })
-  );
-  const current = playerWith(
-    new Promise((resolve) => {
-      finishCurrent = () => resolve(nativePlayer());
-    })
-  );
-  render({ ...props, player: obsolete });
-  await flush();
-  render({ ...props, player: current });
-  await flush();
-  finishObsolete();
-  await flush();
-  assert.equal(committedView, undefined, 'obsolete initialization is ignored');
-  finishCurrent();
-  await flush();
-  assert.equal(bindings.get(committedView.tag).player, current);
-  acknowledge();
-  await flush();
-  assert.equal(notifications, 3);
-  const retiredView = committedView;
-  const silentPlayer = playerWith();
-  render({ player: silentPlayer });
-  await flush();
-  acknowledge(retiredView);
-  await flush();
-  assert.equal(notifications, 3, 'a retired handler cannot announce readiness');
-  acknowledge();
-  await flush();
-  render({ ...props, player: silentPlayer });
-  await flush();
-  acknowledge();
-  await flush();
-  assert.equal(
-    notifications,
-    3,
-    'adding a callback after readiness does not replay it'
-  );
-  const unmountedView = committedView;
+  const pending = bindings.get(committedView.tag);
   rendererModule.exports.render(null, 11, null, true, {});
   await flush();
-  acknowledge(unmountedView);
+  acknowledge(pending);
   await flush();
-  assert.equal(notifications, 3, 'unmounted views cannot announce readiness');
+  assert.equal(notifications, 1, 'unmounted views cannot announce readiness');
 });
 
-test('switching A to B to A announces each attachment once', async () => {
+test('A to B to A keeps the host and ignores superseded native acknowledgments', async () => {
   const first = playerWith();
   const second = playerWith();
+  const fullscreenHandler = {};
   const notifications = [];
-  for (const player of [first, second, first]) {
-    render({
-      player,
-      onPlayerViewReady: () => notifications.push(player),
-    });
+  const propsFor = (player) => ({
+    player,
+    fullscreenHandler,
+    onPlayerViewReady: () => notifications.push(player),
+  });
+  render(propsFor(first));
+  await flush();
+  const tag = committedView.tag;
+  const obsoleteFirst = bindings.get(tag);
+  const bridge = obsoleteFirst.fullscreen;
+  render(propsFor(second));
+  await flush();
+  const obsoleteSecond = bindings.get(tag);
+  render(propsFor(first));
+  await flush();
+  const current = bindings.get(tag);
+  assert.equal(
+    committedView.tag,
+    tag,
+    'Player changes preserve the native host'
+  );
+  assert.equal(current.player, first);
+  assert.equal(current.fullscreen, bridge);
+  assert.equal(bridge.destroyed, undefined);
+
+  acknowledge(obsoleteFirst);
+  acknowledge(obsoleteSecond);
+  await flush();
+  assert.deepEqual(
+    notifications,
+    [],
+    'only the current attachment can announce readiness'
+  );
+  acknowledge(current);
+  await flush();
+  assert.deepEqual(notifications, [first]);
+  for (const player of [second, first]) {
+    render(propsFor(player));
     await flush();
+    assert.equal(committedView.tag, tag);
     acknowledge();
     await flush();
     acknowledge();
     await flush();
   }
   assert.deepEqual(notifications, [first, second, first]);
-
-  // Returning before B initializes remounts A: readiness belongs to the new view.
-  let finishPending;
-  const pending = playerWith(
-    new Promise((resolve) => {
-      finishPending = resolve;
-    })
-  );
-  const fullscreenHandler = {};
-  render({
-    player: first,
-    fullscreenHandler,
-    onPlayerViewReady: () => notifications.push(first),
-  });
-  await flush();
-  acknowledge();
-  await flush();
-  const bridge = bindings.get(committedView.tag).fullscreen;
-  const oldView = committedView;
-  render({ player: pending, fullscreenHandler });
-  await flush();
-  assert.equal(committedView, undefined);
-  render({
-    player: first,
-    fullscreenHandler,
-    onPlayerViewReady: () => notifications.push(first),
-  });
-  await flush();
-  assert.notEqual(committedView.tag, oldView.tag);
-  assert.equal(bindings.get(committedView.tag).fullscreen, bridge);
-  assert.equal(
-    bridge.destroyed,
-    undefined,
-    'the view component owns its bridge across players'
-  );
-  acknowledge(oldView);
-  await flush();
-  assert.equal(notifications.length, 3);
-  acknowledge();
-  await flush();
-  assert.equal(
-    notifications.length,
-    4,
-    'returning to A announces its new native view'
-  );
-  finishPending();
-  await flush();
-  assert.equal(bindings.get(committedView.tag).player, first);
-  rendererModule.exports.render(null, 11, null, true, {});
-  await flush();
 });
 
-test('a failed player stays unmounted without extra rejected promises', async () => {
-  let rejectCreation;
-  const native = new Promise((resolve, reject) => {
-    rejectCreation = reject;
-  });
-  const player = playerWith(native);
-  player.on = async () => {
-    await native;
-    return mockEventSubscription();
+test('failed native attachment reports no readiness or unhandled rejection', async () => {
+  const error = new Error('SDK Player creation failed');
+  const player = playerWith();
+  player.getDuration = async () => {
+    throw error;
   };
   let notifications = 0;
   render({ player, onPlayerViewReady: () => notifications++ });
   await flush();
-
-  const error = new Error('Native player creation failed');
-  rejectCreation(error);
+  assert.ok(committedView, 'native host exists before its SDK attachment');
+  bindings.get(committedView.tag).reject(error);
   await flush();
-  assert.equal(committedView, undefined);
   assert.equal(notifications, 0);
-  await assert.rejects(
-    player.on('ready', () => {}),
-    error
-  );
-
-  // Cleanup of the failed subscriptions must also consume their rejections.
-  rendererModule.exports.render(null, 11, null, true, {});
-  await flush();
+  assert.equal(viewWarnings.length, 1);
+  assert.equal(viewWarnings[0][1], error);
+  await assert.rejects(player.getDuration(), error);
+  const subscription = await player.on('ready', () => {});
+  subscription.remove();
 });
