@@ -75,10 +75,10 @@ async function loadSideLoadedTrackAndSeek(
   await loadSourceConfig(sourceWithSubtitleTrack(subtitleTrack));
   await callPlayer(async (player) => {
     await player.setSubtitleTrack(subtitleTrack.identifier);
-    player.play();
+    await player.play();
   });
-  await callPlayerAndExpectEvent((player) => {
-    player.seek(seekTime);
+  await callPlayerAndExpectEvent(async (player) => {
+    await player.seek(seekTime);
   }, EventType.Seeked);
 }
 
@@ -246,10 +246,10 @@ export default (spec: TestScope) => {
                   return;
                 }
                 await player.setSubtitleTrack(subtitleTrack.identifier);
-                player.play();
+                await player.play();
               });
-              await callPlayerAndExpectEvent((player) => {
-                player.seek(1);
+              await callPlayerAndExpectEvent(async (player) => {
+                await player.seek(1);
               }, EventType.Seeked);
 
               const cueEnterEvent: CueEnterEvent = await expectEvent(
@@ -312,10 +312,10 @@ export default (spec: TestScope) => {
                 return;
               }
               await player.setSubtitleTrack(cea608Track.identifier);
-              player.play();
+              await player.play();
             });
-            await callPlayerAndExpectEvent((player) => {
-              player.seek(10);
+            await callPlayerAndExpectEvent(async (player) => {
+              await player.seek(10);
             }, EventType.Seeked);
 
             const cueEnterEvent: CueEnterEvent = await expectEvent(

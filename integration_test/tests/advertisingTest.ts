@@ -85,7 +85,7 @@ export default (spec: TestScope) => {
           const acknowledge = world.onPlayerViewReady;
           world.onPlayerViewReady = (player) => {
             acknowledge(player);
-            player.load(Sources.artOfMotionHls);
+            void player.load(Sources.artOfMotionHls);
           };
           try {
             await startPlayerTest({ advertisingConfig }, async () => {
@@ -141,7 +141,7 @@ export default (spec: TestScope) => {
             (async () => {
               await loadSourceConfig(Sources.artOfMotionHls);
               await callPlayer(async (player) => {
-                player.play();
+                await player.play();
               });
             })(),
           ]);
@@ -161,8 +161,8 @@ export default (spec: TestScope) => {
             expectManifestLoadedAfterSeek
               ? expectEvent(EventType.AdManifestLoaded, 20)
               : Promise.resolve(),
-            callPlayerAndExpectEvent((player) => {
-              player.seek(13);
+            callPlayerAndExpectEvent(async (player) => {
+              await player.seek(13);
             }, EventType.Seeked),
           ]);
           await waitForAdExpectations([
@@ -183,7 +183,7 @@ export default (spec: TestScope) => {
               : Promise.resolve(),
             callPlayerAndExpectEvent(async (player) => {
               const duration = await player.getDuration();
-              player.seek(duration - 5);
+              await player.seek(duration - 5);
             }, EventType.Seeked),
           ]);
         });
@@ -209,8 +209,8 @@ export default (spec: TestScope) => {
             { playbackConfig, advertisingConfig },
             async () => {
               await callPlayerAndExpectEvent(
-                (player) => {
-                  player.load(Sources.artOfMotionHls);
+                async (player) => {
+                  await player.load(Sources.artOfMotionHls);
                 },
                 FilteredEvent<TimeChangedEvent>(
                   EventType.TimeChanged,
@@ -248,8 +248,8 @@ export default (spec: TestScope) => {
               { playbackConfig, advertisingConfig },
               async () => {
                 await callPlayerAndExpectEvent(
-                  (player) => {
-                    player.load(Sources.artOfMotionHls);
+                  async (player) => {
+                    await player.load(Sources.artOfMotionHls);
                   },
                   FilteredEvent<TimeChangedEvent>(
                     EventType.TimeChanged,
@@ -372,9 +372,9 @@ export default (spec: TestScope) => {
       spec.it('emits AdError events', async () => {
         await startPlayerTest({}, async () => {
           await loadSourceConfig(Sources.artOfMotionHls);
-          await callPlayerAndExpectEvent((player) => {
-            player.scheduleAd(adItem);
-            player.play();
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.scheduleAd(adItem);
+            await player.play();
           }, EventType.AdError);
         });
       });
@@ -419,8 +419,8 @@ export default (spec: TestScope) => {
       await loadSourceConfig(Sources.artOfMotionHls);
       await playUntil(1);
       await callPlayerAndExpectEvent(
-        (player) => {
-          player.pause();
+        async (player) => {
+          await player.pause();
         },
         eventType,
         20
@@ -442,8 +442,8 @@ export default (spec: TestScope) => {
         { advertisingConfig: pauseAdvertisingConfig(AdTags.pause) },
         async () => {
           await pauseAndExpectPauseAd();
-          await callPlayerAndExpectEvent((player) => {
-            player.skipAd();
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.skipAd();
           }, EventType.NonLinearAdSkipped);
         }
       );
@@ -454,8 +454,8 @@ export default (spec: TestScope) => {
         { advertisingConfig: pauseAdvertisingConfig(AdTags.pause) },
         async () => {
           await pauseAndExpectPauseAd();
-          await callPlayerAndExpectEvent((player) => {
-            player.play();
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.play();
           }, EventType.NonLinearAdFinished);
         }
       );

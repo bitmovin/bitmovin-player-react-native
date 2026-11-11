@@ -4,6 +4,8 @@
 
 ### Changed
 
+- Player commands return promises for native acceptance and completion. Await playback events such as Ready or Playing for playback readiness
+
 - PlayerView attaches the owned native Player directly. Picture-in-picture actions and enabled state belong to the native view, so remounting a view does not depend on a player-ID lookup
 
 - Access playlists through `player.playlist`. `PlaylistApi` no longer exposes a binding ID or accepts one in its internal constructor

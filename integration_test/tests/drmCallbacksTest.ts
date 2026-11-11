@@ -32,8 +32,8 @@ export default (spec: TestScope) => {
               },
             },
           });
-          await callPlayerAndExpectEvent((player) => {
-            player.play();
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.play();
           }, EventType.Playing);
           expect(messages > 0, 'DRM request callback').toBe(true);
           expect(licenses > 0, 'DRM license callback').toBe(true);

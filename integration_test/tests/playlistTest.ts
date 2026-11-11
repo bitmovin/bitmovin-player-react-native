@@ -36,8 +36,8 @@ export default (spec: TestScope) => {
           const second = new Source(Sources.sintel);
 
           const events = await callPlayerAndExpectEvents(
-            (player) => {
-              player.loadPlaylist({ sources: [first, second] });
+            async (player) => {
+              await player.loadPlaylist({ sources: [first, second] });
             },
             EventSequence(
               FilteredEvent<SourceAddedEvent>(
@@ -64,8 +64,8 @@ export default (spec: TestScope) => {
         const first = new Source(Sources.artOfMotionHls);
         const second = new Source(Sources.sintel);
 
-        await callPlayerAndExpectEvent((player) => {
-          player.loadPlaylist({ sources: [first, second] });
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         await callPlayer(async (player) => {
@@ -79,18 +79,18 @@ export default (spec: TestScope) => {
     });
 
     spec.it(
-      'throws for an empty playlist and keeps the current session',
+      'rejects for an empty playlist and keeps the current session',
       async () => {
         await startPlayerTest({}, async () => {
           const source = new Source(Sources.artOfMotionHls);
-          await callPlayerAndExpectEvent((player) => {
-            player.loadPlaylist({ sources: [source] });
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.loadPlaylist({ sources: [source] });
           }, EventType.Ready);
 
           await callPlayer(async (player) => {
             expect(
-              getError(() => player.loadPlaylist({ sources: [] })),
-              'loadPlaylist should throw'
+              await getError(() => player.loadPlaylist({ sources: [] })),
+              'loadPlaylist should reject'
             ).toBeDefined();
             expect(await player.getSource()).toBe(source);
           });
@@ -98,37 +98,37 @@ export default (spec: TestScope) => {
       }
     );
 
-    spec.it('throws for an unknown replay mode', async () => {
+    spec.it('rejects for an unknown replay mode', async () => {
       await startPlayerTest({}, async () => {
         await callPlayer(async (player) => {
           expect(
-            getError(() =>
+            await getError(() =>
               player.loadPlaylist({
                 sources: [new Source(Sources.artOfMotionHls)],
                 options: { replayMode: 'unknown' as ReplayMode },
               })
             ),
-            'loadPlaylist should throw'
+            'loadPlaylist should reject'
           ).toBeDefined();
         });
       });
     });
 
-    spec.it('throws for a destroyed source', async () => {
+    spec.it('rejects for a destroyed source', async () => {
       await startPlayerTest({}, async () => {
         const source = new Source(Sources.artOfMotionHls);
         source.destroy();
 
         await callPlayer(async (player) => {
           expect(
-            getError(() => player.loadPlaylist({ sources: [source] })),
-            'loadPlaylist should throw'
+            await getError(() => player.loadPlaylist({ sources: [source] })),
+            'loadPlaylist should reject'
           ).toBeDefined();
         });
       });
     });
 
-    spec.it('throws for a DASH source on iOS', async () => {
+    spec.it('rejects for a DASH source on iOS', async () => {
       // The iOS SDK only supports HLS, progressive and movpkg sources in a playlist.
       if (Platform.OS !== 'ios') {
         console.warn('Skipping the iOS playlist source type test on Android');
@@ -137,7 +137,7 @@ export default (spec: TestScope) => {
       await startPlayerTest({}, async () => {
         await callPlayer(async (player) => {
           expect(
-            getError(() =>
+            await getError(() =>
               player.loadPlaylist({
                 sources: [
                   new Source(Sources.artOfMotionHls),
@@ -145,20 +145,22 @@ export default (spec: TestScope) => {
                 ],
               })
             ),
-            'loadPlaylist should throw'
+            'loadPlaylist should reject'
           ).toBeDefined();
           expect(await player.getSource(), 'Active source').toBeUndefined();
         });
       });
     });
 
-    spec.it('throws for a source listed twice', async () => {
+    spec.it('rejects for a source listed twice', async () => {
       await startPlayerTest({}, async () => {
         await callPlayer(async (player) => {
           const source = new Source(Sources.artOfMotionHls);
           expect(
-            getError(() => player.loadPlaylist({ sources: [source, source] })),
-            'loadPlaylist should throw'
+            await getError(() =>
+              player.loadPlaylist({ sources: [source, source] })
+            ),
+            'loadPlaylist should reject'
           ).toBeDefined();
           expect(await player.getSource(), 'Active source').toBeUndefined();
         });
@@ -178,15 +180,19 @@ export default (spec: TestScope) => {
         await startPlayerTest({}, async () => {
           const source = new Source(Sources.artOfMotionHls);
 
-          await callPlayerAndExpectEvent((player) => {
-            player.loadPlaylist({ sources: [source] });
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.loadPlaylist({ sources: [source] });
           }, EventType.Ready);
 
           const otherPlayer = createPlayer();
           try {
             await otherPlayer.initialize();
-            otherPlayer.loadPlaylist({ sources: [source] });
-            await untilPlaylistLoadIsSent(source);
+            expect(
+              await getError(() =>
+                otherPlayer.loadPlaylist({ sources: [source] })
+              ),
+              'Foreign attached source rejects'
+            ).toBeDefined();
             // Native handles calls in order, so this reflects the rejected load.
             expect(
               await otherPlayer.getSource(),
@@ -198,7 +204,7 @@ export default (spec: TestScope) => {
               expect(await source.isActive(), 'Source is active').toBeTruthy();
             });
           } finally {
-            otherPlayer.destroy();
+            await otherPlayer.destroy();
           }
         });
       }
@@ -210,8 +216,10 @@ export default (spec: TestScope) => {
         const second = new Source(Sources.sintel);
 
         await callPlayer(async (player) => {
-          player.loadPlaylist({ sources: [first] });
-          player.loadPlaylist({ sources: [second] });
+          await Promise.all([
+            player.loadPlaylist({ sources: [first] }),
+            player.loadPlaylist({ sources: [second] }),
+          ]);
           // The loads are sent in call order, so the second one ends up active.
           const isSecondActive = await waitUntil(
             async () => (await player.getSource()) === second
@@ -231,8 +239,8 @@ export default (spec: TestScope) => {
         const first = new Source(Sources.artOfMotionHls);
         const second = new Source(Sources.sintel);
 
-        await callPlayerAndExpectEvent((player) => {
-          player.loadPlaylist({
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.loadPlaylist({
             sources: [first, second],
             options: { preloadAllSources: true },
           });
@@ -259,7 +267,7 @@ export default (spec: TestScope) => {
           player.on('sourceLoaded', (event) => playerLoaded.push(event));
           await player.initialize();
 
-          player.loadPlaylist({
+          await player.loadPlaylist({
             sources: [first, second],
             options: { preloadAllSources: true },
           });
@@ -275,7 +283,7 @@ export default (spec: TestScope) => {
             'Player SourceLoaded of the inactive source'
           ).toBeFalsy();
         } finally {
-          player.destroy();
+          await player.destroy();
         }
       }
     );
@@ -289,8 +297,8 @@ export default (spec: TestScope) => {
           const first = new Source(Sources.artOfMotionHls);
           const second = new Source(Sources.sintel);
 
-          await callPlayerAndExpectEvent((player) => {
-            player.loadPlaylist({ sources: [first, second] });
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.loadPlaylist({ sources: [first, second] });
           }, EventType.Ready);
 
           const transition =
@@ -315,8 +323,8 @@ export default (spec: TestScope) => {
         const first = new Source(Sources.artOfMotionHls);
         const second = new Source(Sources.sintel);
 
-        await callPlayerAndExpectEvent((player) => {
-          player.loadPlaylist({ sources: [first, second] });
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         const seek = await callPlayerAndExpectEvent<SeekEvent>(
@@ -337,15 +345,15 @@ export default (spec: TestScope) => {
           const first = new Source(Sources.artOfMotionHls);
           const second = new Source(Sources.sintel);
 
-          await callPlayerAndExpectEvent((player) => {
-            player.loadPlaylist({ sources: [first, second] });
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.loadPlaylist({ sources: [first, second] });
           }, EventType.Ready);
 
           const duration = await first.duration();
           await callPlayerAndExpectEvent<PlaylistTransitionEvent>(
-            (player) => {
-              player.seek(duration - 2);
-              player.play();
+            async (player) => {
+              await player.seek(duration - 2);
+              await player.play();
             },
             FilteredEvent<PlaylistTransitionEvent>(
               EventType.PlaylistTransition,
@@ -365,8 +373,8 @@ export default (spec: TestScope) => {
         const second = new Source(Sources.sintel);
         const third = new Source(Sources.artOfMotionHls);
 
-        await callPlayerAndExpectEvent((player) => {
-          player.loadPlaylist({ sources: [first, second] });
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         const added = await callPlayerAndExpectEvent<SourceAddedEvent>(
@@ -420,8 +428,8 @@ export default (spec: TestScope) => {
           const secondLoaded: SourceLoadedEvent[] = [];
           second.on('sourceLoaded', (event) => secondLoaded.push(event));
 
-          await callPlayerAndExpectEvent((player) => {
-            player.loadPlaylist({ sources: [first, second] });
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.loadPlaylist({ sources: [first, second] });
           }, EventType.Ready);
 
           await callPlayerAndExpectEvent(async (player) => {
@@ -454,8 +462,8 @@ export default (spec: TestScope) => {
         await startPlayerTest({}, async () => {
           const first = new Source(Sources.artOfMotionHls);
           const second = new Source(Sources.sintel);
-          await callPlayerAndExpectEvent((player) => {
-            player.loadPlaylist({ sources: [first, second] });
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.loadPlaylist({ sources: [first, second] });
           }, EventType.Ready);
 
           await callPlayer(async (player) => {
@@ -480,8 +488,8 @@ export default (spec: TestScope) => {
         const first = new Source(Sources.artOfMotionHls);
         const second = new Source(Sources.sintel);
 
-        await callPlayerAndExpectEvent((player) => {
-          player.loadPlaylist({ sources: [first, second] });
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         // Both SDKs keep the active source, but they report the rejected removal differently:
@@ -517,8 +525,8 @@ export default (spec: TestScope) => {
         const first = new Source(Sources.artOfMotionHls);
         const second = new Source(Sources.sintel);
 
-        await callPlayerAndExpectEvent((player) => {
-          player.loadPlaylist({ sources: [first, second] });
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         await callPlayer(async (player) => {
@@ -549,8 +557,8 @@ export default (spec: TestScope) => {
         const first = new Source(Sources.artOfMotionHls);
         const second = new Source(Sources.sintel);
 
-        await callPlayerAndExpectEvent((player) => {
-          player.loadPlaylist({ sources: [first, second] });
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         await callPlayer(async (player) => {
@@ -576,13 +584,13 @@ export default (spec: TestScope) => {
         const first = new Source(Sources.artOfMotionHls);
         const second = new Source(Sources.sintel);
 
-        await callPlayerAndExpectEvent((player) => {
-          player.loadPlaylist({ sources: [first, second] });
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         await callPlayerAndExpectEvents(
-          (player) => {
-            player.unload();
+          async (player) => {
+            await player.unload();
           },
           EventSequence(
             EventType.SourceRemoved,
@@ -610,54 +618,42 @@ export default (spec: TestScope) => {
           await playerB.initialize();
           const moved = new Source(Sources.artOfMotionHls);
           const current = new Source(Sources.sintel);
-          playerA.loadPlaylist({ sources: [moved] });
+          await playerA.loadPlaylist({ sources: [moved] });
           expect(await untilActive(playerA, moved), 'Loaded in A').toBeTruthy();
-          playerA.loadPlaylist({ sources: [current] });
+          await playerA.loadPlaylist({ sources: [current] });
           expect(
             await untilActive(playerA, current),
             'Replaced in A'
           ).toBeTruthy();
-          playerB.loadPlaylist({ sources: [moved] });
+          await playerB.loadPlaylist({ sources: [moved] });
           expect(await untilActive(playerB, moved), 'Moved to B').toBeTruthy();
 
-          playerA.destroy();
+          await playerA.destroy();
 
           expect(await playerB.getSource()).toBe(moved);
-          playerB.loadPlaylist({ sources: [current] });
+          await playerB.loadPlaylist({ sources: [current] });
           expect(
             await untilActive(playerB, current),
             'Reloaded source'
           ).toBeTruthy();
           expect(await current.isActive(), 'Reloaded source').toBeTruthy();
         } finally {
-          playerA.destroy();
-          playerB.destroy();
+          await playerA.destroy();
+          await playerB.destroy();
         }
       }
     );
   });
 };
 
-const getError = (fn: () => void): unknown => {
+const getError = async (fn: () => void | Promise<void>): Promise<unknown> => {
   try {
-    fn();
+    await fn();
   } catch (error) {
     return error;
   }
   return undefined;
 };
 
-/**
- * Waits until `loadPlaylist` sent its native load for a playlist containing `source`: the load is sent once the
- * shared initialization of the sources completed, and pending promise callbacks run before the next macrotask.
- */
-const untilPlaylistLoadIsSent = async (source: Source) => {
-  await source.initialize();
-  await new Promise((resolve) => setTimeout(resolve, 0));
-};
-
-/**
- * Waits until `source` is the active source of `player`, e.g. after loading it.
- */
 const untilActive = (player: Player, source: Source) =>
   waitUntil(async () => (await player.getSource()) === source);

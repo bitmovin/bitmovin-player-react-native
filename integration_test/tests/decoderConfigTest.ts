@@ -34,8 +34,8 @@ export default (spec: TestScope) => {
           },
           async () => {
             await loadSourceConfig(Sources.artOfMotionHls);
-            await callPlayerAndExpectEvent((player) => {
-              player.play();
+            await callPlayerAndExpectEvent(async (player) => {
+              await player.play();
             }, EventType.Playing);
             expect(receivedVideoDecoders, 'Native decoder callback').toBe(true);
           }

@@ -124,12 +124,15 @@ export default class PlayerTestWorld {
     await player.initialize();
     this.player = player;
 
-    await fn().finally(() => {
-      player.destroy();
-      this.isFinished_ = true;
-      this.player = undefined;
-      this.eventListeners = {};
-      this.playerActivePropEvents = [];
+    await fn().finally(async () => {
+      try {
+        await player.destroy();
+      } finally {
+        this.isFinished_ = true;
+        this.player = undefined;
+        this.eventListeners = {};
+        this.playerActivePropEvents = [];
+      }
     });
   };
 
@@ -184,8 +187,8 @@ export default class PlayerTestWorld {
     timeoutSeconds: number = 10
   ): Promise<ReadyEvent> => {
     return await this.callPlayerAndExpectEvent(
-      (player) => {
-        player.load(sourceConfig);
+      async (player) => {
+        await player.load(sourceConfig);
       },
       EventType.Ready,
       timeoutSeconds
@@ -207,8 +210,8 @@ export default class PlayerTestWorld {
     timeoutSeconds: number
   ): Promise<TimeChangedEvent> => {
     return await this.callPlayerAndExpectEvent<TimeChangedEvent>(
-      (player) => {
-        player.play();
+      async (player) => {
+        await player.play();
       },
       FilteredEvent<TimeChangedEvent>(
         EventType.TimeChanged,

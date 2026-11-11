@@ -14,8 +14,8 @@ export default (spec: TestScope) => {
       await startPlayerTest({}, async () => {
         const source = new Source(Sources.artOfMotionHls);
         await source.setMetadata({ tag: 'updated before load' });
-        await callPlayerAndExpectEvent((player) => {
-          player.loadSource(source);
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.loadSource(source);
         }, EventType.Ready);
         expect(await source.metadata()).toEqual({ tag: 'updated before load' });
       });
