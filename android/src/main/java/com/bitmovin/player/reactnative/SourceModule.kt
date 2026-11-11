@@ -160,4 +160,6 @@ sealed class SourceException(message: String) : CodedException(message) {
     class InvalidSourceConfig : SourceException("Invalid source configuration")
     class SourceCreationFailed(reason: String) : SourceException("Could not create source: $reason")
     class SourceNotInitialized(nativeId: NativeId) : SourceException("Source $nativeId is not initialized")
+    class SourceAlreadyAttached(nativeId: NativeId) :
+        SourceException("Source $nativeId is already attached to another player")
 }

@@ -692,13 +692,16 @@ export default (spec: TestScope) => {
             addError = error;
           }
           expect(addError, 'Adding the source of A to B').toBeDefined();
+          playerB.loadSource(shared);
           playerB.loadPlaylist({ sources: [shared] });
-          await untilPlaylistLoadIsSent(shared);
-          // Native handles calls in order, so this resolves after the rejected load.
+          // Native runs the loads in call order, so once this one is active, the rejected loads completed. It
+          // also checks that the rejected loads left B able to load.
+          const later = new Source(Sources.sintel);
+          playerB.loadPlaylist({ sources: [later] });
           expect(
-            await playerB.getSource(),
-            'Active source of B after the rejected load'
-          ).toNotBe(shared);
+            await untilActive(playerB, later),
+            'Later source loaded in B'
+          ).toBeTruthy();
 
           playerB.destroy();
 
