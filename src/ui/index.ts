@@ -1,2 +1,2 @@
-export * from './fullscreenhandler';
-export * from './custommessagehandler';
+export * from './fullscreenHandler';
+export * from './customMessageHandler';

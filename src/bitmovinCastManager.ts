@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import BitmovinCastManagerModule from './modules/BitmovinCastManagerModule';
+import BitmovinCastManagerModule from './modules/bitmovinCastManagerModule';
 
 /**
  * The options to be used for initializing `BitmovinCastManager`
