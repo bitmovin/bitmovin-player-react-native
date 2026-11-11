@@ -8,6 +8,7 @@
 
 #### Breaking changes
 
+- Guard the optional `SourceUnloadedEvent.source` field. Android Player subscriptions and PlayerView events do not identify the unloaded Source; Source subscriptions include its snapshot. iOS provides it on all subscription paths
 - Pass `NetworkConfig` and `DrmConfig` objects directly; the configuration-only `Network` and `Drm` wrapper classes have been removed
 - Check `source.config.drmConfig` for DRM configuration. `source.drm` is now an always-present, read-only property exposing runtime APIs, including for clear content. Move standalone `Drm.fairplay` usage to `source.drm.fairplay`
 - Remove calls to `Source.destroy()` and reads of `Source.isDestroyed`. Source cleanup is automatic, and a Source remains reusable after its Player is destroyed
@@ -47,6 +48,7 @@
 
 ### Fixed
 
+- Android: Include the owning Source metadata in `Source.on('sourceUnloaded')` events
 - Android: Reject loading a Source attached to another Player before unloading the current session, leaving the Player usable for later loads
 - Android: Stop adding `com.google.android.gms.permission.AD_ID` when Google IMA is disabled. Apps that use the advertising ID, for example through analytics, may need to add `com.google.android.gms:play-services-ads-identifier` to their own dependencies
 

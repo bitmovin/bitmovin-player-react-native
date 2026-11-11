@@ -1,5 +1,5 @@
 import { Player, Source } from 'bitmovin-player-react-native';
-import type { Event } from 'bitmovin-player-react-native';
+import type { Event, SourceUnloadedEvent } from 'bitmovin-player-react-native';
 import type { EventSubscription } from 'expo-modules-core';
 import { TestScope } from 'cavy';
 import {
@@ -39,6 +39,27 @@ async function receiving(
 
 export default (spec: TestScope) => {
   spec.describe('native object events', () => {
+    spec.it(
+      'includes the owning Source metadata in its unload event',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const source = new Source({
+            ...Sources.artOfMotionHls,
+            metadata: { item: 'unloaded' },
+          });
+          await callPlayerAndExpectEvent(
+            (player) => player.loadSource(source),
+            EventType.Ready
+          );
+          const event = (await receiving(
+            (listener) => source.on('sourceUnloaded', listener),
+            () => callPlayer((player) => player.unload())
+          )) as SourceUnloadedEvent;
+          expect(event.source?.metadata).toEqual({ item: 'unloaded' });
+        });
+      }
+    );
+
     spec.it(
       'keeps source listeners after removing and adding it again',
       async () => {

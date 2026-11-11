@@ -78,7 +78,12 @@ internal fun SharedObject.observeSourceEvents(source: EventEmitter<in SourceEven
     val owner = WeakReference(this)
     source.on(SourceEvent.Load::class) { owner.get()?.forwardEvent(it.toJson()) }
     source.on(SourceEvent.Loaded::class) { owner.get()?.forwardEvent(it.toJson()) }
-    source.on(SourceEvent.Unloaded::class) { owner.get()?.forwardEvent(it.toJson()) }
+    source.on(SourceEvent.Unloaded::class) {
+        val target = owner.get() ?: return@on
+        val payload = it.toJson().toMutableMap()
+        if (target is SharedSource) payload["source"] = target.source.toJson()
+        target.forwardEvent(payload)
+    }
     source.on(SourceEvent.Error::class) { owner.get()?.forwardEvent(it.toJson()) }
     source.on(SourceEvent.Warning::class) { owner.get()?.forwardEvent(it.toJson()) }
     source.on(SourceEvent.AudioTrackAdded::class) { owner.get()?.forwardEvent(it.toJson()) }
