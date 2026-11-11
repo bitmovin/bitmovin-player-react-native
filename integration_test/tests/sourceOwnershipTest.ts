@@ -18,9 +18,10 @@ export default (spec: TestScope) => {
         async () => {
           await startPlayerTest({}, async () => {
             const current = new Source(Sources.artOfMotionHls);
-            await callPlayerAndExpectEvent(async (player) => {
-              await player.loadSource(current);
-            }, EventType.Ready);
+            await callPlayerAndExpectEvent(
+              (player) => player.loadSource(current),
+              EventType.Ready
+            );
             await callPlayer(async (player) => {
               let rejection;
               try {
@@ -38,7 +39,6 @@ export default (spec: TestScope) => {
         }
       );
     }
-
     spec.it(
       'preserves distinct original sources through load, add and queries',
       async () => {
@@ -60,7 +60,12 @@ export default (spec: TestScope) => {
             expect(sources[1]).toBe(second);
             expect(sources[0].config).toBe(firstConfig);
             expect(sources[1].config).toBe(secondConfig);
-            await player.playlist.seek(second, 0);
+          });
+          await callPlayerAndExpectEvent(
+            (player) => player.playlist.seek(second, 0),
+            EventType.PlaylistTransition
+          );
+          await callPlayer(async (player) => {
             expect(await player.getSource()).toBe(second);
           });
         });
