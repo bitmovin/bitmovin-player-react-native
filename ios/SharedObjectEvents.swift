@@ -16,10 +16,11 @@ internal final class SharedObjectEvents: NSObject, PlayerListener, SourceListene
     func onEvent(_ event: any SourceEvent, source: any Source) { forward(event) }
 
     private func forward(_ event: any Event) {
+        guard let owner else { return }
         let payload = event.eventPayload()
         guard !payload.isEmpty else { return }
         let name = event.name.hasPrefix("on") ? String(event.name.dropFirst(2)) : event.name
-        owner?.emit(event: name.prefix(1).lowercased() + name.dropFirst(), payload: payload)
-        owner?.emit(event: "event", payload: payload)
+        owner.emit(event: name.prefix(1).lowercased() + name.dropFirst(), payload: payload)
+        owner.emit(event: "event", payload: payload)
     }
 }
