@@ -36,17 +36,23 @@ public class PlaylistModule: Module {
             }
         }.runOnQueue(.main)
 
-        AsyncFunction("remove") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId) in
+        AsyncFunction("remove") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId) -> Bool in
             guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
-                  let source = self?.retrieveSource(sourceNativeId) else { return }
+                  let source = self?.retrieveSource(sourceNativeId) else { return false }
             // The SDK can only remove sources by index.
             let index = player.playlist.sources.firstIndex { ($0 as AnyObject) === (source as AnyObject) }
-            guard let index else { return }
+            guard let index else { return false }
             player.playlist.remove(sourceAt: index)
+            // The SDK keeps the active source and only logs a warning.
+            return !Self.contains(player.playlist.sources, source)
         }.runOnQueue(.main)
 
-        AsyncFunction("removeAt") { (nativeId: NativeId, index: Int) in
-            PlayerRegistry.getPlayer(nativeId: nativeId)?.playlist.remove(sourceAt: index)
+        AsyncFunction("removeAt") { (nativeId: NativeId, index: Int) -> NativeId? in
+            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
+                  player.playlist.sources.indices.contains(index) else { return nil }
+            let source = player.playlist.sources[index]
+            player.playlist.remove(sourceAt: index)
+            return Self.contains(player.playlist.sources, source) ? nil : SourceRegistry.nativeId(of: source)
         }.runOnQueue(.main)
 
         AsyncFunction("seek") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId, time: Double) in
@@ -54,6 +60,10 @@ public class PlaylistModule: Module {
                   let source = self?.retrieveSource(sourceNativeId) else { return }
             player.playlist.seek(source: source, time: time)
         }.runOnQueue(.main)
+    }
+
+    private static func contains(_ sources: [Source], _ source: Source) -> Bool {
+        sources.contains { ($0 as AnyObject) === (source as AnyObject) }
     }
 
     private func retrieveSource(_ nativeId: NativeId) -> Source? {
