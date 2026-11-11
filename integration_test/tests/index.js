@@ -7,6 +7,11 @@ function testSuite(name, platforms, load) {
 
 const testRegistrations = [
   testSuite(
+    'native-creation',
+    androidAndIos,
+    () => require('./nativeCreationTest').default
+  ),
+  testSuite(
     'view-boundary',
     androidAndIos,
     () => require('./viewBoundaryTest').default
