@@ -1,5 +1,6 @@
 import { Source, SourceAddedEvent } from 'bitmovin-player-react-native';
 import { TestScope } from 'cavy';
+import { Platform } from 'react-native';
 import {
   callPlayerAndExpectEvent,
   callPlayerAndExpectEvents,
@@ -10,6 +11,9 @@ import {
 } from '../playertesting';
 import { expect } from './helper/Expect';
 import { Sources } from './helper/Sources';
+
+const sourceAdded =
+  Platform.OS === 'ios' ? EventType.SourceAddedEvent : EventType.SourceAdded;
 
 export default (spec: TestScope) => {
   spec.describe('Source metadata', () => {
@@ -28,11 +32,11 @@ export default (spec: TestScope) => {
             (player) => player.loadPlaylist({ sources }),
             EventSequence(
               FilteredEvent<SourceAddedEvent>(
-                EventType.SourceAdded,
+                sourceAdded,
                 (event) => event.index === 0
               ),
               FilteredEvent<SourceAddedEvent>(
-                EventType.SourceAdded,
+                sourceAdded,
                 (event) => event.index === 1
               )
             )
