@@ -25,7 +25,9 @@ public final class SharedOffline: SharedObject {
                         name: "InvalidArgument", description: "Invalid offline identifier or source configuration"
                     )
                 }
-                let manager = try OfflineManager.sharedInstance().offlineContentManager(for: sourceConfig, id: identifier)
+                let manager = try OfflineManager.sharedInstance().offlineContentManager(
+                    for: sourceConfig, id: identifier
+                )
                 return Resource(manager: manager, bridge: OfflineContentManagerBridge(
                     forManager: manager, events: events, identifier: identifier
                 ))
