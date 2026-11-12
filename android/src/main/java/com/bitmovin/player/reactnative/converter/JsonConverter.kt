@@ -108,6 +108,7 @@ import com.bitmovin.player.reactnative.extensions.toMap
 import com.bitmovin.player.reactnative.extensions.toMapList
 import com.bitmovin.player.reactnative.extensions.withArray
 import com.bitmovin.player.reactnative.extensions.withBoolean
+import com.bitmovin.player.reactnative.extensions.withCallback
 import com.bitmovin.player.reactnative.extensions.withDouble
 import com.bitmovin.player.reactnative.extensions.withInt
 import com.bitmovin.player.reactnative.extensions.withMap
@@ -277,14 +278,14 @@ fun Map<String, Any?>.toAdvertisingConfig(appContext: AppContext): AdvertisingCo
     )
     // These SDK properties are vals. Copy only the configured callbacks, preserving SDK defaults.
     val configured = config.copy(
-        shouldLoadAdItem = (get("shouldLoadAdItem") as? JavaScriptWeakObject)?.let { callback ->
+        shouldLoadAdItem = withCallback("shouldLoadAdItem") { callback ->
             ShouldLoadAdItemCallback {
                 callback.callBlocking(appContext, it.toJson()) { value ->
                     if (value.isBool()) value.getBool() else null
                 } ?: true
             }
         } ?: config.shouldLoadAdItem,
-        shouldPlayAdBreak = (get("shouldPlayAdBreak") as? JavaScriptWeakObject)?.let { callback ->
+        shouldPlayAdBreak = withCallback("shouldPlayAdBreak") { callback ->
             ShouldPlayAdBreakCallback {
                 callback.callBlocking(appContext, it.toJson()) { value ->
                     if (value.isBool()) value.getBool() else null
@@ -637,12 +638,12 @@ fun Map<String, Any?>.toWidevineConfig(appContext: AppContext): WidevineConfig? 
             config.withMap("httpHeaders") {
                 httpHeaders = it.mapValues { entry -> entry.value as String }.toMutableMap()
             }
-            (config["prepareMessage"] as? JavaScriptWeakObject)?.let { callback ->
+            config.withCallback("prepareMessage") { callback ->
                 prepareMessageCallback = PrepareMessageCallback {
                     callback.prepare(appContext, it)
                 }
             }
-            (config["prepareLicense"] as? JavaScriptWeakObject)?.let { callback ->
+            config.withCallback("prepareLicense") { callback ->
                 prepareLicenseCallback = PrepareLicenseCallback {
                     callback.prepare(appContext, it)
                 }
@@ -957,7 +958,7 @@ fun Map<String, Any?>.toHttpResponse(): HttpResponse? {
 
 fun Map<String, Any?>.toNetworkConfig(appContext: AppContext, scope: CoroutineScope): NetworkConfig =
     NetworkConfig().apply {
-        (get("preprocessHttpRequest") as? JavaScriptWeakObject)?.let { callback ->
+        withCallback("preprocessHttpRequest") { callback ->
             preprocessHttpRequestCallback = PreprocessHttpRequestCallback { type, request ->
                 scope.future {
                     @Suppress("UNCHECKED_CAST")
@@ -970,7 +971,7 @@ fun Map<String, Any?>.toNetworkConfig(appContext: AppContext, scope: CoroutineSc
                 }.exceptionally { request }
             }
         }
-        (get("preprocessHttpResponse") as? JavaScriptWeakObject)?.let { callback ->
+        withCallback("preprocessHttpResponse") { callback ->
             preprocessHttpResponseCallback = PreprocessHttpResponseCallback { type, response ->
                 scope.future {
                     @Suppress("UNCHECKED_CAST")

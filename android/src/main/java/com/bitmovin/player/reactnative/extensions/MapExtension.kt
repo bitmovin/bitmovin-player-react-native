@@ -1,5 +1,7 @@
 package com.bitmovin.player.reactnative.extensions
 
+import expo.modules.kotlin.jni.JavaScriptWeakObject
+
 fun Map<String, Any?>.getBooleanOrNull(key: String): Boolean? = get(key) as? Boolean
 fun Map<String, Any?>.getIntOrNull(key: String): Int? = (get(key) as? Number)?.toInt()
 fun Map<String, Any?>.getInt(key: String): Int = (get(key) as? Number)?.toInt() ?: 0
@@ -39,6 +41,10 @@ inline fun <T> Map<String, Any?>.withBoolean(
     val value = get(key) as? Boolean
     return if (value != null) block(value) else null
 }
+
+/** Reads a configured function's standard Expo weak handle. */
+internal inline fun <T> Map<String, Any?>.withCallback(key: String, block: (JavaScriptWeakObject) -> T): T? =
+    (get(key) as? JavaScriptWeakObject)?.let(block)
 
 inline fun <T> Map<String, Any?>.withString(
     key: String,

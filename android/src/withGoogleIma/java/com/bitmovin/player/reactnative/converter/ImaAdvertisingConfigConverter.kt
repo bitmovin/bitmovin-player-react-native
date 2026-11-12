@@ -3,10 +3,10 @@ package com.bitmovin.player.reactnative.converter
 import com.bitmovin.player.api.advertising.AdvertisingConfig
 import com.bitmovin.player.api.advertising.BeforeInitializationCallback
 import com.bitmovin.player.reactnative.callBlocking
+import com.bitmovin.player.reactnative.extensions.withCallback
 import com.bitmovin.player.reactnative.extensions.withMap
 import com.bitmovin.player.reactnative.toNativeValue
 import expo.modules.kotlin.AppContext
-import expo.modules.kotlin.jni.JavaScriptWeakObject
 
 internal const val IS_GOOGLE_IMA_ENABLED = true
 
@@ -15,7 +15,7 @@ internal fun Map<String, Any?>.configureIma(
     advertising: AdvertisingConfig,
     appContext: AppContext,
 ): AdvertisingConfig = withMap("ima") { config ->
-    (config["beforeInitialization"] as? JavaScriptWeakObject)?.let { callback ->
+    config.withCallback("beforeInitialization") { callback ->
         advertising.copy(
             ima = advertising.ima.copy(
                 beforeInitialization = BeforeInitializationCallback { settings ->
