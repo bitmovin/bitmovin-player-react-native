@@ -73,23 +73,6 @@ class SharedOfflineContentManager(
         }
     }
 
-    private fun appliesDownloadActions(
-        ids: List<String?>?,
-        potentialOptions: List<OfflineOptionEntry>,
-    ) {
-        if (ids.isNullOrEmpty()) {
-            return
-        }
-
-        ids.forEach { idToDownload ->
-            potentialOptions.forEach { option ->
-                if (idToDownload == option.id && option.action !== OfflineOptionEntryAction.Download) {
-                    option.action = OfflineOptionEntryAction.Download
-                }
-            }
-        }
-    }
-
     fun resume() {
         offlineContentManager.resume()
     }
@@ -130,27 +113,6 @@ class SharedOfflineContentManager(
     override fun sharedObjectDidRelease() {
         callbacks.close()
         Dispatchers.Main.dispatch(EmptyCoroutineContext) { release() }
-    }
-
-    /**
-     * Produces an aggregate state of the `OfflineOptionEntryState` for the `OfflineContentOptions`
-     * iOS does not have granular data access to the states of each entry, but instead provides a single aggregate status.
-     * Adding this produces a consistent interface in the react-native layer.
-     */
-    private fun aggregateState(options: OfflineContentOptions?): OfflineOptionEntryState {
-        val allOptions = mutableListOf<OfflineOptionEntry>()
-        options?.videoOptions?.let { allOptions.addAll(it) }
-        options?.audioOptions?.let { allOptions.addAll(it) }
-        options?.textOptions?.let { allOptions.addAll(it) }
-        val trackableStates = listOf(OfflineOptionEntryState.Suspended, OfflineOptionEntryState.Downloading)
-
-        var state = allOptions.firstOrNull { trackableStates.contains(it.state) }?.state
-
-        if (state == null && allOptions.any { it.state == OfflineOptionEntryState.Downloaded }) {
-            state = OfflineOptionEntryState.Downloaded
-        }
-
-        return state ?: OfflineOptionEntryState.NotDownloaded
     }
 
     override fun onCompleted(source: SourceConfig, options: OfflineContentOptions) {
@@ -196,6 +158,44 @@ class SharedOfflineContentManager(
 
     override fun onResumed(source: SourceConfig) {
         sendEvent(OfflineEventType.ON_RESUMED)
+    }
+
+    private fun appliesDownloadActions(
+        ids: List<String?>?,
+        potentialOptions: List<OfflineOptionEntry>,
+    ) {
+        if (ids.isNullOrEmpty()) {
+            return
+        }
+
+        ids.forEach { idToDownload ->
+            potentialOptions.forEach { option ->
+                if (idToDownload == option.id && option.action !== OfflineOptionEntryAction.Download) {
+                    option.action = OfflineOptionEntryAction.Download
+                }
+            }
+        }
+    }
+
+    /**
+     * Produces an aggregate state of the `OfflineOptionEntryState` for the `OfflineContentOptions`
+     * iOS does not have granular data access to the states of each entry, but instead provides a single aggregate status.
+     * Adding this produces a consistent interface in the react-native layer.
+     */
+    private fun aggregateState(options: OfflineContentOptions?): OfflineOptionEntryState {
+        val allOptions = mutableListOf<OfflineOptionEntry>()
+        options?.videoOptions?.let { allOptions.addAll(it) }
+        options?.audioOptions?.let { allOptions.addAll(it) }
+        options?.textOptions?.let { allOptions.addAll(it) }
+        val trackableStates = listOf(OfflineOptionEntryState.Suspended, OfflineOptionEntryState.Downloading)
+
+        var state = allOptions.firstOrNull { trackableStates.contains(it.state) }?.state
+
+        if (state == null && allOptions.any { it.state == OfflineOptionEntryState.Downloaded }) {
+            state = OfflineOptionEntryState.Downloaded
+        }
+
+        return state ?: OfflineOptionEntryState.NotDownloaded
     }
 
     private fun sendEvent(eventType: OfflineEventType, event: Map<String, Any> = mapOf()) {

@@ -16,13 +16,6 @@ public final class SharedSource: SharedObject {
         return source
     }()
 
-    private init(factory: @escaping () -> Source, callback: CallbackScope?) {
-        self.factory = factory
-        self.callback = callback
-        super.init()
-        events.owner = self
-    }
-
     convenience init(source: Source, callback: CallbackScope?) {
         self.init(factory: { source }, callback: callback)
         // SDK-created offline sources must already emit events when the JS query resolves.
@@ -41,6 +34,21 @@ public final class SharedSource: SharedObject {
             }
             return SourceFactory.createSource(from: sourceConfig)
         }, callback: callback)
+    }
+
+    deinit {
+        callback?.close()
+        guard let source = initializedSource else { return }
+        let events = events
+        DispatchQueue.main.async { source.remove(listener: events) }
+    }
+    override public func sharedObjectWillRelease() { callback?.close() }
+
+    private init(factory: @escaping () -> Source, callback: CallbackScope?) {
+        self.factory = factory
+        self.callback = callback
+        super.init()
+        events.owner = self
     }
 
     private static func snapshot(_ config: SourceConfig) -> [String: Any]? {
@@ -64,12 +72,4 @@ public final class SharedSource: SharedObject {
             "metadata": config.metadata
         ]
     }
-
-    deinit {
-        callback?.close()
-        guard let source = initializedSource else { return }
-        let events = events
-        DispatchQueue.main.async { source.remove(listener: events) }
-    }
-    override public func sharedObjectWillRelease() { callback?.close() }
 }

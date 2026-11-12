@@ -17,13 +17,6 @@ public final class SharedPlayer: SharedObject {
         return player
     }()
 
-    private init(factory: @escaping () -> Player, callback: CallbackScope?) {
-        self.factory = factory
-        self.callback = callback
-        super.init()
-        events.owner = self
-    }
-
     /// SDK player for native integrations. Access on main and retain this owner while using the player.
     public var player: Player {
         get throws {
@@ -76,5 +69,11 @@ public final class SharedPlayer: SharedObject {
             }
             return PlayerFactory.create(playerConfig: playerConfig)
         }, callback: callback)
+    }
+    private init(factory: @escaping () -> Player, callback: CallbackScope?) {
+        self.factory = factory
+        self.callback = callback
+        super.init()
+        events.owner = self
     }
 }

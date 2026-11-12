@@ -33,11 +33,6 @@ class SharedSource private constructor(
     override fun sharedObjectDidRelease() { callbacks?.close() }
 
     companion object {
-        private fun snapshot(source: Source): Map<String, Any?> = with(source.config) {
-            mapOf("url" to url, "type" to type.name.lowercase(), "title" to title,
-                "description" to description, "metadata" to metadata)
-        }
-
         fun create(
             appContext: AppContext,
             config: Map<String, Any>?,
@@ -52,6 +47,11 @@ class SharedSource private constructor(
                 } ?: Source.create(sourceConfig)
                 source
             }, callbacks)
+        }
+
+        private fun snapshot(source: Source): Map<String, Any?> = with(source.config) {
+            mapOf("url" to url, "type" to type.name.lowercase(), "title" to title,
+                "description" to description, "metadata" to metadata)
         }
     }
 }

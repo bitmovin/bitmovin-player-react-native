@@ -33,22 +33,6 @@ public final class SharedOfflineContentManager: SharedObject {
         super.init()
     }
 
-#if os(iOS)
-    // The SDK factory throws, so use a throwing getter rather than a nonthrowing lazy property.
-    private func getResource() throws -> Resource {
-        if let resource { return resource }
-        guard !isDestroyed else {
-            throw Exception(name: "DestroyedObject", description: "Destroyed before SDK creation")
-        }
-        let manager = try OfflineManager.sharedInstance().offlineContentManager(for: sourceConfig, id: identifier)
-        let resource = Resource(manager: manager, bridge: OfflineContentManagerBridge(
-            forManager: manager, events: events, identifier: identifier
-        ))
-        self.resource = resource
-        return resource
-    }
-#endif
-
     func destroy() {
         callback?.close()
 #if os(iOS)
@@ -84,4 +68,20 @@ public final class SharedOfflineContentManager: SharedObject {
         resource.manager.download(tracks: tracks, downloadConfig: config)
 #endif
     }
+
+#if os(iOS)
+    // The SDK factory throws, so use a throwing getter rather than a nonthrowing lazy property.
+    private func getResource() throws -> Resource {
+        if let resource { return resource }
+        guard !isDestroyed else {
+            throw Exception(name: "DestroyedObject", description: "Destroyed before SDK creation")
+        }
+        let manager = try OfflineManager.sharedInstance().offlineContentManager(for: sourceConfig, id: identifier)
+        let resource = Resource(manager: manager, bridge: OfflineContentManagerBridge(
+            forManager: manager, events: events, identifier: identifier
+        ))
+        self.resource = resource
+        return resource
+    }
+#endif
 }
