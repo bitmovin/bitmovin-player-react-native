@@ -53,8 +53,7 @@ internal extension JavaScriptRef where T == JavaScriptWeakObject {
         convert: @escaping @JavaScriptActor (JavaScriptValue) throws -> R?,
         completion: @escaping (R?) -> Void
     ) -> CallbackCompletion<R> {
-        let reply = CallbackCompletion<R>()
-        reply.onComplete { completion(try? $0.get()) }
+        let reply = CallbackCompletion<R> { completion(try? $0.get()) }
         start(context, arguments: arguments, convert: convert, reply: reply)
         return reply
     }
@@ -64,15 +63,10 @@ internal extension JavaScriptRef where T == JavaScriptWeakObject {
         arguments: [Any],
         convert: @escaping @JavaScriptActor (JavaScriptValue) throws -> R?
     ) async throws -> R? {
-        let reply = CallbackCompletion<R>()
-        return try await withTaskCancellationHandler {
-            try await withCheckedThrowingContinuation { continuation in
-                reply.onComplete { continuation.resume(with: $0) }
-                start(context, arguments: arguments, convert: convert, reply: reply)
-            }
-        } onCancel: {
-            reply.cancel()
-        }
+        guard let runtime = try? context.runtime,
+              let value = try await awaitValue(context, arguments: arguments) else { return nil }
+        try Task.checkCancellation()
+        return try await runtime.execute { try convert(value) }
     }
 
     /// Notifications ignore their return value, consuming a rejected Promise without awaiting it.
@@ -98,6 +92,39 @@ internal extension JavaScriptRef where T == JavaScriptWeakObject {
         }
     }
 
+    private func awaitValue(_ context: AppContext, arguments: [Any]) async throws -> JavaScriptValue? {
+        try Task.checkCancellation()
+        let runtime = try context.runtime
+        do {
+            let pending = try await runtime.execute {
+                guard let value = try self.invoke(context, arguments: arguments) else {
+                    return nil as (JavaScriptPromise.Ref, JavaScriptPromise.Ref)?
+                }
+                // Race a native-owned rejection signal so Task cancellation also ends Expo's await.
+                let cancellation = try JavaScriptPromise(runtime)
+                let values = JavaScriptArray(runtime, items: [value, cancellation.asValue()])
+                let constructor = try runtime.global().getPropertyAsObject("Promise")
+                let promise = try constructor.callFunction("race", arguments: values.asValue()).getPromise()
+                return (cancellation.ref(), promise.ref())
+            }
+            guard let pending else { return nil }
+            let (cancellation, result) = pending
+            return try await withTaskCancellationHandler {
+                let promise: JavaScriptPromise = try result.take()
+                do { return try await promise.await() } catch {
+                    try Task.checkCancellation()
+                    throw error
+                }
+            } onCancel: {
+                cancellation.withValue { $0?.reject(CancellationError()) }
+            }
+        } catch let error as JavaScriptError {
+            try Task.checkCancellation()
+            let message = try await runtime.execute { error.toValue().toString() }
+            throw Exception(name: "JavaScriptCallbackError", description: message)
+        }
+    }
+
     private func start<R>(
         _ context: AppContext,
         arguments: [Any],
@@ -113,36 +140,20 @@ internal extension JavaScriptRef where T == JavaScriptWeakObject {
                     if let reply { runtime?.longLivedObjects.remove(reply) }
                 }
             }
+        }
+        let task = Task {
             do {
-                guard let result = try self.invoke(context, arguments: arguments) else {
-                    reply.complete(.success(nil))
-                    return
+                guard !reply.isComplete else { return }
+                let value = try await self.awaitValue(context, arguments: arguments)
+                runtime.schedule {
+                    guard !reply.isComplete else { return }
+                    reply.complete(Result { try value.flatMap(convert) })
                 }
-                if result.isObject(), result.getObject().getProperty("then").isFunction() {
-                    let resolve = runtime.createFunction { _, values in
-                        guard !reply.isComplete else { return JavaScriptValue.undefined }
-                        reply.complete(Result { try convert(values.firstValue) })
-                        return JavaScriptValue.undefined
-                    }
-                    let reject = runtime.createFunction { _, values in
-                        guard !reply.isComplete else { return JavaScriptValue.undefined }
-                        reply.complete(.failure(Exception(
-                            name: "JavaScriptCallbackError", description: values.firstValue.toString()
-                        )))
-                        return JavaScriptValue.undefined
-                    }
-                    try result.getObject().callFunction("then", arguments: resolve.asValue(), reject.asValue())
-                } else {
-                    reply.complete(.success(try convert(result)))
-                }
-            } catch let error as JavaScriptError {
-                reply.complete(.failure(Exception(
-                    name: "JavaScriptCallbackError", description: error.toValue().toString()
-                )))
             } catch {
                 reply.complete(.failure(error))
             }
         }
+        reply.didComplete { task.cancel() }
     }
 }
 
@@ -160,13 +171,7 @@ nonisolated internal final class CallbackCompletion<R>: CancellableCallback, Lon
     private var finished: [() -> Void] = []
     var isComplete: Bool { condition.lock(); defer { condition.unlock() }; return result != nil }
 
-    func onComplete(_ completion: @escaping (Result<R?, Error>) -> Void) {
-        condition.lock()
-        if let result { condition.unlock(); completion(result) } else {
-            self.completion = completion
-            condition.unlock()
-        }
-    }
+    init(completion: ((Result<R?, Error>) -> Void)? = nil) { self.completion = completion }
 
     func didComplete(_ completion: @escaping () -> Void) {
         condition.lock()
@@ -204,9 +209,4 @@ nonisolated internal final class CallbackCompletion<R>: CancellableCallback, Lon
         cancel()
         return result.flatMap { try? $0.get() }
     }
-}
-
-private extension JavaScriptValuesBuffer {
-    // swiftlint:disable:next empty_count
-    var firstValue: JavaScriptValue { count > 0 ? self[0] : .undefined }
 }
