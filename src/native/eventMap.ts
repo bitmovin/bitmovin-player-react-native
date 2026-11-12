@@ -1,71 +1,4 @@
-import type {
-  AdBreakFinishedEvent,
-  AdBreakStartedEvent,
-  AdClickedEvent,
-  AdErrorEvent,
-  AdFinishedEvent,
-  AdManifestLoadEvent,
-  AdManifestLoadedEvent,
-  AdQuartileEvent,
-  AdScheduledEvent,
-  AdSkippedEvent,
-  AdStartedEvent,
-  AudioAddedEvent,
-  AudioChangedEvent,
-  AudioRemovedEvent,
-  CastAvailableEvent,
-  CastPausedEvent,
-  CastPlaybackFinishedEvent,
-  CastPlayingEvent,
-  CastStartEvent,
-  CastStartedEvent,
-  CastStoppedEvent,
-  CastTimeUpdatedEvent,
-  CastWaitingForDeviceEvent,
-  CueEnterEvent,
-  CueExitEvent,
-  DestroyEvent,
-  DownloadFinishedEvent,
-  Event,
-  FairplayLicenseAcquiredEvent,
-  MetadataEvent,
-  MetadataParsedEvent,
-  MutedEvent,
-  NonLinearAdFinishedEvent,
-  NonLinearAdSkippedEvent,
-  NonLinearAdStartedEvent,
-  PausedEvent,
-  PlayEvent,
-  PlaybackFinishedEvent,
-  PlaybackSpeedChangedEvent,
-  PlayerActiveEvent,
-  PlayerErrorEvent,
-  PlayerInactiveEvent,
-  PlayerWarningEvent,
-  PlayingEvent,
-  PlaylistTransitionEvent,
-  ReadyEvent,
-  SeekEvent,
-  SeekedEvent,
-  SourceAddedEvent,
-  SourceErrorEvent,
-  SourceLoadEvent,
-  SourceLoadedEvent,
-  SourceRemovedEvent,
-  SourceUnloadedEvent,
-  SourceWarningEvent,
-  StallEndedEvent,
-  StallStartedEvent,
-  SubtitleAddedEvent,
-  SubtitleChangedEvent,
-  SubtitleRemovedEvent,
-  TimeChangedEvent,
-  TimeShiftEvent,
-  TimeShiftedEvent,
-  UnmutedEvent,
-  VideoDownloadQualityChangedEvent,
-  VideoPlaybackQualityChangedEvent,
-} from '../events';
+import type * as Events from '../events';
 
 /**
  * Payloads emitted by a Source and forwarded by its attached Player.
@@ -73,22 +6,22 @@ import type {
  * @inline
  */
 export interface SourceEventMap {
-  downloadFinished: DownloadFinishedEvent;
-  videoDownloadQualityChanged: VideoDownloadQualityChangedEvent;
-  metadataParsed: MetadataParsedEvent;
-  sourceError: SourceErrorEvent;
-  sourceLoad: SourceLoadEvent;
-  sourceLoaded: SourceLoadedEvent;
-  sourceUnloaded: SourceUnloadedEvent;
-  sourceWarning: SourceWarningEvent;
-  audioAdded: AudioAddedEvent;
-  audioChanged: AudioChangedEvent;
-  audioRemoved: AudioRemovedEvent;
-  subtitleAdded: SubtitleAddedEvent;
-  subtitleChanged: SubtitleChangedEvent;
-  subtitleRemoved: SubtitleRemovedEvent;
-  fairplayLicenseAcquired: FairplayLicenseAcquiredEvent;
-  event: Event;
+  downloadFinished: Events.DownloadFinishedEvent;
+  videoDownloadQualityChanged: Events.VideoDownloadQualityChangedEvent;
+  metadataParsed: Events.MetadataParsedEvent;
+  sourceError: Events.SourceErrorEvent;
+  sourceLoad: Events.SourceLoadEvent;
+  sourceLoaded: Events.SourceLoadedEvent;
+  sourceUnloaded: Events.SourceUnloadedEvent;
+  sourceWarning: Events.SourceWarningEvent;
+  audioAdded: Events.AudioAddedEvent;
+  audioChanged: Events.AudioChangedEvent;
+  audioRemoved: Events.AudioRemovedEvent;
+  subtitleAdded: Events.SubtitleAddedEvent;
+  subtitleChanged: Events.SubtitleChangedEvent;
+  subtitleRemoved: Events.SubtitleRemovedEvent;
+  fairplayLicenseAcquired: Events.FairplayLicenseAcquiredEvent;
+  event: Events.Event;
 }
 
 /**
@@ -98,58 +31,58 @@ export interface SourceEventMap {
  */
 export interface PlayerEventMap extends SourceEventMap {
   /** @experimental */
-  sourceAdded: SourceAddedEvent;
+  sourceAdded: Events.SourceAddedEvent;
   /** @experimental */
-  sourceRemoved: SourceRemovedEvent;
+  sourceRemoved: Events.SourceRemovedEvent;
   /** @experimental */
-  playlistTransition: PlaylistTransitionEvent;
-  adBreakFinished: AdBreakFinishedEvent;
-  adBreakStarted: AdBreakStartedEvent;
-  adClicked: AdClickedEvent;
-  adError: AdErrorEvent;
-  adFinished: AdFinishedEvent;
-  adManifestLoad: AdManifestLoadEvent;
-  adManifestLoaded: AdManifestLoadedEvent;
-  adQuartile: AdQuartileEvent;
-  adScheduled: AdScheduledEvent;
-  adSkipped: AdSkippedEvent;
-  adStarted: AdStartedEvent;
-  castAvailable: CastAvailableEvent;
-  castPaused: CastPausedEvent;
-  castPlaybackFinished: CastPlaybackFinishedEvent;
-  castPlaying: CastPlayingEvent;
-  castStarted: CastStartedEvent;
-  castStart: CastStartEvent;
-  castStopped: CastStoppedEvent;
-  castTimeUpdated: CastTimeUpdatedEvent;
-  castWaitingForDevice: CastWaitingForDeviceEvent;
-  cueEnter: CueEnterEvent;
-  cueExit: CueExitEvent;
-  destroy: DestroyEvent;
-  metadata: MetadataEvent;
-  muted: MutedEvent;
-  nonLinearAdStarted: NonLinearAdStartedEvent;
-  nonLinearAdSkipped: NonLinearAdSkippedEvent;
-  nonLinearAdFinished: NonLinearAdFinishedEvent;
-  paused: PausedEvent;
-  play: PlayEvent;
-  playbackFinished: PlaybackFinishedEvent;
-  playbackSpeedChanged: PlaybackSpeedChangedEvent;
-  playerActive: PlayerActiveEvent;
-  playerInactive: PlayerInactiveEvent;
-  playerError: PlayerErrorEvent;
-  playerWarning: PlayerWarningEvent;
-  playing: PlayingEvent;
-  ready: ReadyEvent;
-  seek: SeekEvent;
-  seeked: SeekedEvent;
-  timeShift: TimeShiftEvent;
-  timeShifted: TimeShiftedEvent;
-  stallStarted: StallStartedEvent;
-  stallEnded: StallEndedEvent;
-  timeChanged: TimeChangedEvent;
-  videoPlaybackQualityChanged: VideoPlaybackQualityChangedEvent;
-  unmuted: UnmutedEvent;
+  playlistTransition: Events.PlaylistTransitionEvent;
+  adBreakFinished: Events.AdBreakFinishedEvent;
+  adBreakStarted: Events.AdBreakStartedEvent;
+  adClicked: Events.AdClickedEvent;
+  adError: Events.AdErrorEvent;
+  adFinished: Events.AdFinishedEvent;
+  adManifestLoad: Events.AdManifestLoadEvent;
+  adManifestLoaded: Events.AdManifestLoadedEvent;
+  adQuartile: Events.AdQuartileEvent;
+  adScheduled: Events.AdScheduledEvent;
+  adSkipped: Events.AdSkippedEvent;
+  adStarted: Events.AdStartedEvent;
+  castAvailable: Events.CastAvailableEvent;
+  castPaused: Events.CastPausedEvent;
+  castPlaybackFinished: Events.CastPlaybackFinishedEvent;
+  castPlaying: Events.CastPlayingEvent;
+  castStarted: Events.CastStartedEvent;
+  castStart: Events.CastStartEvent;
+  castStopped: Events.CastStoppedEvent;
+  castTimeUpdated: Events.CastTimeUpdatedEvent;
+  castWaitingForDevice: Events.CastWaitingForDeviceEvent;
+  cueEnter: Events.CueEnterEvent;
+  cueExit: Events.CueExitEvent;
+  destroy: Events.DestroyEvent;
+  metadata: Events.MetadataEvent;
+  muted: Events.MutedEvent;
+  nonLinearAdStarted: Events.NonLinearAdStartedEvent;
+  nonLinearAdSkipped: Events.NonLinearAdSkippedEvent;
+  nonLinearAdFinished: Events.NonLinearAdFinishedEvent;
+  paused: Events.PausedEvent;
+  play: Events.PlayEvent;
+  playbackFinished: Events.PlaybackFinishedEvent;
+  playbackSpeedChanged: Events.PlaybackSpeedChangedEvent;
+  playerActive: Events.PlayerActiveEvent;
+  playerInactive: Events.PlayerInactiveEvent;
+  playerError: Events.PlayerErrorEvent;
+  playerWarning: Events.PlayerWarningEvent;
+  playing: Events.PlayingEvent;
+  ready: Events.ReadyEvent;
+  seek: Events.SeekEvent;
+  seeked: Events.SeekedEvent;
+  timeShift: Events.TimeShiftEvent;
+  timeShifted: Events.TimeShiftedEvent;
+  stallStarted: Events.StallStartedEvent;
+  stallEnded: Events.StallEndedEvent;
+  timeChanged: Events.TimeChangedEvent;
+  videoPlaybackQualityChanged: Events.VideoPlaybackQualityChangedEvent;
+  unmuted: Events.UnmutedEvent;
 }
 
 /**
@@ -157,6 +90,6 @@ export interface PlayerEventMap extends SourceEventMap {
  * @internal
  * @inline
  */
-export type EventCallbacks<Events> = {
-  [Name in keyof Events]: (event: Events[Name]) => void;
+export type EventCallbacks<EventMap> = {
+  [Name in keyof EventMap]: (event: EventMap[Name]) => void;
 };
