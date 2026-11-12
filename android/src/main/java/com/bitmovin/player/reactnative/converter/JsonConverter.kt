@@ -94,7 +94,6 @@ import com.bitmovin.player.reactnative.PictureInPictureAction
 import com.bitmovin.player.reactnative.PictureInPictureConfig
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.UserInterfaceType
-import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
 import com.bitmovin.player.reactnative.extensions.get
 import com.bitmovin.player.reactnative.extensions.getArray
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
@@ -115,6 +114,7 @@ import com.bitmovin.player.reactnative.extensions.withInt
 import com.bitmovin.player.reactnative.extensions.withMap
 import com.bitmovin.player.reactnative.extensions.withString
 import com.bitmovin.player.reactnative.extensions.withStringArray
+import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
 import java.util.UUID
 
 /**
@@ -202,7 +202,8 @@ private fun Map<String, Any?>.toAdaptationConfig(): AdaptationConfig = Adaptatio
 }
 
 fun Map<String, Any?>.toPlaybackConfig(callbacks: CallbackScope): PlaybackConfig = PlaybackConfig(
-    decoderConfig = getMap("decoderConfig").toDecoderConfig(callbacks) ?: DecoderConfig(),
+    // The SDK exposes decoderConfig as a val; it must be supplied to the constructor.
+    decoderConfig = withMap("decoderConfig") { it.toDecoderConfig(callbacks) } ?: DecoderConfig(),
 ).apply {
     withBoolean("isAutoplayEnabled") { isAutoplayEnabled = it }
     withBoolean("isMuted") { isMuted = it }
@@ -262,23 +263,23 @@ fun Map<String, Any?>.toTweaksConfig(): TweaksConfig =
     }.build()
 
 fun Map<String, Any?>.toAdvertisingConfig(callbacks: CallbackScope): AdvertisingConfig {
-    val schedule = getArray("schedule")?.toMapList()?.mapNotNull { it?.toAdItem() } ?: emptyList()
-    // SDK callback properties are immutable; copy returns the configured value.
-    val config = AdvertisingConfig(schedule).run {
-        copy(
-            shouldLoadAdItem = withFunction("shouldLoadAdItem") { token ->
-                ShouldLoadAdItemCallback {
-                    callbacks.call(token, listOf(it.toJson())) as? Boolean ?: true
-                }
-            } ?: shouldLoadAdItem,
-            shouldPlayAdBreak = withFunction("shouldPlayAdBreak") { token ->
-                ShouldPlayAdBreakCallback {
-                    callbacks.call(token, listOf(it.toJson())) as? Boolean ?: true
-                }
-            } ?: shouldPlayAdBreak,
-        )
-    }
-    return configureIma(config, callbacks)
+    val config = AdvertisingConfig(
+        withArray("schedule") { it.toMapList().mapNotNull { item -> item?.toAdItem() } } ?: emptyList(),
+    )
+    // These SDK properties are vals. Copy only the configured callbacks, preserving SDK defaults.
+    val configured = config.copy(
+        shouldLoadAdItem = withFunction("shouldLoadAdItem") { token ->
+            ShouldLoadAdItemCallback {
+                callbacks.call(token, listOf(it.toJson())) as? Boolean ?: true
+            }
+        } ?: config.shouldLoadAdItem,
+        shouldPlayAdBreak = withFunction("shouldPlayAdBreak") { token ->
+            ShouldPlayAdBreakCallback {
+                callbacks.call(token, listOf(it.toJson())) as? Boolean ?: true
+            }
+        } ?: config.shouldPlayAdBreak,
+    )
+    return configureIma(configured, callbacks)
 }
 
 fun Map<String, Any?>.toAdItem(): AdItem? {
@@ -308,7 +309,7 @@ fun Map<String, Any?>.toSourceConfig(callbacks: CallbackScope): SourceConfig? {
     val url = getString("url") ?: return null
     val type = getString("type")?.toSourceType() ?: return null
     return SourceConfig(url, type).apply {
-        drmConfig = getMap("drmConfig")?.toWidevineConfig(callbacks)
+        withMap("drmConfig") { drmConfig = it.toWidevineConfig(callbacks) }
         withString("title") { title = it }
         withString("description") { description = it }
         withString("poster") { posterSource = it }
@@ -616,23 +617,26 @@ fun PlayerEvent.toJson(): Map<String, Any> {
 }
 
 fun Map<String, Any?>.toWidevineConfig(callbacks: CallbackScope): WidevineConfig? =
-    getMap("widevine")?.run {
-        WidevineConfig(getString("licenseUrl")).apply {
-            withString("preferredSecurityLevel") { preferredSecurityLevel = it }
-            withBoolean("shouldKeepDrmSessionsAlive") { shouldKeepDrmSessionsAlive = it }
-            withMap("httpHeaders") { httpHeaders = it.mapValues { entry -> entry.value as String }.toMutableMap() }
-            withFunction("prepareMessage") { token ->
+    withMap("widevine") { config ->
+        WidevineConfig(config.getString("licenseUrl")).apply {
+            config.withString("preferredSecurityLevel") { preferredSecurityLevel = it }
+            config.withBoolean("shouldKeepDrmSessionsAlive") { shouldKeepDrmSessionsAlive = it }
+            config.withMap("httpHeaders") {
+                httpHeaders = it.mapValues { entry -> entry.value as String }.toMutableMap()
+            }
+            config.withFunction("prepareMessage") { token ->
                 prepareMessageCallback = PrepareMessageCallback {
                     callbacks.prepare(token, it)
                 }
             }
-            withFunction("prepareLicense") { token ->
+            config.withFunction("prepareLicense") { token ->
                 prepareLicenseCallback = PrepareLicenseCallback {
                     callbacks.prepare(token, it)
                 }
             }
         }
     }
+
 private fun CallbackScope.prepare(token: String, data: ByteArray): ByteArray {
     val result = call(token, listOf(Base64.encodeToString(data, Base64.NO_WRAP)))
     return Base64.decode(result as? String ?: "", Base64.NO_WRAP)
