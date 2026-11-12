@@ -38,10 +38,10 @@ public class RNPlayerView: ExpoView {
         }
     }
 
-    private var customMessageHandler: SharedCustomMessage?
+    private var customMessageHandler: SharedCustomMessageHandler?
     private var sharedPlayer: SharedPlayer?
     private var playerViewConfigWrapper: RNPlayerViewConfig?
-    private var fullscreenHandler: SharedFullscreen?
+    private var fullscreenHandler: SharedFullscreenHandler?
     private var scalingMode: ScalingMode?
     private var requestedFullscreenValue: Bool?
     private var requestedPictureInPictureValue: Bool?
@@ -85,8 +85,8 @@ public class RNPlayerView: ExpoView {
 
     internal func attachBindings(
         owner: SharedPlayer,
-        fullscreen: SharedFullscreen?,
-        messages: SharedCustomMessage?,
+        fullscreen: SharedFullscreenHandler?,
+        messages: SharedCustomMessageHandler?,
         config: [String: Any]?
     ) throws {
         guard !(try owner.player).isDestroyed else {
@@ -154,12 +154,12 @@ public class RNPlayerView: ExpoView {
         onBmpPlayerViewReady([:])
     }
 
-    internal func setFullscreenHandler(_ handler: SharedFullscreen?) {
+    internal func setFullscreenHandler(_ handler: SharedFullscreenHandler?) {
         fullscreenHandler = handler
         playerView?.fullscreenHandler = handler?.handler
     }
 
-    internal func setCustomMessageHandler(_ handler: SharedCustomMessage?) {
+    internal func setCustomMessageHandler(_ handler: SharedCustomMessageHandler?) {
         customMessageHandler = handler
     }
 

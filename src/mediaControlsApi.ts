@@ -1,4 +1,4 @@
-import { NativeMediaControls } from './modules/playerModule';
+import { SharedMediaControlsApi } from './modules/playerModule';
 import type { Player } from './player';
 import { Platform } from 'react-native';
 
@@ -10,7 +10,7 @@ import { Platform } from 'react-native';
  * @platform iOS/tvOS
  */
 export class MediaControlsApi {
-  private readonly native?: NativeMediaControls;
+  private readonly native?: SharedMediaControlsApi;
   // Retain the configured Player while this runtime helper is reachable.
   declare private readonly player: Player;
 
@@ -18,7 +18,7 @@ export class MediaControlsApi {
   constructor(player: Player) {
     this.player = player;
     if (Platform.OS === 'ios')
-      this.native = new NativeMediaControls(player.native);
+      this.native = new SharedMediaControlsApi(player.native);
   }
 
   /**

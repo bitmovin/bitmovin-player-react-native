@@ -46,8 +46,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private var requestedPictureInPictureValue: Boolean? = null
 
     // Expo props can arrive before the SDK view is created. Reapply them on attachment.
-    private var fullscreenHandler: SharedFullscreen? = null
-    private var customMessageHandler: SharedCustomMessage? = null
+    private var fullscreenHandler: SharedFullscreenHandler? = null
+    private var customMessageHandler: SharedCustomMessageHandler? = null
 
     private val onBmpPlayerViewReady by EventDispatcher()
     private val onBmpViewAttached by EventDispatcher()
@@ -240,8 +240,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
     fun attachBindings(
         owner: SharedPlayer,
-        fullscreen: SharedFullscreen?,
-        messages: SharedCustomMessage?,
+        fullscreen: SharedFullscreenHandler?,
+        messages: SharedCustomMessageHandler?,
         config: Map<String, Any>?,
     ) {
         check(!owner.player.isDestroyed) { "Cannot attach a destroyed player" }
@@ -537,7 +537,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         playerView?.scalingMode = this.scalingMode ?: ScalingMode.Fit
     }
 
-    fun attachFullscreenHandler(handler: SharedFullscreen?) {
+    fun attachFullscreenHandler(handler: SharedFullscreenHandler?) {
         if (fullscreenHandler === handler) return
         fullscreenHandler = handler
         playerView?.let { view ->
@@ -553,7 +553,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
     }
 
-    fun attachCustomMessageHandler(handler: SharedCustomMessage?) {
+    fun attachCustomMessageHandler(handler: SharedCustomMessageHandler?) {
         if (customMessageHandler === handler) return
         customMessageHandler = handler
         playerView?.setCustomMessageHandler(handler?.customMessageHandler)

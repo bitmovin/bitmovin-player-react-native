@@ -14,25 +14,26 @@ type OfflineEvents = {
 };
 
 /** @internal */
-export type NativeOfflineEvents = SharedObject<OfflineEvents>;
+export type SharedOfflineEvents = SharedObject<OfflineEvents>;
 
 /** @internal */
-export type NativeOffline = SharedObject &
+export type SharedOfflineContentManager = SharedObject &
   Omit<NativeMethods<OfflineContentManager>, 'addListener'> & {
-    readonly events: NativeOfflineEvents;
+    readonly events: SharedOfflineEvents;
   };
 
 declare class OfflineModule extends NativeModule {
-  readonly OfflineEvents: new () => NativeOfflineEvents;
-  readonly OfflineContentManager: new (
+  readonly SharedOfflineEvents: new () => SharedOfflineEvents;
+  readonly SharedOfflineContentManager: new (
     config: { identifier: string; sourceConfig: Record<string, any> },
-    events: NativeOfflineEvents,
+    events: SharedOfflineEvents,
     callback: NativeCallback
-  ) => NativeOffline;
+  ) => SharedOfflineContentManager;
 }
 const nativeModule = requireNativeModule<OfflineModule>('OfflineModule');
 /** @internal */
-export const NativeOffline = nativeModule.OfflineContentManager;
+export const SharedOfflineContentManager =
+  nativeModule.SharedOfflineContentManager;
 /** @internal */
-export const NativeOfflineEvents = nativeModule.OfflineEvents;
+export const SharedOfflineEvents = nativeModule.SharedOfflineEvents;
 export default nativeModule;

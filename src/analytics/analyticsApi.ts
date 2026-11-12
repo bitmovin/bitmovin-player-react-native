@@ -1,4 +1,4 @@
-import { NativeAnalytics } from '../modules/playerModule';
+import { SharedAnalyticsApi } from '../modules/playerModule';
 import type { Player } from '../player';
 import type { CustomDataConfig } from './config';
 
@@ -7,14 +7,14 @@ import type { CustomDataConfig } from './config';
  * Use the `Player.analytics` property to access a `Player`'s `AnalyticsApi`.
  */
 export class AnalyticsApi {
-  private readonly native: NativeAnalytics;
+  private readonly native: SharedAnalyticsApi;
   // Retain the configured Player while this runtime helper is reachable.
   declare private readonly player: Player;
 
   /** @internal */
   constructor(player: Player) {
     this.player = player;
-    this.native = new NativeAnalytics(player.native);
+    this.native = new SharedAnalyticsApi(player.native);
   }
 
   /**

@@ -569,9 +569,9 @@ test('public facades keep transport on their paired Expo peer', async (t) => {
   const player = new Player();
   const source = new Source({ url: 'https://test/source', type: 'hls' });
   for (const [owner, Native, backref] of [
-    [player, modules.PlayerModule.Player, 'player'],
-    [source, modules.SourceModule.Source, 'source'],
-    [player.buffer, modules.PlayerModule.BufferApi, 'buffer'],
+    [player, modules.PlayerModule.SharedPlayer, 'player'],
+    [source, modules.SourceModule.SharedSource, 'source'],
+    [player.buffer, modules.PlayerModule.SharedBufferApi, 'buffer'],
   ]) {
     assert.equal(owner instanceof Native, false);
     assert.equal(owner.native instanceof Native, true);

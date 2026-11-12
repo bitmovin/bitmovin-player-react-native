@@ -172,19 +172,19 @@ function installNativeClasses(modules) {
       );
       if (known) return known;
       return source && !peers.has(source)
-        ? modules.SourceModule.Source.fromControl(source)
+        ? modules.SourceModule.SharedSource.fromControl(source)
         : source;
     },
     loadPlaylist: (control, [sources, options]) =>
       control.loadPlaylist(sources, options),
   });
   modules.PlayerModule ??= {};
-  modules.PlayerModule.Player = nativeClass(
+  modules.PlayerModule.SharedPlayer = nativeClass(
     (...args) => modules.PlayerModule.create(...args),
     playerMethods
   );
   modules.SourceModule ??= {};
-  modules.SourceModule.Source = nativeClass(
+  modules.SourceModule.SharedSource = nativeClass(
     (...args) => modules.SourceModule.create(...args),
     {
       duration: 'duration',
@@ -198,19 +198,19 @@ function installNativeClasses(modules) {
     }
   );
   const groups = {
-    BufferApi: {
+    SharedBufferApi: {
       getLevel: 'getBufferLevel',
       setTargetLevel: 'setBufferTargetLevel',
     },
-    AnalyticsApi: {
+    SharedAnalyticsApi: {
       sendCustomDataEvent: 'sendCustomDataEvent',
       getUserId: 'getAnalyticsUserId',
     },
-    MediaControlsApi: {
+    SharedMediaControlsApi: {
       isEnabled: 'isMediaControlsEnabled',
       setEnabled: 'setMediaControlsEnabled',
     },
-    PlaylistApi: {
+    SharedPlaylistApi: {
       getSources: 'getPlaylistSources',
       add: 'playlistAdd',
       remove: 'playlistRemove',
@@ -243,7 +243,7 @@ function installNativeClasses(modules) {
           ? value.map((source) =>
               peers.has(source)
                 ? source
-                : modules.SourceModule.Source.fromControl(source)
+                : modules.SourceModule.SharedSource.fromControl(source)
             )
           : value;
       };
@@ -251,12 +251,12 @@ function installNativeClasses(modules) {
     modules.PlayerModule[name] = Helper;
   }
   modules.OfflineModule ??= {};
-  modules.OfflineModule.OfflineEvents = class {
+  modules.OfflineModule.SharedOfflineEvents = class {
     constructor() {
       return modules.OfflineModule.createEvents();
     }
   };
-  modules.OfflineModule.OfflineContentManager = nativeClass(
+  modules.OfflineModule.SharedOfflineContentManager = nativeClass(
     (...args) => modules.OfflineModule.create(...args),
     {
       state: 'getState',
@@ -278,7 +278,7 @@ function installNativeClasses(modules) {
     }
   );
   Object.defineProperty(
-    modules.OfflineModule.OfflineContentManager.prototype,
+    modules.OfflineModule.SharedOfflineContentManager.prototype,
     'events',
     {
       get() {
@@ -287,20 +287,21 @@ function installNativeClasses(modules) {
     }
   );
   modules.FullscreenHandlerModule ??= {};
-  modules.FullscreenHandlerModule.FullscreenHandler = nativeClass(
+  modules.FullscreenHandlerModule.SharedFullscreenHandler = nativeClass(
     (...args) => modules.FullscreenHandlerModule.create(...args),
     { setIsFullscreenActive: 'setIsFullscreenActive', destroy: 'destroy' },
     { synchronous: true }
   );
   modules.CustomMessageHandlerModule ??= {};
-  modules.CustomMessageHandlerModule.CustomMessageHandler = nativeClass(
+  modules.CustomMessageHandlerModule.SharedCustomMessageHandler = nativeClass(
     (...args) => modules.CustomMessageHandlerModule.create(...args),
     { sendMessage: 'sendMessage', destroy: 'destroy' },
     { synchronous: true }
   );
   return {
     controlFor,
-    sourcePeer: (control) => modules.SourceModule.Source.fromControl(control),
+    sourcePeer: (control) =>
+      modules.SourceModule.SharedSource.fromControl(control),
   };
 }
 module.exports = { installNativeClasses, controlFor };

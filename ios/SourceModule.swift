@@ -5,7 +5,7 @@ import ExpoModulesJSI
 public class SourceModule: Module {
     public func definition() -> ModuleDefinition {
         Name("SourceModule")
-        Class("Source", SharedSource.self) {
+        Class("SharedSource", SharedSource.self) {
             Constructor { (config: [String: Any]?, analytics: [String: Any]?, callback: JavaScriptValue?) in
                 try SharedSource(
                     config: config,

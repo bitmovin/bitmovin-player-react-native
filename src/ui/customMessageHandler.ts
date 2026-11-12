@@ -1,5 +1,5 @@
 import type { NativeCallbacks } from '../native/nativeCallbacks';
-import { NativeCustomMessage } from './customMessageHandlerModule';
+import { SharedCustomMessageHandler } from './customMessageHandlerModule';
 import { NativeConfigSerializer } from '../native/nativeConfigSerializer';
 
 export interface CustomMessageHandlerProps {
@@ -24,7 +24,7 @@ export interface CustomMessageHandlerProps {
  */
 export class CustomMessageHandler {
   /** @internal Native peer used by the view and runtime API adapters. */
-  readonly native: NativeCustomMessage;
+  readonly native: SharedCustomMessageHandler;
   // Native forwarding holds the dispatcher weakly; this field owns configured callbacks.
   declare private readonly callbacks?: NativeCallbacks;
 
@@ -36,7 +36,7 @@ export class CustomMessageHandler {
       asynchronousMessage: (message: string, data: string | null) =>
         options.onReceivedAsynchronousMessage(message, data ?? undefined),
     });
-    this.native = new NativeCustomMessage(
+    this.native = new SharedCustomMessageHandler(
       config,
       serializer.dispatcher.callback
     );

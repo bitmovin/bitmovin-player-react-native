@@ -2,7 +2,7 @@ import type { NativeCallbacks } from './native/nativeCallbacks';
 import type { EventSubscription } from 'expo-modules-core';
 import type { PlayerEvents } from './events';
 import { Platform } from 'react-native';
-import PlayerModule, { NativePlayer } from './modules/playerModule';
+import PlayerModule, { SharedPlayer } from './modules/playerModule';
 import { legacyPlayerRegistry } from './nativeInstanceRegistry';
 import type { SourceConfig } from './source';
 import { Source } from './source';
@@ -31,7 +31,7 @@ import type { PlaylistConfig } from './playlist';
  */
 export class Player {
   /** @internal Native peer used by the view and runtime API adapters. */
-  readonly native!: NativePlayer;
+  readonly native!: SharedPlayer;
   private sources = new Set<Source>();
   // Retains offline configuration callbacks while its SDK source is loaded.
   declare private offline?: OfflineContentManager;
@@ -47,7 +47,7 @@ export class Player {
       capture: 'advertisingConfig',
     });
     delete converted.nativeId;
-    this.native = new NativePlayer(
+    this.native = new SharedPlayer(
       converted,
       callbacks.serialize(config.analyticsConfig),
       callbacks.dispatcher.callback

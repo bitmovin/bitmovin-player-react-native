@@ -16,7 +16,7 @@ import com.bitmovin.player.reactnative.converter.toJson
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.sharedobjects.SharedObject
 
-class OfflineContentManagerBridge(
+class SharedOfflineContentManager(
     appContext: AppContext,
     private val identifier: String,
     val events: SharedOfflineEvents,

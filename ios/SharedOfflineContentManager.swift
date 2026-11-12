@@ -2,7 +2,7 @@ import BitmovinPlayer
 import ExpoModulesCore
 import Foundation
 
-public final class SharedOffline: SharedObject {
+public final class SharedOfflineContentManager: SharedObject {
     let events: SharedOfflineEvents
     private let callback: CallbackScope?
 #if os(iOS)

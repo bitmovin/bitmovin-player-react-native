@@ -7,9 +7,9 @@ import expo.modules.kotlin.modules.ModuleDefinition
 class NativeCallbacksModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("NativeCallbacksModule")
-        Class(CallbackResult::class) {
-            Constructor { CallbackResult(appContext) }
-            Function("resolve") { result: CallbackResult, value: JavaScriptValue ->
+        Class(SharedCallbackResult::class) {
+            Constructor { SharedCallbackResult(appContext) }
+            Function("resolve") { result: SharedCallbackResult, value: JavaScriptValue ->
                 result.resolve(
                     runCatching { value.toCallbackValue() }
                         .onFailure { result.resolve(null) }

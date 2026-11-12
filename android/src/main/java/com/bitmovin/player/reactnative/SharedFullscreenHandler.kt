@@ -6,7 +6,7 @@ import expo.modules.kotlin.jni.JavaScriptFunction
 import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.sharedobjects.SharedObject
 
-class SharedFullscreen(appContext: AppContext, callback: JavaScriptFunction<JavaScriptValue>?) :
+class SharedFullscreenHandler(appContext: AppContext, callback: JavaScriptFunction<JavaScriptValue>?) :
     SharedObject(appContext), FullscreenHandler {
     private val callbacks = CallbackScope(appContext, callback)
     override var isFullscreen = false

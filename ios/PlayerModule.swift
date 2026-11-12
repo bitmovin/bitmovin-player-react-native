@@ -10,7 +10,7 @@ public class PlayerModule: Module {
         Constant("isGoogleImaEnabled") {
             NSClassFromString("IMAAdsLoader") != nil
         }
-        Class("Player", SharedPlayer.self) {
+        Class("SharedPlayer", SharedPlayer.self) {
             Constructor { (config: [String: Any]?, analytics: [String: Any]?, callback: JavaScriptValue?) in
                 try SharedPlayer.create(
                     config: config,
@@ -106,7 +106,7 @@ public class PlayerModule: Module {
             AsyncFunction("getThumbnail") { (owner: SharedPlayer, time: Double) -> [String: Any]? in
                 RCTConvert.toJson(thumbnail: (try owner.player).thumbnail(forTime: time))
             }.runOnQueue(.main)
-            AsyncFunction("loadOfflineContent") { (owner: SharedPlayer, offline: SharedOffline, options: [String: Any]?) -> Bool in // swiftlint:disable:this line_length
+            AsyncFunction("loadOfflineContent") { (owner: SharedPlayer, offline: SharedOfflineContentManager, options: [String: Any]?) -> Bool in // swiftlint:disable:this line_length
                 #if os(iOS)
                 guard let config = (try offline.offlineContentManager).createOfflineSourceConfig(
                     restrictedToAssetCache: options?["restrictedToAssetCache"] as? Bool ?? true
@@ -167,9 +167,9 @@ public class PlayerModule: Module {
                 (try owner.player).load(source: source.source)
             }.runOnQueue(.main)
         }
-        Class("BufferApi", SharedBuffer.self) {
-            Constructor { (owner: SharedPlayer) in SharedBuffer(owner: owner) }
-            AsyncFunction("getLevel") { (owner: SharedBuffer, type: String) -> [String: Any]? in
+        Class("SharedBufferApi", SharedBufferApi.self) {
+            Constructor { (owner: SharedPlayer) in SharedBufferApi(owner: owner) }
+            AsyncFunction("getLevel") { (owner: SharedBufferApi, type: String) -> [String: Any]? in
                 guard let bufferType = RCTConvert.bufferType(type) else { return nil }
                 let player = (try owner.player)
                 let level = player.buffer.getLevel(bufferType)
@@ -178,39 +178,39 @@ public class PlayerModule: Module {
                     "video": RCTConvert.toJson(bufferLevel: level, mediaType: "video")
                 ]
             }.runOnQueue(.main)
-            AsyncFunction("setTargetLevel") { (owner: SharedBuffer, type: String, value: Double) in
+            AsyncFunction("setTargetLevel") { (owner: SharedBufferApi, type: String, value: Double) in
                 guard RCTConvert.bufferType(type) == .forwardDuration else { return }
                 (try owner.player).buffer.setTargetLevel(value)
             }.runOnQueue(.main)
         }
-        Class("AnalyticsApi", SharedAnalytics.self) {
-            Constructor { (owner: SharedPlayer) in SharedAnalytics(owner: owner) }
-            AsyncFunction("sendCustomDataEvent") { (owner: SharedAnalytics, json: [String: Any]) in
+        Class("SharedAnalyticsApi", SharedAnalyticsApi.self) {
+            Constructor { (owner: SharedPlayer) in SharedAnalyticsApi(owner: owner) }
+            AsyncFunction("sendCustomDataEvent") { (owner: SharedAnalyticsApi, json: [String: Any]) in
                 guard let analytics = (try owner.player).analytics,
                       let customData = RCTConvert.analyticsCustomData(json) else { return }
                 analytics.sendCustomDataEvent(customData: customData)
             }.runOnQueue(.main)
-            AsyncFunction("getUserId") { (owner: SharedAnalytics) -> String? in
+            AsyncFunction("getUserId") { (owner: SharedAnalyticsApi) -> String? in
                 (try owner.player).analytics?.userId
             }.runOnQueue(.main)
         }
-        Class("MediaControlsApi", SharedMediaControls.self) {
-            Constructor { (owner: SharedPlayer) in SharedMediaControls(owner: owner) }
-            AsyncFunction("isEnabled") { (owner: SharedMediaControls) -> Bool? in
+        Class("SharedMediaControlsApi", SharedMediaControlsApi.self) {
+            Constructor { (owner: SharedPlayer) in SharedMediaControlsApi(owner: owner) }
+            AsyncFunction("isEnabled") { (owner: SharedMediaControlsApi) -> Bool? in
                 (try owner.player).nowPlaying.isEnabled
             }.runOnQueue(.main)
-            AsyncFunction("setEnabled") { (owner: SharedMediaControls, enabled: Bool) in
+            AsyncFunction("setEnabled") { (owner: SharedMediaControlsApi, enabled: Bool) in
                 (try owner.player).nowPlaying.isEnabled = enabled
             }.runOnQueue(.main)
         }
-        Class("PlaylistApi", SharedPlaylist.self) {
-            Constructor { (owner: SharedPlayer) in SharedPlaylist(owner: owner) }
-            AsyncFunction("getSources") { (owner: SharedPlaylist, known: [SharedSource]) -> [SharedSource] in
+        Class("SharedPlaylistApi", SharedPlaylistApi.self) {
+            Constructor { (owner: SharedPlayer) in SharedPlaylistApi(owner: owner) }
+            AsyncFunction("getSources") { (owner: SharedPlaylistApi, known: [SharedSource]) -> [SharedSource] in
                 try owner.player.playlist.sources.map { source in
                     known.first { $0.source === source } ?? SharedSource(source: source, callback: nil)
                 }
             }.runOnQueue(.main)
-            AsyncFunction("add") { (owner: SharedPlaylist, source: SharedSource, index: Int?) in
+            AsyncFunction("add") { (owner: SharedPlaylistApi, source: SharedSource, index: Int?) in
                 try ensurePlaylistSourceType(source.source)
                 guard !source.source.isAttachedToPlayer else {
                     throw Exception(
@@ -223,17 +223,17 @@ public class PlayerModule: Module {
                     (try owner.player).playlist.add(source: source.source)
                 }
             }.runOnQueue(.main)
-            AsyncFunction("remove") { (owner: SharedPlaylist, source: SharedSource) in
+            AsyncFunction("remove") { (owner: SharedPlaylistApi, source: SharedSource) in
                 if let index = try owner.player.playlist.sources.firstIndex(where: {
                     $0 === source.source
                 }) {
                     (try owner.player).playlist.remove(sourceAt: index)
                 }
             }.runOnQueue(.main)
-            AsyncFunction("removeAt") { (owner: SharedPlaylist, index: Int) in
+            AsyncFunction("removeAt") { (owner: SharedPlaylistApi, index: Int) in
                 (try owner.player).playlist.remove(sourceAt: index)
             }.runOnQueue(.main)
-            AsyncFunction("seek") { (owner: SharedPlaylist, source: SharedSource, time: Double) in
+            AsyncFunction("seek") { (owner: SharedPlaylistApi, source: SharedSource, time: Double) in
                 (try owner.player).playlist.seek(source: source.source, time: time)
             }.runOnQueue(.main)
         }

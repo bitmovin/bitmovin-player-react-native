@@ -8,7 +8,7 @@ import type { Source, SourceConfig } from '../source';
 import type { SourceEvents } from '../events';
 export type SourceModuleEvents = SourceEvents;
 /** @internal */
-export type NativeSource = SharedObject<SourceEvents> &
+export type SharedSource = SharedObject<SourceEvents> &
   Omit<NativeMethods<Source>, 'on' | 'off'> & {
     readonly configSnapshot?: SourceConfig;
     readonly source?: Source;
@@ -16,13 +16,13 @@ export type NativeSource = SharedObject<SourceEvents> &
   };
 
 declare class SourceModule extends NativeModule {
-  readonly Source: new (
+  readonly SharedSource: new (
     config: Record<string, any>,
     analytics: Record<string, any> | undefined,
     callback: NativeCallback
-  ) => NativeSource;
+  ) => SharedSource;
 }
 const nativeModule = requireNativeModule<SourceModule>('SourceModule');
 /** @internal */
-export const NativeSource = nativeModule.Source;
+export const SharedSource = nativeModule.SharedSource;
 export default nativeModule;

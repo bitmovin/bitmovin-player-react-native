@@ -2,7 +2,7 @@ import BitmovinPlayer
 import ExpoModulesCore
 import Foundation
 
-public final class SharedCustomMessage: SharedObject {
+public final class SharedCustomMessageHandler: SharedObject {
     private let callback: CallbackScope
     private let synchronousMessage: String
     private let asynchronousMessage: String
@@ -40,5 +40,5 @@ public final class SharedCustomMessage: SharedObject {
 }
 
 #if os(iOS)
-extension SharedCustomMessage: CustomMessageHandlerDelegate {}
+extension SharedCustomMessageHandler: CustomMessageHandlerDelegate {}
 #endif

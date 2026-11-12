@@ -1,10 +1,10 @@
 import { requireNativeModule } from 'expo-modules-core';
 
 // Registers the native class used for one invocation's completion value.
-void requireNativeModule('NativeCallbacksModule').CallbackResult;
+void requireNativeModule('NativeCallbacksModule').SharedCallbackResult;
 
 /** @internal */
-export interface NativeCallbackResult {
+export interface SharedCallbackResult {
   resolve(value: any): void;
 }
 
@@ -12,7 +12,7 @@ export interface NativeCallbackResult {
 export type NativeCallback = (
   operation: string,
   args: any[],
-  completion?: NativeCallbackResult,
+  completion?: SharedCallbackResult,
   mutating?: boolean,
   fallbackArgument?: number
 ) => any;
@@ -75,7 +75,7 @@ export class NativeCallbacks {
   private async complete(
     operation: string,
     args: any[],
-    completion: NativeCallbackResult,
+    completion: SharedCallbackResult,
     fallbackArgument?: number
   ): Promise<void> {
     let value = fallbackArgument == null ? null : args[fallbackArgument];
@@ -108,7 +108,7 @@ export class NativeCallbacks {
   }
 
   private static resolve(
-    completion: NativeCallbackResult | undefined,
+    completion: SharedCallbackResult | undefined,
     value: any
   ): void {
     try {

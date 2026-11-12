@@ -6,18 +6,19 @@ import type { CustomMessageHandler } from './customMessageHandler';
 import type { NativeCallback } from '../native/nativeCallbacks';
 
 /** @internal */
-export type NativeCustomMessage = SharedObject &
+export type SharedCustomMessageHandler = SharedObject &
   Pick<CustomMessageHandler, 'sendMessage' | 'destroy'>;
 
 declare class CustomMessageHandlerModule extends NativeModule {
-  readonly CustomMessageHandler: new (
+  readonly SharedCustomMessageHandler: new (
     config: { synchronousMessage: string; asynchronousMessage: string },
     callback: NativeCallback
-  ) => NativeCustomMessage;
+  ) => SharedCustomMessageHandler;
 }
 const nativeModule = requireNativeModule<CustomMessageHandlerModule>(
   'CustomMessageHandlerModule'
 );
 /** @internal */
-export const NativeCustomMessage = nativeModule.CustomMessageHandler;
+export const SharedCustomMessageHandler =
+  nativeModule.SharedCustomMessageHandler;
 export default nativeModule;

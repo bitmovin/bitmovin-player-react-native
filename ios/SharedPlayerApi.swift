@@ -7,7 +7,7 @@ internal class SharedPlayerApi: SharedObject {
     var player: Player { get throws { try owner.player } }
     init(owner: SharedPlayer) { self.owner = owner; super.init() }
 }
-internal final class SharedBuffer: SharedPlayerApi {}
-internal final class SharedAnalytics: SharedPlayerApi {}
-internal final class SharedMediaControls: SharedPlayerApi {}
-internal final class SharedPlaylist: SharedPlayerApi {}
+internal final class SharedBufferApi: SharedPlayerApi {}
+internal final class SharedAnalyticsApi: SharedPlayerApi {}
+internal final class SharedMediaControlsApi: SharedPlayerApi {}
+internal final class SharedPlaylistApi: SharedPlayerApi {}

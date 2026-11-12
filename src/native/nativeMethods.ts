@@ -2,7 +2,7 @@
  * Selects public API functions for a native peer, excluding the internal peer
  * property itself. SDK method signatures therefore stay declared once.
  * Methods that convert public objects to native peers override their raw types.
- * For example: `type NativeBuffer = SharedObject & NativeMethods<BufferApi>`.
+ * For example: `type SharedBufferApi = SharedObject & NativeMethods<BufferApi>`.
  * @internal
  */
 export type NativeMethods<Api> = Pick<

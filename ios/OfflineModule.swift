@@ -7,70 +7,70 @@ public class OfflineModule: Module {
     // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
         Name("OfflineModule")
-        Class("OfflineEvents", SharedOfflineEvents.self) { Constructor { SharedOfflineEvents() } }
-        Class("OfflineContentManager", SharedOffline.self) {
+        Class("SharedOfflineEvents", SharedOfflineEvents.self) { Constructor { SharedOfflineEvents() } }
+        Class("SharedOfflineContentManager", SharedOfflineContentManager.self) {
             Constructor { (config: [String: Any], events: SharedOfflineEvents, callback: JavaScriptValue?) in
-                try SharedOffline(
+                try SharedOfflineContentManager(
                     config: config,
                     callback: callback.map { try CallbackScope(callback: $0, context: appContext) },
                     events: events
                 )
             }
-            Property("events") { (owner: SharedOffline) in owner.events }
-            AsyncFunction("state") { (owner: SharedOffline) -> String? in
+            Property("events") { (owner: SharedOfflineContentManager) in owner.events }
+            AsyncFunction("state") { (owner: SharedOfflineContentManager) -> String? in
 #if os(iOS)
                 RCTConvert.toJson(offlineState: (try owner.offlineContentManager).offlineState)
 #else
                 nil
 #endif
             }.runOnQueue(.main)
-            AsyncFunction("getOptions") { (owner: SharedOffline) in
+            AsyncFunction("getOptions") { (owner: SharedOfflineContentManager) in
 #if os(iOS)
                 (try owner.bridge).fetchAvailableTracks()
 #endif
             }.runOnQueue(.main)
-            AsyncFunction("usedStorage") { (owner: SharedOffline) -> Int? in
+            AsyncFunction("usedStorage") { (owner: SharedOfflineContentManager) -> Int? in
 #if os(iOS)
                 (try owner.offlineContentManager).usedStorage
 #else
                 nil
 #endif
             }.runOnQueue(.main)
-            AsyncFunction("deleteAll") { (owner: SharedOffline) in
+            AsyncFunction("deleteAll") { (owner: SharedOfflineContentManager) in
 #if os(iOS)
                 (try owner.offlineContentManager).deleteOfflineData()
 #endif
             }.runOnQueue(.main)
-            AsyncFunction("destroy") { (owner: SharedOffline) in owner.destroy() }.runOnQueue(.main)
-            AsyncFunction("download") { (owner: SharedOffline, request: [String: Any]?) in
+            AsyncFunction("destroy") { (owner: SharedOfflineContentManager) in owner.destroy() }.runOnQueue(.main)
+            AsyncFunction("download") { (owner: SharedOfflineContentManager, request: [String: Any]?) in
                 try owner.download(request)
             }.runOnQueue(.main)
-            AsyncFunction("resume") { (owner: SharedOffline) in
+            AsyncFunction("resume") { (owner: SharedOfflineContentManager) in
 #if os(iOS)
                 (try owner.offlineContentManager).resumeDownload()
 #endif
             }.runOnQueue(.main)
-            AsyncFunction("suspend") { (owner: SharedOffline) in
+            AsyncFunction("suspend") { (owner: SharedOfflineContentManager) in
 #if os(iOS)
                 (try owner.offlineContentManager).suspendDownload()
 #endif
             }.runOnQueue(.main)
-            AsyncFunction("cancelDownload") { (owner: SharedOffline) in
+            AsyncFunction("cancelDownload") { (owner: SharedOfflineContentManager) in
 #if os(iOS)
                 (try owner.offlineContentManager).cancelDownload()
 #endif
             }.runOnQueue(.main)
-            AsyncFunction("downloadLicense") { (owner: SharedOffline) in
+            AsyncFunction("downloadLicense") { (owner: SharedOfflineContentManager) in
 #if os(iOS)
                 (try owner.offlineContentManager).syncOfflineDrmLicenseInformation()
 #endif
             }.runOnQueue(.main)
-            AsyncFunction("renewOfflineLicense") { (owner: SharedOffline) in
+            AsyncFunction("renewOfflineLicense") { (owner: SharedOfflineContentManager) in
 #if os(iOS)
                 (try owner.offlineContentManager).renewOfflineLicense()
 #endif
             }.runOnQueue(.main)
-            AsyncFunction("releaseLicense") { (_: SharedOffline) in }.runOnQueue(.main)
+            AsyncFunction("releaseLicense") { (_: SharedOfflineContentManager) in }.runOnQueue(.main)
         }
     }
 }

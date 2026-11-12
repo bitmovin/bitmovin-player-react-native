@@ -7,7 +7,7 @@ import { SourceDrmApi } from './drm/sourceDrmApi';
 import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
-import { NativeSource } from './modules/sourceModule';
+import { SharedSource } from './modules/sourceModule';
 import { NativeConfigSerializer } from './native/nativeConfigSerializer';
 
 /**
@@ -150,25 +150,27 @@ export interface SourceConfig {
  */
 export class Source {
   /** @internal Native peer used by Player, playlist and DRM operations. */
-  readonly native: NativeSource;
+  readonly native: SharedSource;
   readonly config?: SourceConfig;
 
   // Native forwarding holds the dispatcher weakly; this field owns configured callbacks.
   declare private readonly callbacks?: NativeCallbacks;
 
   constructor(config: SourceConfig);
-  constructor(config?: SourceConfig, native?: NativeSource) {
+  constructor(config?: SourceConfig, native?: SharedSource) {
     if (native) {
       this.native = Object.assign(native, { source: this });
       this.config = native.configSnapshot;
     } else {
       if (!config) throw new Error('SourceConfig is required');
       const callbacks = new NativeConfigSerializer();
-      this.native = new InternalSource(
-        this,
-        callbacks.serialize(config),
-        callbacks.serialize(config.analyticsSourceMetadata),
-        callbacks.dispatcher.callback
+      this.native = Object.assign(
+        new SharedSource(
+          callbacks.serialize(config),
+          callbacks.serialize(config.analyticsSourceMetadata),
+          callbacks.dispatcher.callback
+        ),
+        { source: this }
       );
       this.callbacks = callbacks.dispatcher;
       this.config = config;
@@ -177,12 +179,12 @@ export class Source {
   }
 
   /** SDK offline loading creates a source without a public constructor. @internal */
-  static fromNative(native: NativeSource): Source {
+  static fromNative(native: SharedSource): Source {
     if (native.source) return native.source;
     // The implementation's second argument is internal; the public constructor accepts configuration only.
     const FromNative = Source as new (
       config: SourceConfig | undefined,
-      native: NativeSource
+      native: SharedSource
     ) => Source;
     return new FromNative(native.configSnapshot, native);
   }
@@ -260,14 +262,4 @@ export class Source {
    */
   getThumbnail = (time: number): Promise<Thumbnail | null> =>
     this.native.getThumbnail(time);
-}
-
-/** @internal */
-class InternalSource extends NativeSource {
-  constructor(
-    readonly source: Source,
-    ...args: ConstructorParameters<typeof NativeSource>
-  ) {
-    super(...args);
-  }
 }

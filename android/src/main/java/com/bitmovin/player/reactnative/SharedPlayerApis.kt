@@ -7,6 +7,6 @@ open class SharedPlayerApi(val owner: SharedPlayer) : SharedObject(checkNotNull(
     val player get() = owner.player
     val mediaSessionPlaybackManager get() = owner.mediaSessionPlaybackManager
 }
-class SharedBuffer(owner: SharedPlayer) : SharedPlayerApi(owner)
-class SharedAnalytics(owner: SharedPlayer) : SharedPlayerApi(owner)
-class SharedPlaylist(owner: SharedPlayer) : SharedPlayerApi(owner)
+class SharedBufferApi(owner: SharedPlayer) : SharedPlayerApi(owner)
+class SharedAnalyticsApi(owner: SharedPlayer) : SharedPlayerApi(owner)
+class SharedPlaylistApi(owner: SharedPlayer) : SharedPlayerApi(owner)

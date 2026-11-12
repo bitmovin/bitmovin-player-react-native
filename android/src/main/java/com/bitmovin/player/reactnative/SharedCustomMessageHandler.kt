@@ -7,7 +7,7 @@ import expo.modules.kotlin.jni.JavaScriptFunction
 import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.sharedobjects.SharedObject
 
-class SharedCustomMessage(
+class SharedCustomMessageHandler(
     appContext: AppContext,
     config: Map<String, String>,
     callback: JavaScriptFunction<JavaScriptValue>?,

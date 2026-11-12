@@ -10,7 +10,7 @@ import expo.modules.kotlin.modules.ModuleDefinition
 class SourceModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("SourceModule")
-        Class("Source", SharedSource::class) {
+        Class("SharedSource", SharedSource::class) {
             Constructor { config: Map<String, Any>?, analytics: Map<String, Any>?,
                 callback: JavaScriptFunction<JavaScriptValue>?, ->
                 SharedSource.create(appContext, config, analytics, callback)

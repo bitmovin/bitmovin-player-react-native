@@ -36,7 +36,7 @@ class CallbackScope(private val context: AppContext, callback: JavaScriptFunctio
     private val lock = ReentrantLock()
     private val changed = lock.newCondition()
     private var callback: JavaScriptFunction<JavaScriptValue>? = callback
-    private val pending = mutableSetOf<CallbackResult>()
+    private val pending = mutableSetOf<SharedCallbackResult>()
 
     /** Disables future dispatches, wakes blocked SDK threads and cancels pending replies outside the lock. */
     fun close() {
@@ -87,8 +87,8 @@ class CallbackScope(private val context: AppContext, callback: JavaScriptFunctio
         convert: (Any) -> T,
     ): CompletableFuture<T> {
         val future = CompletableFuture<T>()
-        lateinit var result: CallbackResult
-        result = CallbackResult(context) { value ->
+        lateinit var result: SharedCallbackResult
+        result = SharedCallbackResult(context) { value ->
             val response = lock.withLock {
                 pending.remove(result)
                 if (callback == null) null else value
@@ -119,7 +119,7 @@ class CallbackScope(private val context: AppContext, callback: JavaScriptFunctio
     private fun schedule(
         operation: String,
         args: List<Any?>,
-        result: CallbackResult? = null,
+        result: SharedCallbackResult? = null,
         mutating: Boolean = false,
         fallbackArgument: Int? = null,
         completion: ((Any?) -> Unit)? = null,

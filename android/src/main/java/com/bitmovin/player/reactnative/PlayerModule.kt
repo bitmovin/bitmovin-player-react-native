@@ -14,7 +14,7 @@ import com.bitmovin.player.reactnative.converter.toBufferTypeOrThrow
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toReplayMode
 import com.bitmovin.player.reactnative.converter.toTimelineReferencePoint
-import com.bitmovin.player.reactnative.offline.OfflineContentManagerBridge
+import com.bitmovin.player.reactnative.offline.SharedOfflineContentManager
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.jni.JavaScriptFunction
@@ -28,7 +28,7 @@ class PlayerModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("PlayerModule")
         Constant("isGoogleImaEnabled") { IS_GOOGLE_IMA_ENABLED }
-        Class("Player", SharedPlayer::class) {
+        Class("SharedPlayer", SharedPlayer::class) {
             Constructor { config: Map<String, Any>?, analytics: Map<String, Any>?,
                 callback: JavaScriptFunction<JavaScriptValue>?, ->
                 SharedPlayer.create(appContext, config, analytics, callback, mediaSessionPlaybackManager)
@@ -190,7 +190,7 @@ class PlayerModule : Module() {
             AsyncFunction("getThumbnail") { shared: SharedPlayer, time: Double ->
                 shared.player.getThumbnail(time)?.toJson()
             }.runOnQueue(Queues.MAIN)
-            AsyncFunction("loadOfflineContent") { shared: SharedPlayer, offline: OfflineContentManagerBridge,
+            AsyncFunction("loadOfflineContent") { shared: SharedPlayer, offline: SharedOfflineContentManager,
                 options: Map<String, Any>?, ->
                 val config = offline.offlineContentManager.offlineSourceConfig ?: return@AsyncFunction false
                 shared.player.load(config)
@@ -206,9 +206,9 @@ class PlayerModule : Module() {
                 shared.player.load(sharedSource.source)
             }.runOnQueue(Queues.MAIN)
         }
-        Class("BufferApi", SharedBuffer::class) {
-            Constructor { owner: SharedPlayer -> SharedBuffer(owner) }
-            AsyncFunction("getLevel") { shared: SharedBuffer, type: String ->
+        Class("SharedBufferApi", SharedBufferApi::class) {
+            Constructor { owner: SharedPlayer -> SharedBufferApi(owner) }
+            AsyncFunction("getLevel") { shared: SharedBufferApi, type: String ->
                 val buffer = shared.player.buffer
                 val bufferType = type.toBufferTypeOrThrow()
                 mapOf(
@@ -216,44 +216,44 @@ class PlayerModule : Module() {
                     "video" to buffer.getLevel(bufferType, MediaType.Video).toJson(),
                 )
             }.runOnQueue(Queues.MAIN)
-            AsyncFunction("setTargetLevel") { shared: SharedBuffer, type: String, value: Double ->
+            AsyncFunction("setTargetLevel") { shared: SharedBufferApi, type: String, value: Double ->
                 shared.player.buffer.setTargetLevel(type.toBufferTypeOrThrow(), value)
             }.runOnQueue(Queues.MAIN)
         }
-        Class("AnalyticsApi", SharedAnalytics::class) {
-            Constructor { owner: SharedPlayer -> SharedAnalytics(owner) }
-            AsyncFunction("sendCustomDataEvent") { shared: SharedAnalytics, json: Map<String, Any?> ->
+        Class("SharedAnalyticsApi", SharedAnalyticsApi::class) {
+            Constructor { owner: SharedPlayer -> SharedAnalyticsApi(owner) }
+            AsyncFunction("sendCustomDataEvent") { shared: SharedAnalyticsApi, json: Map<String, Any?> ->
                 checkNotNull(shared.player.analytics) { "Analytics is disabled" }
                     .sendCustomDataEvent(json.toAnalyticsCustomData())
             }.runOnQueue(Queues.MAIN)
-            AsyncFunction("getUserId") { shared: SharedAnalytics ->
+            AsyncFunction("getUserId") { shared: SharedAnalyticsApi ->
                 checkNotNull(shared.player.analytics) { "Analytics is disabled" }.userId
             }.runOnQueue(Queues.MAIN)
         }
-        Class("PlaylistApi", SharedPlaylist::class) {
-            Constructor { owner: SharedPlayer -> SharedPlaylist(owner) }
-            AsyncFunction("getSources") { shared: SharedPlaylist, known: List<SharedSource> ->
+        Class("SharedPlaylistApi", SharedPlaylistApi::class) {
+            Constructor { owner: SharedPlayer -> SharedPlaylistApi(owner) }
+            AsyncFunction("getSources") { shared: SharedPlaylistApi, known: List<SharedSource> ->
                 shared.player.playlist.sources.map { source ->
                     known.firstOrNull { it.source === source } ?: SharedSource(appContext, source)
                 }
             }.runOnQueue(Queues.MAIN)
-            AsyncFunction("add") { shared: SharedPlaylist, source: SharedSource, index: Int? ->
+            AsyncFunction("add") { shared: SharedPlaylistApi, source: SharedSource, index: Int? ->
                 if (index == null) {
                     shared.player.playlist.add(source.source)
                 } else {
                     shared.player.playlist.add(source.source, index)
                 }
             }.runOnQueue(Queues.MAIN)
-            AsyncFunction("remove") { shared: SharedPlaylist, source: SharedSource ->
+            AsyncFunction("remove") { shared: SharedPlaylistApi, source: SharedSource ->
                 shared.player.playlist.remove(source.source)
             }.runOnQueue(Queues.MAIN)
-            AsyncFunction("removeAt") { shared: SharedPlaylist, index: Int ->
+            AsyncFunction("removeAt") { shared: SharedPlaylistApi, index: Int ->
                 shared.player.playlist.remove(index)
             }.runOnQueue(Queues.MAIN)
-            AsyncFunction("seek") { shared: SharedPlaylist, source: SharedSource, time: Double ->
+            AsyncFunction("seek") { shared: SharedPlaylistApi, source: SharedSource, time: Double ->
                 shared.player.playlist.seek(source.source, time)
             }.runOnQueue(Queues.MAIN)
-            AsyncFunction("seekTo") { shared: SharedPlaylist, source: SharedSource, target: Map<String, Any> ->
+            AsyncFunction("seekTo") { shared: SharedPlaylistApi, source: SharedSource, target: Map<String, Any> ->
                 val reference = target["startOffsetTimelineReference"]?.let {
                     requireNotNull((it as? String)?.toTimelineReferencePoint()) {
                         "Unknown timeline reference point"

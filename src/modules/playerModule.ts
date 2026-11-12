@@ -6,8 +6,8 @@ import type { NativeCallback } from '../native/nativeCallbacks';
 import type { NativeMethods } from '../native/nativeMethods';
 import type { Player } from '../player';
 import type { PlayerEvents } from '../events';
-import type { NativeSource } from './sourceModule';
-import type { NativeOffline } from '../offline/offlineModule';
+import type { SharedSource } from './sourceModule';
+import type { SharedOfflineContentManager } from '../offline/offlineModule';
 import type { OfflineSourceOptions } from '../offline';
 import type { BufferApi } from '../bufferApi';
 import type { AnalyticsApi } from '../analytics/analyticsApi';
@@ -16,7 +16,7 @@ import type { PlaylistApi, PlaylistOptions, SeekTarget } from '../playlist';
 
 export type PlayerModuleEvents = PlayerEvents;
 /** @internal */
-export type NativePlayer = SharedObject<PlayerEvents> &
+export type SharedPlayer = SharedObject<PlayerEvents> &
   Omit<
     NativeMethods<Player>,
     | 'on'
@@ -29,56 +29,58 @@ export type NativePlayer = SharedObject<PlayerEvents> &
     | 'loadOfflineContent'
     | 'setMaxSelectableBitrate'
   > & {
-    loadSource(source: NativeSource): Promise<void>;
+    loadSource(source: SharedSource): Promise<void>;
     loadPlaylist(
-      sources: NativeSource[],
+      sources: SharedSource[],
       options?: PlaylistOptions
     ): Promise<void>;
-    getSource(known: NativeSource[]): Promise<NativeSource | null | undefined>;
+    getSource(known: SharedSource[]): Promise<SharedSource | null | undefined>;
     loadOfflineContent(
-      manager: NativeOffline,
+      manager: SharedOfflineContentManager,
       options?: OfflineSourceOptions
     ): Promise<boolean>;
     setMaxSelectableBitrate(value: number): Promise<void>;
   };
 /** @internal */
-export type NativeBuffer = SharedObject & NativeMethods<BufferApi>;
+export type SharedBufferApi = SharedObject & NativeMethods<BufferApi>;
 /** @internal */
-export type NativeAnalytics = SharedObject & NativeMethods<AnalyticsApi>;
+export type SharedAnalyticsApi = SharedObject & NativeMethods<AnalyticsApi>;
 /** @internal */
-export type NativeMediaControls = SharedObject &
+export type SharedMediaControlsApi = SharedObject &
   NativeMethods<MediaControlsApi>;
 /** @internal */
-export type NativePlaylist = SharedObject &
+export type SharedPlaylistApi = SharedObject &
   Pick<PlaylistApi, 'removeAt'> & {
-    getSources(known: NativeSource[]): Promise<NativeSource[]>;
-    add(source: NativeSource, index?: number): Promise<void>;
-    remove(source: NativeSource): Promise<void>;
-    seek(source: NativeSource, time: number): Promise<void>;
-    seekTo(source: NativeSource, target: SeekTarget): Promise<void>;
+    getSources(known: SharedSource[]): Promise<SharedSource[]>;
+    add(source: SharedSource, index?: number): Promise<void>;
+    remove(source: SharedSource): Promise<void>;
+    seek(source: SharedSource, time: number): Promise<void>;
+    seekTo(source: SharedSource, target: SeekTarget): Promise<void>;
   };
 
 declare class PlayerModule extends NativeModule {
   readonly isGoogleImaEnabled: boolean;
-  readonly Player: new (
+  readonly SharedPlayer: new (
     config: Record<string, any>,
     analytics: Record<string, any> | undefined,
     callback: NativeCallback
-  ) => NativePlayer;
-  readonly BufferApi: new (player: NativePlayer) => NativeBuffer;
-  readonly AnalyticsApi: new (player: NativePlayer) => NativeAnalytics;
-  readonly MediaControlsApi: new (player: NativePlayer) => NativeMediaControls;
-  readonly PlaylistApi: new (player: NativePlayer) => NativePlaylist;
+  ) => SharedPlayer;
+  readonly SharedBufferApi: new (player: SharedPlayer) => SharedBufferApi;
+  readonly SharedAnalyticsApi: new (player: SharedPlayer) => SharedAnalyticsApi;
+  readonly SharedMediaControlsApi: new (
+    player: SharedPlayer
+  ) => SharedMediaControlsApi;
+  readonly SharedPlaylistApi: new (player: SharedPlayer) => SharedPlaylistApi;
 }
 const nativeModule = requireNativeModule<PlayerModule>('PlayerModule');
 /** @internal */
-export const NativePlayer = nativeModule.Player;
+export const SharedPlayer = nativeModule.SharedPlayer;
 /** @internal */
-export const NativeBuffer = nativeModule.BufferApi;
+export const SharedBufferApi = nativeModule.SharedBufferApi;
 /** @internal */
-export const NativeAnalytics = nativeModule.AnalyticsApi;
+export const SharedAnalyticsApi = nativeModule.SharedAnalyticsApi;
 /** @internal */
-export const NativeMediaControls = nativeModule.MediaControlsApi;
+export const SharedMediaControlsApi = nativeModule.SharedMediaControlsApi;
 /** @internal */
-export const NativePlaylist = nativeModule.PlaylistApi;
+export const SharedPlaylistApi = nativeModule.SharedPlaylistApi;
 export default nativeModule;

@@ -8,12 +8,12 @@ import expo.modules.kotlin.modules.ModuleDefinition
 class FullscreenHandlerModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("FullscreenHandlerModule")
-        Class("FullscreenHandler", SharedFullscreen::class) {
-            Constructor { callback: JavaScriptFunction<JavaScriptValue>? -> SharedFullscreen(appContext, callback) }
-            AsyncFunction("setIsFullscreenActive") { owner: SharedFullscreen, enabled: Boolean ->
+        Class("SharedFullscreenHandler", SharedFullscreenHandler::class) {
+            Constructor { callback: JavaScriptFunction<JavaScriptValue>? -> SharedFullscreenHandler(appContext, callback) }
+            AsyncFunction("setIsFullscreenActive") { owner: SharedFullscreenHandler, enabled: Boolean ->
                 owner.isFullscreen = enabled
             }
-            AsyncFunction("destroy") { owner: SharedFullscreen -> owner.destroy() }
+            AsyncFunction("destroy") { owner: SharedFullscreenHandler -> owner.destroy() }
         }
     }
 }

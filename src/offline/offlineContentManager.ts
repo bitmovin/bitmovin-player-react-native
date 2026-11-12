@@ -8,7 +8,10 @@ import { OfflineEventType } from './offlineContentManagerListener';
 import type { OfflineContentConfig } from './offlineContentConfig';
 import type { OfflineDownloadRequest } from './offlineDownloadRequest';
 import type { OfflineState } from './offlineState';
-import { NativeOffline, NativeOfflineEvents } from './offlineModule';
+import {
+  SharedOfflineContentManager,
+  SharedOfflineEvents,
+} from './offlineModule';
 import { legacyOfflineRegistry } from '../nativeInstanceRegistry';
 import { NativeConfigSerializer } from '../native/nativeConfigSerializer';
 
@@ -49,7 +52,7 @@ const handleBitmovinNativeOfflineEvent = (
  */
 export class OfflineContentManager {
   /** @internal Native peer used by the view and runtime API adapters. */
-  readonly native!: NativeOffline;
+  readonly native!: SharedOfflineContentManager;
   private readonly listeners = new Set<OfflineContentManagerListener>();
   private subscription?: EventSubscription;
 
@@ -64,8 +67,8 @@ export class OfflineContentManager {
       identifier: config.identifier,
       sourceConfig: config.sourceConfig,
     });
-    const events = new NativeOfflineEvents();
-    this.native = new NativeOffline(
+    const events = new SharedOfflineEvents();
+    this.native = new SharedOfflineContentManager(
       converted,
       events,
       serializer.dispatcher.callback
@@ -172,7 +175,7 @@ export class OfflineContentManager {
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    */
   renewOfflineLicense = (): Promise<void> => this.native.renewOfflineLicense();
-  private observeEvents(events: NativeOfflineEvents) {
+  private observeEvents(events: SharedOfflineEvents) {
     if (!this.subscription)
       this.subscription = events.addListener(
         'onBitmovinOfflineEvent',

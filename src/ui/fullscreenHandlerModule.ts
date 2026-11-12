@@ -6,19 +6,19 @@ import type { FullscreenHandlerBridge } from './fullscreenHandlerBridge';
 import type { NativeCallback } from '../native/nativeCallbacks';
 
 /** @internal */
-export type NativeFullscreen = SharedObject &
+export type SharedFullscreenHandler = SharedObject &
   Pick<FullscreenHandlerBridge, 'destroy'> & {
     setIsFullscreenActive(active: boolean): Promise<void>;
   };
 
 declare class FullscreenHandlerModule extends NativeModule {
-  readonly FullscreenHandler: new (
+  readonly SharedFullscreenHandler: new (
     callback: NativeCallback
-  ) => NativeFullscreen;
+  ) => SharedFullscreenHandler;
 }
 const nativeModule = requireNativeModule<FullscreenHandlerModule>(
   'FullscreenHandlerModule'
 );
 /** @internal */
-export const NativeFullscreen = nativeModule.FullscreenHandler;
+export const SharedFullscreenHandler = nativeModule.SharedFullscreenHandler;
 export default nativeModule;

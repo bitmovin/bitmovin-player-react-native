@@ -1,10 +1,10 @@
 import type { FullscreenHandler } from './fullscreenHandler';
-import { NativeFullscreen } from './fullscreenHandlerModule';
+import { SharedFullscreenHandler } from './fullscreenHandlerModule';
 import { NativeCallbacks } from '../native/nativeCallbacks';
 /** Adapts a user-supplied fullscreen interface to the native handler object. @internal */
 export class FullscreenHandlerBridge {
   /** @internal Native peer used by the view and runtime API adapters. */
-  readonly native: NativeFullscreen;
+  readonly native: SharedFullscreenHandler;
   private handler?: FullscreenHandler;
 
   // Native forwarding holds the dispatcher weakly; this field owns configured callbacks.
@@ -16,7 +16,7 @@ export class FullscreenHandlerBridge {
       if (operation === 'exitFullscreen') this.handler?.exitFullscreen();
       return this.handler?.isFullscreenActive ?? false;
     });
-    this.native = new NativeFullscreen(callbacks.callback);
+    this.native = new SharedFullscreenHandler(callbacks.callback);
     this.callbacks = callbacks;
   }
   destroy = (): Promise<void> => this.native.destroy();
