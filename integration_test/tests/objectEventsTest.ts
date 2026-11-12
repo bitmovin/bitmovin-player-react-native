@@ -185,12 +185,16 @@ export default (spec: TestScope) => {
             let wrongSourceEvents = 0;
             let sourceLoads = 0;
             let playerLoads = 0;
+            let removedPlayerEvents = 0;
+            const removedPlayerListener = () => removedPlayerEvents++;
             const subscriptions = await Promise.all([
               viewPlayer.on('sourceLoaded', () => wrongPlayerEvents++),
               idleSource.on('sourceLoaded', () => wrongSourceEvents++),
               source.on('sourceLoaded', () => sourceLoads++),
               player.on('sourceLoaded', () => playerLoads++),
+              player.on('sourceLoaded', removedPlayerListener),
             ]);
+            player.off('sourceLoaded', removedPlayerListener);
             try {
               // Readiness is a barrier for checking load delivery and isolation.
               await receiving(
@@ -198,6 +202,10 @@ export default (spec: TestScope) => {
                 () => player.loadSource(source)
               );
               expect(sourceLoads, 'Owning source receives its load').toBe(1);
+              expect(
+                removedPlayerEvents,
+                'Removed Player listener stays silent'
+              ).toBe(0);
               expect(
                 playerLoads,
                 'Owning player forwards its source load'
@@ -230,8 +238,9 @@ export default (spec: TestScope) => {
           let removedCalls = 0;
           const subscription = await source.on('sourceLoaded', () => loads++);
           // A removed subscription must stay silent during both attachments.
-          const removed = await source.on('sourceLoaded', () => removedCalls++);
-          removed.remove();
+          const removedListener = () => removedCalls++;
+          await source.on('sourceLoaded', removedListener);
+          source.off('sourceLoaded', removedListener);
           try {
             await callPlayerAndExpectEvent(async (player) => {
               await player.loadSource(source);

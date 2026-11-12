@@ -1,4 +1,4 @@
-import { NativeBufferApi } from './modules/playerModule';
+import { NativeBuffer } from './modules/playerModule';
 import type { Player } from './player';
 
 /**
@@ -70,14 +70,14 @@ export interface BufferLevels {
  * Accessible through {@link Player.buffer}.
  */
 export class BufferApi {
-  private readonly native: NativeBufferApi;
+  private readonly native: NativeBuffer;
   // Retain the configured Player while this runtime helper is reachable.
   declare private readonly player: Player;
 
   /** @internal */
   constructor(player: Player) {
     this.player = player;
-    this.native = new NativeBufferApi(player.native);
+    this.native = new NativeBuffer(player.native);
   }
 
   /**

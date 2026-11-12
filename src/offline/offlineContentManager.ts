@@ -8,10 +8,7 @@ import { OfflineEventType } from './offlineContentManagerListener';
 import type { OfflineContentConfig } from './offlineContentConfig';
 import type { OfflineDownloadRequest } from './offlineDownloadRequest';
 import type { OfflineState } from './offlineState';
-import {
-  NativeOfflineContentManager,
-  NativeOfflineEvents,
-} from './offlineModule';
+import { NativeOffline, NativeOfflineEvents } from './offlineModule';
 import { legacyOfflineRegistry } from '../nativeInstanceRegistry';
 import { NativeConfigSerializer } from '../native/nativeConfigSerializer';
 
@@ -52,7 +49,7 @@ const handleBitmovinNativeOfflineEvent = (
  */
 export class OfflineContentManager {
   /** @internal Native peer used by the view and runtime API adapters. */
-  readonly native!: NativeOfflineContentManager;
+  readonly native!: NativeOffline;
   private readonly listeners = new Set<OfflineContentManagerListener>();
   private subscription?: EventSubscription;
 
@@ -68,7 +65,7 @@ export class OfflineContentManager {
       sourceConfig: config.sourceConfig,
     });
     const events = new NativeOfflineEvents();
-    this.native = new NativeOfflineContentManager(
+    this.native = new NativeOffline(
       converted,
       events,
       serializer.dispatcher.callback

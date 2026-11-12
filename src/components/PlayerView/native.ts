@@ -5,8 +5,8 @@ import type { ScalingMode } from '../../styleConfig';
 import type { PlayerViewConfig } from './playerViewConfig';
 import type { RefObject } from 'react';
 import type { NativePlayer } from '../../modules/playerModule';
-import type { NativeFullscreenHandler } from '../../ui/fullscreenHandlerModule';
-import type { NativeCustomMessageHandler } from '../../ui/customMessageHandlerModule';
+import type { NativeFullscreen } from '../../ui/fullscreenHandlerModule';
+import type { NativeCustomMessage } from '../../ui/customMessageHandlerModule';
 import type { PictureInPictureAction } from './pictureInPictureAction';
 
 export interface NativePlayerViewConfig {
@@ -37,8 +37,8 @@ export interface NativePlayerViewProps extends NativePlayerViewEvents {
 export interface NativePlayerViewRef {
   attachBindings(
     player: NativePlayer,
-    fullscreenHandler: NativeFullscreenHandler | undefined,
-    customMessageHandler: NativeCustomMessageHandler | undefined,
+    fullscreenHandler: NativeFullscreen | undefined,
+    customMessageHandler: NativeCustomMessage | undefined,
     config: NativePlayerViewConfig
   ): Promise<void>;
   updatePictureInPictureActions(

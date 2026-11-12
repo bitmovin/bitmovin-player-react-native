@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import { Source, TimelineReferencePoint } from './source';
 import type { Player } from './player';
-import { NativePlaylistApi } from './modules/playerModule';
+import { NativePlaylist } from './modules/playerModule';
 
 /**
  * Where playback starts when replaying a finished playlist.
@@ -54,10 +54,10 @@ export interface SeekTarget {
  * @experimental
  */
 export class PlaylistApi {
-  private readonly native: NativePlaylistApi;
+  private readonly native: NativePlaylist;
   /** @internal */
   constructor(private readonly player: Player) {
-    this.native = new NativePlaylistApi(player.native);
+    this.native = new NativePlaylist(player.native);
   }
 
   /**

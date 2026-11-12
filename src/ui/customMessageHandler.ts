@@ -1,17 +1,17 @@
 import type { NativeCallbacks } from '../native/nativeCallbacks';
-import { NativeCustomMessageHandler } from './customMessageHandlerModule';
+import { NativeCustomMessage } from './customMessageHandlerModule';
 import { NativeConfigSerializer } from '../native/nativeConfigSerializer';
 
 export interface CustomMessageHandlerProps {
   /**
-   * A function that will be called when the Player UI sends a synchronous message to the native.
+   * A function that will be called when the Player UI sends a synchronous message through the native bridge.
    */
   onReceivedSynchronousMessage: (
     message: string,
     data: string | undefined
   ) => string | undefined;
   /**
-   * A function that will be called when the Player UI sends an asynchronous message to the native.
+   * A function that will be called when the Player UI sends an asynchronous message through the native bridge.
    */
   onReceivedAsynchronousMessage: (
     message: string,
@@ -24,7 +24,7 @@ export interface CustomMessageHandlerProps {
  */
 export class CustomMessageHandler {
   /** @internal Native peer used by the view and runtime API adapters. */
-  readonly native: NativeCustomMessageHandler;
+  readonly native: NativeCustomMessage;
   // Native forwarding holds the dispatcher weakly; this field owns configured callbacks.
   declare private readonly callbacks?: NativeCallbacks;
 
@@ -36,7 +36,7 @@ export class CustomMessageHandler {
       asynchronousMessage: (message: string, data: string | null) =>
         options.onReceivedAsynchronousMessage(message, data ?? undefined),
     });
-    this.native = new NativeCustomMessageHandler(
+    this.native = new NativeCustomMessage(
       config,
       serializer.dispatcher.callback
     );

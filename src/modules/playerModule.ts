@@ -7,7 +7,7 @@ import type { NativeMethods } from '../native/nativeMethods';
 import type { Player } from '../player';
 import type { PlayerEvents } from '../events';
 import type { NativeSource } from './sourceModule';
-import type { NativeOfflineContentManager } from '../offline/offlineModule';
+import type { NativeOffline } from '../offline/offlineModule';
 import type { OfflineSourceOptions } from '../offline';
 import type { BufferApi } from '../bufferApi';
 import type { AnalyticsApi } from '../analytics/analyticsApi';
@@ -36,20 +36,20 @@ export type NativePlayer = SharedObject<PlayerEvents> &
     ): Promise<void>;
     getSource(known: NativeSource[]): Promise<NativeSource | null | undefined>;
     loadOfflineContent(
-      manager: NativeOfflineContentManager,
+      manager: NativeOffline,
       options?: OfflineSourceOptions
     ): Promise<boolean>;
     setMaxSelectableBitrate(value: number): Promise<void>;
   };
 /** @internal */
-export type NativeBufferApi = SharedObject & NativeMethods<BufferApi>;
+export type NativeBuffer = SharedObject & NativeMethods<BufferApi>;
 /** @internal */
-export type NativeAnalyticsApi = SharedObject & NativeMethods<AnalyticsApi>;
+export type NativeAnalytics = SharedObject & NativeMethods<AnalyticsApi>;
 /** @internal */
-export type NativeMediaControlsApi = SharedObject &
+export type NativeMediaControls = SharedObject &
   NativeMethods<MediaControlsApi>;
 /** @internal */
-export type NativePlaylistApi = SharedObject &
+export type NativePlaylist = SharedObject &
   Pick<PlaylistApi, 'removeAt'> & {
     getSources(known: NativeSource[]): Promise<NativeSource[]>;
     add(source: NativeSource, index?: number): Promise<void>;
@@ -65,22 +65,20 @@ declare class PlayerModule extends NativeModule {
     analytics: Record<string, any> | undefined,
     callback: NativeCallback
   ) => NativePlayer;
-  readonly BufferApi: new (player: NativePlayer) => NativeBufferApi;
-  readonly AnalyticsApi: new (player: NativePlayer) => NativeAnalyticsApi;
-  readonly MediaControlsApi: new (
-    player: NativePlayer
-  ) => NativeMediaControlsApi;
-  readonly PlaylistApi: new (player: NativePlayer) => NativePlaylistApi;
+  readonly BufferApi: new (player: NativePlayer) => NativeBuffer;
+  readonly AnalyticsApi: new (player: NativePlayer) => NativeAnalytics;
+  readonly MediaControlsApi: new (player: NativePlayer) => NativeMediaControls;
+  readonly PlaylistApi: new (player: NativePlayer) => NativePlaylist;
 }
 const nativeModule = requireNativeModule<PlayerModule>('PlayerModule');
 /** @internal */
 export const NativePlayer = nativeModule.Player;
 /** @internal */
-export const NativeBufferApi = nativeModule.BufferApi;
+export const NativeBuffer = nativeModule.BufferApi;
 /** @internal */
-export const NativeAnalyticsApi = nativeModule.AnalyticsApi;
+export const NativeAnalytics = nativeModule.AnalyticsApi;
 /** @internal */
-export const NativeMediaControlsApi = nativeModule.MediaControlsApi;
+export const NativeMediaControls = nativeModule.MediaControlsApi;
 /** @internal */
-export const NativePlaylistApi = nativeModule.PlaylistApi;
+export const NativePlaylist = nativeModule.PlaylistApi;
 export default nativeModule;
