@@ -21,12 +21,6 @@ internal fun <T> JavaScriptWeakObject.callBlocking(
 ): T? {
     fun call(): T? {
         val value = invokeOnJs(appContext, arguments) ?: return null
-        if (value.isObject() && value.getObject().getProperty("then").isFunction()) {
-            // A synchronous SDK callback cannot await a Promise. Consume any rejection without waiting.
-            appContext.runtime.eval("(function() { Promise.resolve(this).catch(() => {}); })")
-                .getFunction<Unit>()(thisValue = value.getObject())
-            return null
-        }
         return convert(value)
     }
     return runCatching {
