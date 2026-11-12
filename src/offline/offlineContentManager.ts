@@ -58,10 +58,7 @@ export class OfflineContentManager {
     const alias = legacyOfflineRegistry.get(config.nativeId);
     if (alias) return alias;
     const events = new SharedOfflineEvents();
-    this.native = new SharedOfflineContentManager(
-      { identifier: config.identifier, sourceConfig: config.sourceConfig },
-      events
-    );
+    this.native = new SharedOfflineContentManager(config, events);
     this.nativeId = legacyOfflineRegistry.register(config.nativeId, this);
     this.observeEvents(events);
   }
