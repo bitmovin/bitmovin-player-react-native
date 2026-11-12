@@ -1,4 +1,5 @@
 import { TestScope } from 'cavy';
+import { Platform } from 'react-native';
 import {
   callPlayer,
   callPlayerAndExpectEvent,
@@ -19,7 +20,10 @@ export default (spec: TestScope) => {
       await startPlayerTest({}, async () => {
         await loadCaptionSource(Sources.sintel);
         await callPlayer(async (player) => {
-          const subtitleTrack = (await player.getAvailableSubtitles())[1];
+          const subtitleTrack = (await player.getAvailableSubtitles()).find(
+            (track) => track.language === 'en'
+          )!;
+          expect(subtitleTrack, 'Sintel English subtitle track').toBeDefined();
           await player.setSubtitleTrack(subtitleTrack.identifier);
           await player.play();
         });
@@ -54,7 +58,10 @@ export default (spec: TestScope) => {
             'Should have at least 2 subtitle tracks'
           ).toBeGreaterThan(1);
 
-          const subtitleTrack = subtitleTracks[1];
+          const subtitleTrack = subtitleTracks.find(
+            (track) => track.language === 'en'
+          )!;
+          expect(subtitleTrack, 'Sintel English subtitle track').toBeDefined();
           expect(
             subtitleTrack.identifier,
             'Subtitle track should have identifier'
@@ -95,7 +102,10 @@ export default (spec: TestScope) => {
       await startPlayerTest({}, async () => {
         await loadCaptionSource(Sources.sintel);
         await callPlayer(async (player) => {
-          const subtitleTrack = (await player.getAvailableSubtitles())[1];
+          const subtitleTrack = (await player.getAvailableSubtitles()).find(
+            (track) => track.language === 'en'
+          )!;
+          expect(subtitleTrack, 'Sintel English subtitle track').toBeDefined();
           await player.setSubtitleTrack(subtitleTrack.identifier);
           await player.play();
         });
@@ -160,7 +170,10 @@ export default (spec: TestScope) => {
       await startPlayerTest({}, async () => {
         await loadCaptionSource(Sources.sintel);
         await callPlayer(async (player) => {
-          const subtitleTrack = (await player.getAvailableSubtitles())[1];
+          const subtitleTrack = (await player.getAvailableSubtitles()).find(
+            (track) => track.language === 'en'
+          )!;
+          expect(subtitleTrack, 'Sintel English subtitle track').toBeDefined();
           await player.setSubtitleTrack(subtitleTrack.identifier);
           await player.play();
         });
@@ -257,10 +270,17 @@ export default (spec: TestScope) => {
           const disabledSubtitle = await callPlayer((player) =>
             player.getSubtitleTrack()
           );
-          expect(
-            disabledSubtitle,
-            'Subtitles should be disabled after passing undefined'
-          ).toBeNull();
+          if (Platform.OS === 'android') {
+            expect(
+              disabledSubtitle?.identifier,
+              'Android should select the SDK Off entry after passing undefined'
+            ).toBe('bitmovin-off');
+          } else {
+            expect(
+              disabledSubtitle,
+              'Subtitles should be disabled after passing undefined'
+            ).toBeNull();
+          }
         });
       }
     );

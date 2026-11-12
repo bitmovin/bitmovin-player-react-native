@@ -368,12 +368,16 @@ export class Player {
 
   /**
    * @returns The currently selected {@link SubtitleTrack} or `null`.
+   * On Android, disabled subtitles during an active session return the SDK's
+   * Off track with identifier `bitmovin-off`.
    */
   getSubtitleTrack = (): Promise<SubtitleTrack | null> =>
     this.native.getSubtitleTrack();
 
   /**
    * @returns An array containing SubtitleTrack objects for all available subtitle tracks.
+   * Android includes the SDK's Off option. Select tracks by identifier or language
+   * rather than relying on their array position.
    */
   getAvailableSubtitles = (): Promise<SubtitleTrack[]> =>
     this.native.getAvailableSubtitles();
