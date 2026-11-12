@@ -5,12 +5,13 @@ import ExpoModulesJSI
 public class SourceModule: Module {
     public func definition() -> ModuleDefinition {
         Name("SourceModule")
-        Class("SharedSource", SharedSource.self) {
-            Constructor { (config: [String: Any]?, analytics: [String: Any]?, callback: JavaScriptValue?) in
-                try SharedSource(
-                    config: config,
+        Class(SharedSource.self) {
+            Constructor { (config: JavaScriptValue?, analytics: [String: Any]?) in
+                let callback = try CallbackScope(config: config, context: appContext)
+                return try SharedSource(
+                    config: callback.takeConfiguration(),
                     analytics: analytics,
-                    callback: callback.map { try CallbackScope(callback: $0, context: appContext) }
+                    callback: callback
                 )
             }
             Property("configSnapshot") { (owner: SharedSource) in owner.configSnapshot }

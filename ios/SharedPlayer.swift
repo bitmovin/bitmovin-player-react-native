@@ -52,7 +52,7 @@ public final class SharedPlayer: SharedObject {
         analyticsConfig: [String: Any]?,
         callback: CallbackScope?
     ) throws -> SharedPlayer {
-        let playerConfig = RCTConvert.playerConfig(config, callback: callback)
+        let playerConfig = RCTConvert.playerConfig(config)
         let analytics = analyticsConfig.flatMap { RCTConvert.analyticsConfig($0) }
         guard analyticsConfig == nil || analytics != nil else {
             callback?.close()

@@ -5,12 +5,10 @@ import ExpoModulesJSI
 public class CustomMessageHandlerModule: Module {
     public func definition() -> ModuleDefinition {
         Name("CustomMessageHandlerModule")
-        Class("SharedCustomMessageHandler", SharedCustomMessageHandler.self) {
-            Constructor { (config: [String: String], callback: JavaScriptValue) in
-                try SharedCustomMessageHandler(
-                    config: config,
-                    callback: CallbackScope(callback: callback, context: appContext)
-                )
+        Class(SharedCustomMessageHandler.self) {
+            Constructor { (config: JavaScriptValue) in
+                let callback = try CallbackScope(config: config, context: appContext)
+                return try SharedCustomMessageHandler(config: callback.takeConfiguration() ?? [:], callback: callback)
             }
 
             AsyncFunction("sendMessage") { (owner: SharedCustomMessageHandler, message: String, data: String?) in

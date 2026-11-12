@@ -23,7 +23,7 @@ public final class SharedSource: SharedObject {
     }
 
     convenience init(config: [String: Any]?, analytics: [String: Any]?, callback: CallbackScope?) throws {
-        guard let sourceConfig = RCTConvert.sourceConfig(config, callback: callback) else {
+        guard let sourceConfig = RCTConvert.sourceConfig(config) else {
             callback?.close()
             throw Exception(name: "InvalidArgument", description: "Invalid source configuration")
         }

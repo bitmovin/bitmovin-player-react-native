@@ -7,12 +7,13 @@ public class OfflineModule: Module {
     // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
         Name("OfflineModule")
-        Class("SharedOfflineEvents", SharedOfflineEvents.self) { Constructor { SharedOfflineEvents() } }
-        Class("SharedOfflineContentManager", SharedOfflineContentManager.self) {
-            Constructor { (config: [String: Any], events: SharedOfflineEvents, callback: JavaScriptValue?) in
-                try SharedOfflineContentManager(
-                    config: config,
-                    callback: callback.map { try CallbackScope(callback: $0, context: appContext) },
+        Class(SharedOfflineEvents.self) { Constructor { SharedOfflineEvents() } }
+        Class(SharedOfflineContentManager.self) {
+            Constructor { (config: JavaScriptValue, events: SharedOfflineEvents) in
+                let callback = try CallbackScope(config: config, context: appContext)
+                return try SharedOfflineContentManager(
+                    config: callback.takeConfiguration() ?? [:],
+                    callback: callback,
                     events: events
                 )
             }

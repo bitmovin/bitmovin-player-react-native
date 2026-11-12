@@ -23,7 +23,7 @@ public final class SharedOfflineContentManager: SharedObject {
         self.events = events
 #if os(iOS)
         guard let identifier = config["identifier"] as? String,
-              let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"], callback: callback) else {
+              let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"]) else {
             callback?.close()
             throw Exception(name: "InvalidArgument", description: "Invalid offline identifier or source configuration")
         }

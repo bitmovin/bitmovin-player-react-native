@@ -5,9 +5,10 @@ import ExpoModulesJSI
 public class FullscreenHandlerModule: Module {
     public func definition() -> ModuleDefinition {
         Name("FullscreenHandlerModule")
-        Class("SharedFullscreenHandler", SharedFullscreenHandler.self) {
-            Constructor { (callback: JavaScriptValue) in
-            try SharedFullscreenHandler(callback: CallbackScope(callback: callback, context: appContext))
+        Class(SharedFullscreenHandler.self) {
+            Constructor { (config: JavaScriptValue) in
+                let callback = try CallbackScope(config: config, context: appContext)
+                return try SharedFullscreenHandler(config: callback.takeConfiguration() ?? [:], callback: callback)
             }
 
             AsyncFunction("setIsFullscreenActive") { (owner: SharedFullscreenHandler, value: Bool) in

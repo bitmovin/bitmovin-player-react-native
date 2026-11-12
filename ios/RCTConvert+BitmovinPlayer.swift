@@ -9,7 +9,7 @@ import Foundation
 
 extension RCTConvert {
     // swiftlint:disable:next cyclomatic_complexity
-    static func playerConfig(_ json: Any?, callback: CallbackScope?) -> PlayerConfig {
+    static func playerConfig(_ json: Any?) -> PlayerConfig {
         let playerConfig = PlayerConfig()
         guard let json = json as? [String: Any?] else {
             return playerConfig
@@ -26,7 +26,7 @@ extension RCTConvert {
         if let tweaksConfig = Self.tweaksConfig(json["tweaksConfig"]) {
             playerConfig.tweaksConfig = tweaksConfig
         }
-        if let advertisingConfig = Self.advertisingConfig(json["advertisingConfig"], callback: callback) {
+        if let advertisingConfig = Self.advertisingConfig(json["advertisingConfig"]) {
             playerConfig.advertisingConfig = advertisingConfig
         }
         if let adaptationConfig = Self.adaptationConfig(json["adaptationConfig"]) {
@@ -38,14 +38,14 @@ extension RCTConvert {
         if let liveConfig = Self.liveConfig(json["liveConfig"]) {
             playerConfig.liveConfig = liveConfig
         }
-        if let networkConfig = Self.networkConfig(json["networkConfig"], callback: callback) {
+        if let networkConfig = Self.networkConfig(json["networkConfig"]) {
             playerConfig.networkConfig = networkConfig
         }
         if let nowPlayingConfig = Self.mediaControlConfig(json["mediaControlConfig"]) {
             playerConfig.nowPlayingConfig = nowPlayingConfig
         }
 #if os(iOS)
-        if let remoteControlConfig = Self.remoteControlConfig(json["remoteControlConfig"], callback: callback) {
+        if let remoteControlConfig = Self.remoteControlConfig(json["remoteControlConfig"]) {
             playerConfig.remoteControlConfig = remoteControlConfig
         }
 #endif
@@ -229,7 +229,7 @@ extension RCTConvert {
         )
     }
 
-    static func advertisingConfig(_ json: Any?, callback: CallbackScope?) -> AdvertisingConfig? {
+    static func advertisingConfig(_ json: Any?) -> AdvertisingConfig? {
         guard let json = json as? [String: Any?] else { return nil }
         let config: AdvertisingConfig
         if let schedule = json["schedule"] as? [[String: Any?]] {
@@ -237,18 +237,16 @@ extension RCTConvert {
         } else {
             config = AdvertisingConfig()
         }
-        if let token = json["shouldLoadAdItem"] as? String {
+        if let callback = json["shouldLoadAdItem"] as? JavaScriptCallback {
             config.shouldLoadAdItem = { adItem in
-                callback?.call(
-                    token,
+                callback.call(
                     arguments: [Self.toJson(adItem: adItem) as Any]
                 ) as? Bool ?? true
             }
         }
-        if let ima = json["ima"] as? [String: Any], let token = ima["beforeInitialization"] as? String {
+        if let ima = json["ima"] as? [String: Any], let callback = ima["beforeInitialization"] as? JavaScriptCallback {
             config.beforeInitialization = { settings in
-                guard let value = callback?.call(
-                    token,
+                guard let value = callback.call(
                     arguments: [Self.imaSettingsDictionary(settings)],
                     mutating: true
                 ) as? [String: Any] else { return }
@@ -1064,7 +1062,7 @@ extension RCTConvert {
         ]
     }
 
-    static func remoteControlConfig(_ json: Any?, callback: CallbackScope?) -> RemoteControlConfig? {
+    static func remoteControlConfig(_ json: Any?) -> RemoteControlConfig? {
         guard let json = json as? [String: Any?] else {
             return nil
         }
@@ -1088,10 +1086,10 @@ extension RCTConvert {
             remoteControlConfig.sendDrmLicenseRequestsWithCredentials = sendDrmLicenseRequestsWithCredentials
         }
 #if os(iOS)
-        if let token = json["prepareSource"] as? String {
+        if let callback = json["prepareSource"] as? JavaScriptCallback {
             remoteControlConfig.prepareSource = { type, sourceConfig in
-                guard let prepared = callback?.call(
-                    token, arguments: [type.rawValue, Self.toJson(sourceConfig: sourceConfig)]
+                guard let prepared = callback.call(
+                    arguments: [type.rawValue, Self.toJson(sourceConfig: sourceConfig)]
                 ) as? [String: Any] else { return nil }
                 return Self.sourceConfig(prepared, drmConfig: prepared["drmConfig"].flatMap(Self.drmConfig)?.widevine)
             }

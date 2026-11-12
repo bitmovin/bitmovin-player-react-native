@@ -10,12 +10,13 @@ public class PlayerModule: Module {
         Constant("isGoogleImaEnabled") {
             NSClassFromString("IMAAdsLoader") != nil
         }
-        Class("SharedPlayer", SharedPlayer.self) {
-            Constructor { (config: [String: Any]?, analytics: [String: Any]?, callback: JavaScriptValue?) in
-                try SharedPlayer.create(
-                    config: config,
+        Class(SharedPlayer.self) {
+            Constructor { (config: JavaScriptValue?, analytics: [String: Any]?) in
+                let callback = try CallbackScope(config: config, context: appContext, captureAdvertising: true)
+                return try SharedPlayer.create(
+                    config: callback.takeConfiguration(),
                     analyticsConfig: analytics,
-                    callback: callback.map { try CallbackScope(callback: $0, context: appContext) }
+                    callback: callback
                 )
             }
             AsyncFunction("play") { (owner: SharedPlayer) in (try owner.player).play() }.runOnQueue(.main)
@@ -167,7 +168,7 @@ public class PlayerModule: Module {
                 (try owner.player).load(source: source.source)
             }.runOnQueue(.main)
         }
-        Class("SharedBufferApi", SharedBufferApi.self) {
+        Class(SharedBufferApi.self) {
             Constructor { (owner: SharedPlayer) in SharedBufferApi(owner: owner) }
             AsyncFunction("getLevel") { (owner: SharedBufferApi, type: String) -> [String: Any]? in
                 guard let bufferType = RCTConvert.bufferType(type) else { return nil }
@@ -183,7 +184,7 @@ public class PlayerModule: Module {
                 (try owner.player).buffer.setTargetLevel(value)
             }.runOnQueue(.main)
         }
-        Class("SharedAnalyticsApi", SharedAnalyticsApi.self) {
+        Class(SharedAnalyticsApi.self) {
             Constructor { (owner: SharedPlayer) in SharedAnalyticsApi(owner: owner) }
             AsyncFunction("sendCustomDataEvent") { (owner: SharedAnalyticsApi, json: [String: Any]) in
                 guard let analytics = (try owner.player).analytics,
@@ -194,7 +195,7 @@ public class PlayerModule: Module {
                 (try owner.player).analytics?.userId
             }.runOnQueue(.main)
         }
-        Class("SharedMediaControlsApi", SharedMediaControlsApi.self) {
+        Class(SharedMediaControlsApi.self) {
             Constructor { (owner: SharedPlayer) in SharedMediaControlsApi(owner: owner) }
             AsyncFunction("isEnabled") { (owner: SharedMediaControlsApi) -> Bool? in
                 (try owner.player).nowPlaying.isEnabled
@@ -203,7 +204,7 @@ public class PlayerModule: Module {
                 (try owner.player).nowPlaying.isEnabled = enabled
             }.runOnQueue(.main)
         }
-        Class("SharedPlaylistApi", SharedPlaylistApi.self) {
+        Class(SharedPlaylistApi.self) {
             Constructor { (owner: SharedPlayer) in SharedPlaylistApi(owner: owner) }
             AsyncFunction("getSources") { (owner: SharedPlaylistApi, known: [SharedSource]) -> [SharedSource] in
                 try owner.player.playlist.sources.map { source in
