@@ -113,7 +113,9 @@ export default class PlayerTestWorld {
     });
     this.player = player;
 
-    await fn().finally(async () => {
+    try {
+      await fn();
+    } finally {
       try {
         await player.destroy();
       } finally {
@@ -121,7 +123,7 @@ export default class PlayerTestWorld {
         this.player = undefined;
         this.eventListeners = {};
       }
-    });
+    }
   };
 
   callPlayer = async <T>(fn: (player: Player) => Promise<T>): Promise<T> => {
@@ -267,11 +269,10 @@ export default class PlayerTestWorld {
       }, timeoutSeconds * 1000);
     });
     try {
-      const operation = Promise.resolve()
-        .then(afterListenerAttached)
-        .then(() => {
-          operationFinished = true;
-        });
+      const operation = (async () => {
+        await afterListenerAttached();
+        operationFinished = true;
+      })();
       const [, result] = await Promise.race([
         Promise.all([operation, future]),
         deadline,
@@ -329,11 +330,10 @@ export default class PlayerTestWorld {
       }, timeoutSeconds * 1000);
     });
     try {
-      const operation = Promise.resolve()
-        .then(afterListenerAttached)
-        .then(() => {
-          operationFinished = true;
-        });
+      const operation = (async () => {
+        await afterListenerAttached();
+        operationFinished = true;
+      })();
       const [, result] = await Promise.race([
         Promise.all([operation, future]),
         deadline,
