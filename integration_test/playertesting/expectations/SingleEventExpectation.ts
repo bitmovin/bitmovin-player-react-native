@@ -76,3 +76,33 @@ export function FilteredEvent<E extends Event>(
 ): FilteredEventExpectation<E> {
   return new FilteredEventExpectation(eventType, filter);
 }
+
+type MaybeDedicatedPropEvent = Event & { isFromDedicatedProp?: boolean };
+
+/**
+ * Marks an event received through its dedicated `PlayerView` prop (e.g. `onPlayerActive`),
+ * to tell it apart from the copy of the same event received through `onEvent`.
+ */
+export function fromDedicatedProp<E extends Event>(event: E): E {
+  return { ...event, isFromDedicatedProp: true };
+}
+
+// To expect an event received through its dedicated `PlayerView` prop.
+export function DedicatedPropEvent(
+  eventType: EventType
+): FilteredEventExpectation<MaybeDedicatedPropEvent> {
+  return FilteredEvent<MaybeDedicatedPropEvent>(
+    eventType,
+    (event) => event.isFromDedicatedProp === true
+  );
+}
+
+// To expect an event received through the `onEvent` prop.
+export function CatchAllEvent(
+  eventType: EventType
+): FilteredEventExpectation<MaybeDedicatedPropEvent> {
+  return FilteredEvent<MaybeDedicatedPropEvent>(
+    eventType,
+    (event) => event.isFromDedicatedProp !== true
+  );
+}

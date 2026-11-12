@@ -68,14 +68,13 @@ export interface ErrorEvent extends Event {
 }
 
 /**
- * Emitted when a source is loaded into the player.
- * Seeking and time shifting are allowed as soon as this event is seen.
+ * Emitted when a playback session was started. This event is emitted immediately after the
+ * {@link Player.load} call and does not wait for actual data to be loaded.
  */
 export type PlayerActiveEvent = Event;
 
 /**
- * Emitted when a source is unloaded from the player.
- * Seeking and time shifting are not allowed anymore after this event.
+ * Emitted when the active playback session ends and the player becomes inactive.
  */
 export type PlayerInactiveEvent = Event;
 
@@ -154,6 +153,11 @@ export type PlaybackFinishedEvent = Event;
  * Do not mistake it for a `NativeInstance` type.
  */
 export interface EventSource {
+  /**
+   * The {@link Source.nativeId} of this event's source.
+   * Not set for sources that were not created through a {@link Source} instance (e.g. offline content).
+   */
+  nativeId?: string;
   /**
    * Event's source duration in seconds.
    */
@@ -284,8 +288,62 @@ export interface SourceLoadedEvent extends Event {
 export interface SourceUnloadedEvent extends Event {
   /**
    * Source that was unloaded from player.
+   *
+   * Not set on Android for events received via {@link Player.on} or the `PlayerView` event props,
+   * as the native event does not carry the source. Set for events received via {@link Source.on}.
+   */
+  source?: EventSource;
+}
+
+/**
+ * Emitted when a {@link Source} was added to an active playback session, either while loading a
+ * playlist via {@link Player.loadPlaylist} or via {@link PlaylistApi.add}.
+ * When loading, it is emitted for every source of the playlist before {@link PlayerActiveEvent}.
+ *
+ * @experimental
+ */
+export interface SourceAddedEvent extends Event {
+  /**
+   * The source that was added.
    */
   source: EventSource;
+  /**
+   * The position in the playlist the source was added to.
+   */
+  index: number;
+}
+
+/**
+ * Emitted when a {@link Source} was removed from an active playback session, either via
+ * {@link PlaylistApi.remove} / {@link PlaylistApi.removeAt} or while unloading the playback session.
+ *
+ * @experimental
+ */
+export interface SourceRemovedEvent extends Event {
+  /**
+   * The source that was removed.
+   */
+  source: EventSource;
+  /**
+   * The position in the playlist the source was removed from.
+   */
+  index: number;
+}
+
+/**
+ * Emitted when the player transitions between two sources in a playlist.
+ *
+ * @experimental
+ */
+export interface PlaylistTransitionEvent extends Event {
+  /**
+   * The source that was active before the transition.
+   */
+  from: EventSource;
+  /**
+   * The source that is active after the transition.
+   */
+  to: EventSource;
 }
 
 /**
@@ -787,7 +845,6 @@ export interface DownloadFinishedEvent extends Event {
 
 /**
  * Emitted when the player transitions from one playback speed to another.
- * @platform iOS, tvOS
  */
 export interface PlaybackSpeedChangedEvent extends Event {
   /**

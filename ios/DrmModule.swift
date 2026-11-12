@@ -23,10 +23,10 @@ public class DrmModule: Module {
         )
         AsyncFunction("initializeWithConfig") { [weak self] (nativeId: NativeId, config: [String: Any]) in
             self?.initializeWithConfig(nativeId: nativeId, config: config)
-        }
+        }.runOnQueue(.main)
         AsyncFunction("destroy") { [weak self] (nativeId: NativeId) in
             self?.destroy(nativeId: nativeId)
-        }
+        }.runOnQueue(.main)
         AsyncFunction("setPreparedCertificate") { [weak self] (id: Int, certificate: String?) in
             self?.waiter.complete(id: id, with: certificate ?? "")
         }

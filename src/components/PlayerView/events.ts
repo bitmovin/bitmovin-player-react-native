@@ -37,6 +37,7 @@ import type {
   PictureInPictureExitedEvent,
   PlaybackFinishedEvent,
   PlayerActiveEvent,
+  PlayerInactiveEvent,
   PlayerErrorEvent,
   PlayerWarningEvent,
   PlayEvent,
@@ -52,6 +53,9 @@ import type {
   SourceLoadedEvent,
   SourceLoadEvent,
   SourceUnloadedEvent,
+  SourceAddedEvent,
+  SourceRemovedEvent,
+  PlaylistTransitionEvent,
   SourceWarningEvent,
   AudioAddedEvent,
   AudioChangedEvent,
@@ -75,8 +79,9 @@ import type {
 /**
  * Event props for `PlayerView`.
  *
- * Note the events of `PlayerView` are simply a proxy over
- * the events from `NativePlayerView` just removing RN's bubbling data.
+ * The player and source events are delivered via {@link Player.on}. {@link Player.on} and
+ * {@link Source.on} can also be used without a `PlayerView`. Fullscreen and picture-in-picture events come
+ * from the native view.
  */
 export type PlayerViewEvents = {
   /**
@@ -195,7 +200,12 @@ export type PlayerViewEvents = {
    */
   onDownloadFinished?: (event: DownloadFinishedEvent) => void;
   /**
-   * All events emitted by the player.
+   * The events of all player and source event props of `PlayerView`, e.g. `onReady` or `onTimeChanged`.
+   * Fullscreen and picture-in-picture events are not included.
+   *
+   * Intended for debugging and testing: setting it subscribes to every event, including
+   * high-frequency ones like `onTimeChanged`. Otherwise, prefer the specific event props or
+   * {@link Player.on}, so only the events you need cross the bridge.
    */
   onEvent?: (event: Event) => void;
   /**
@@ -288,14 +298,17 @@ export type PlayerViewEvents = {
   onPlaybackFinished?: (event: PlaybackFinishedEvent) => void;
   /**
    * Emitted when the player transitions from one playback speed to another.
-   * @platform iOS, tvOS
    */
   onPlaybackSpeedChanged?: (event: PlaybackSpeedChangedEvent) => void;
   /**
-   * Event emitted when a source is loaded into the player.
-   * Seeking and time shifting are allowed as soon as this event is seen.
+   * Event emitted when a playback session was started. This event is emitted immediately after the
+   * {@link Player.load} call and does not wait for actual data to be loaded.
    */
   onPlayerActive?: (event: PlayerActiveEvent) => void;
+  /**
+   * Event emitted when the active playback session ends and the player becomes inactive.
+   */
+  onPlayerInactive?: (event: PlayerInactiveEvent) => void;
   /**
    * Event Emitted when a player error occurred.
    */
@@ -359,6 +372,24 @@ export type PlayerViewEvents = {
    * Event emitted when the current source has been unloaded.
    */
   onSourceUnloaded?: (event: SourceUnloadedEvent) => void;
+  /**
+   * Event emitted when a source was added to an active playback session.
+   *
+   * @experimental
+   */
+  onSourceAdded?: (event: SourceAddedEvent) => void;
+  /**
+   * Event emitted when a source was removed from an active playback session.
+   *
+   * @experimental
+   */
+  onSourceRemoved?: (event: SourceRemovedEvent) => void;
+  /**
+   * Event emitted when the player transitions between two sources in a playlist.
+   *
+   * @experimental
+   */
+  onPlaylistTransition?: (event: PlaylistTransitionEvent) => void;
   /**
    * Event emitted when a source warning occurred.
    */

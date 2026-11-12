@@ -16,6 +16,7 @@ import { expect } from './helper/Expect';
 import {
   TimeChangedEvent,
   PlaybackFinishedEvent,
+  PlaybackSpeedChangedEvent,
 } from 'bitmovin-player-react-native';
 
 export default (spec: TestScope) => {
@@ -40,6 +41,22 @@ export default (spec: TestScope) => {
         await callPlayerAndExpectEvent((player) => {
           player.pause();
         }, EventType.Paused);
+      });
+    });
+  });
+  spec.describe('changing the playback speed', () => {
+    spec.it('emits a PlaybackSpeedChanged event', async () => {
+      await startPlayerTest({}, async () => {
+        await loadSourceConfig(Sources.artOfMotionHls);
+        await playFor(1);
+        const event = await callPlayerAndExpectEvent<PlaybackSpeedChangedEvent>(
+          (player) => {
+            player.setPlaybackSpeed(2);
+          },
+          EventType.PlaybackSpeedChanged
+        );
+        expect(event.from).toBe(1);
+        expect(event.to).toBe(2);
       });
     });
   });

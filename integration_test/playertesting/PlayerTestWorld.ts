@@ -1,5 +1,6 @@
 import {
   Player,
+  PlayerActiveEvent,
   PlayerConfig,
   ReadyEvent,
   SourceConfig,
@@ -93,6 +94,15 @@ export default class PlayerTestWorld {
 
   onReRender: (() => void) | undefined;
 
+  /**
+   * Events received by the `onPlayerActive` prop of the `PlayerView` during the current test.
+   */
+  playerActivePropEvents: PlayerActiveEvent[] = [];
+
+  onPlayerActive = (event: PlayerActiveEvent): void => {
+    this.playerActivePropEvents.push(event);
+  };
+
   onEvent = (event: Event): void => {
     Object.entries(this.eventListeners).forEach(([_, listener]) =>
       listener(event)
@@ -119,6 +129,7 @@ export default class PlayerTestWorld {
       this.isFinished_ = true;
       this.player = undefined;
       this.eventListeners = {};
+      this.playerActivePropEvents = [];
     });
   };
 

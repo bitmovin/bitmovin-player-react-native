@@ -18,6 +18,7 @@ const testRegistrations = [
     () => require('./captionMetadataTest').default
   ),
   testSuite('error', androidAndIos, () => require('./errorTest').default),
+  testSuite('events', androidAndIos, () => require('./eventsTest').default),
   testSuite('loading', androidAndIos, () => require('./loadingTest').default),
   {
     ...testSuite(
@@ -37,7 +38,9 @@ const testRegistrations = [
     androidAndIos,
     () => require('./metadataId3Test').default
   ),
+  testSuite('network', androidAndIos, () => require('./networkTest').default),
   testSuite('playback', androidAndIos, () => require('./playbackTest').default),
+  testSuite('playlist', androidAndIos, () => require('./playlistTest').default),
   testSuite(
     'unloading',
     androidAndIos,

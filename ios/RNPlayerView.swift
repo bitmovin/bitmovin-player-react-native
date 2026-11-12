@@ -1,6 +1,4 @@
-// swiftlint:disable file_length
 import BitmovinPlayer
-@_spi(ExperimentalApi)
 import BitmovinPlayerCore
 import ExpoModulesCore
 
@@ -54,77 +52,15 @@ public class RNPlayerView: ExpoView {
     private var foregroundObserver: NSObjectProtocol?
 
     let onBmpPlayerViewReady = EventDispatcher()
-    let onBmpEvent = EventDispatcher()
-    let onBmpPlayerActive = EventDispatcher()
-    let onBmpPlayerError = EventDispatcher()
-    let onBmpPlayerWarning = EventDispatcher()
-    let onBmpDestroy = EventDispatcher()
-    let onBmpMuted = EventDispatcher()
-    let onBmpUnmuted = EventDispatcher()
-    let onBmpReady = EventDispatcher()
-    let onBmpPaused = EventDispatcher()
-    let onBmpPlay = EventDispatcher()
-    let onBmpPlaying = EventDispatcher()
-    let onBmpPlaybackFinished = EventDispatcher()
-    let onBmpSeek = EventDispatcher()
-    let onBmpSeeked = EventDispatcher()
-    let onBmpTimeShift = EventDispatcher()
-    let onBmpTimeShifted = EventDispatcher()
-    let onBmpStallStarted = EventDispatcher()
-    let onBmpStallEnded = EventDispatcher()
-    let onBmpTimeChanged = EventDispatcher()
-    let onBmpSourceLoad = EventDispatcher()
-    let onBmpSourceLoaded = EventDispatcher()
-    let onBmpSourceUnloaded = EventDispatcher()
-    let onBmpSourceError = EventDispatcher()
-    let onBmpSourceWarning = EventDispatcher()
-    let onBmpAudioAdded = EventDispatcher()
-    let onBmpAudioRemoved = EventDispatcher()
-    let onBmpAudioChanged = EventDispatcher()
-    let onBmpSubtitleAdded = EventDispatcher()
-    let onBmpSubtitleRemoved = EventDispatcher()
-    let onBmpSubtitleChanged = EventDispatcher()
-    let onBmpDownloadFinished = EventDispatcher()
     let onBmpPictureInPictureEnter = EventDispatcher()
     let onBmpPictureInPictureEntered = EventDispatcher()
     let onBmpPictureInPictureExit = EventDispatcher()
     let onBmpPictureInPictureExited = EventDispatcher()
-    let onBmpAdBreakFinished = EventDispatcher()
-    let onBmpAdBreakStarted = EventDispatcher()
-    let onBmpAdClicked = EventDispatcher()
-    let onBmpAdError = EventDispatcher()
-    let onBmpAdFinished = EventDispatcher()
-    let onBmpAdManifestLoad = EventDispatcher()
-    let onBmpAdManifestLoaded = EventDispatcher()
-    let onBmpAdQuartile = EventDispatcher()
-    let onBmpAdScheduled = EventDispatcher()
-    let onBmpAdSkipped = EventDispatcher()
-    let onBmpAdStarted = EventDispatcher()
-    let onBmpNonLinearAdStarted = EventDispatcher()
-    let onBmpNonLinearAdSkipped = EventDispatcher()
-    let onBmpNonLinearAdFinished = EventDispatcher()
-    let onBmpVideoDownloadQualityChanged = EventDispatcher()
-    let onBmpVideoPlaybackQualityChanged = EventDispatcher()
     let onBmpFullscreenEnabled = EventDispatcher()
     let onBmpFullscreenDisabled = EventDispatcher()
     let onBmpFullscreenEnter = EventDispatcher()
     let onBmpFullscreenExit = EventDispatcher()
-    let onBmpCastAvailable = EventDispatcher()
-    let onBmpCastPaused = EventDispatcher()
-    let onBmpCastPlaybackFinished = EventDispatcher()
-    let onBmpCastPlaying = EventDispatcher()
-    let onBmpCastStarted = EventDispatcher()
-    let onBmpCastStart = EventDispatcher()
-    let onBmpCastStopped = EventDispatcher()
-    let onBmpCastTimeUpdated = EventDispatcher()
-    let onBmpCastWaitingForDevice = EventDispatcher()
     let onBmpPictureInPictureAvailabilityChanged = EventDispatcher()
-    let onBmpPlaybackSpeedChanged = EventDispatcher()
-    let onBmpCueEnter = EventDispatcher()
-    let onBmpCueExit = EventDispatcher()
-    let onBmpMetadata = EventDispatcher()
-    let onBmpMetadataParsed = EventDispatcher()
-    let onBmpFairplayLicenseAcquired = EventDispatcher()
 
     required init(appContext: AppContext? = nil) {
         super.init(appContext: appContext)
@@ -180,7 +116,6 @@ public class RNPlayerView: ExpoView {
             playerViewConfig: playerViewConfigWrapper?.playerViewConfig ?? PlayerViewConfig()
         )
 
-        player.add(listener: self)
         playerView?.add(listener: self)
 
         shouldExitPictureInPictureOnForeground =
@@ -276,7 +211,6 @@ private extension RNPlayerView {
         guard let playerView else {
             return
         }
-        playerView.player?.remove(listener: self)
         playerView.remove(listener: self)
         playerView.player = nil
         shouldExitPictureInPictureOnForeground = false
@@ -323,272 +257,6 @@ private extension RNPlayerView {
     }
 }
 
-private extension Event {
-    func eventPayload() -> [String: Any] {
-        guard let jsonConvertible = self as? JsonConvertible else {
-            return [:]
-        }
-        let anyHashableKeyedPayload = jsonConvertible.toJSON()
-        let stringKeyedPayload = anyHashableKeyedPayload.reduce(into: [String: Any]()) { result, pair in
-            if let key = pair.key as? String {
-                result[key] = pair.value
-            }
-        }
-        return NonFiniteSanitizer.sanitizeEventData(stringKeyedPayload)
-    }
-}
-
-extension RNPlayerView: PlayerListener {
-    public func onPlayerActive(_ event: PlayerActiveEvent, player: Player) {
-        onBmpPlayerActive(event.eventPayload())
-    }
-
-    public func onPlayerError(_ event: PlayerErrorEvent, player: Player) {
-        onBmpPlayerError(event.eventPayload())
-    }
-
-    public func onPlayerWarning(_ event: PlayerWarningEvent, player: Player) {
-        onBmpPlayerWarning(event.eventPayload())
-    }
-
-    public func onDestroy(_ event: DestroyEvent, player: Player) {
-        onBmpDestroy(event.eventPayload())
-    }
-
-    public func onMuted(_ event: MutedEvent, player: Player) {
-        onBmpMuted(event.eventPayload())
-    }
-
-    public func onUnmuted(_ event: UnmutedEvent, player: Player) {
-        onBmpUnmuted(event.eventPayload())
-    }
-
-    public func onReady(_ event: ReadyEvent, player: Player) {
-        onBmpReady(event.eventPayload())
-    }
-
-    public func onPaused(_ event: PausedEvent, player: Player) {
-        onBmpPaused(event.eventPayload())
-    }
-
-    public func onPlay(_ event: PlayEvent, player: Player) {
-        onBmpPlay(event.eventPayload())
-    }
-
-    public func onPlaying(_ event: PlayingEvent, player: Player) {
-        onBmpPlaying(event.eventPayload())
-    }
-
-    public func onPlaybackFinished(_ event: PlaybackFinishedEvent, player: Player) {
-        onBmpPlaybackFinished(event.eventPayload())
-    }
-
-    public func onSeek(_ event: SeekEvent, player: Player) {
-        onBmpSeek(event.eventPayload())
-    }
-
-    public func onSeeked(_ event: SeekedEvent, player: Player) {
-        onBmpSeeked(event.eventPayload())
-    }
-
-    public func onTimeShift(_ event: TimeShiftEvent, player: Player) {
-        onBmpTimeShift(event.eventPayload())
-    }
-
-    public func onTimeShifted(_ event: TimeShiftedEvent, player: Player) {
-        onBmpTimeShifted(event.eventPayload())
-    }
-
-    public func onStallStarted(_ event: StallStartedEvent, player: Player) {
-        onBmpStallStarted(event.eventPayload())
-    }
-
-    public func onStallEnded(_ event: StallEndedEvent, player: Player) {
-        onBmpStallEnded(event.eventPayload())
-    }
-
-    public func onTimeChanged(_ event: TimeChangedEvent, player: Player) {
-        onBmpTimeChanged(event.eventPayload())
-    }
-
-    public func onPlaybackSpeedChanged(_ event: PlaybackSpeedChangedEvent, player: Player) {
-        onBmpPlaybackSpeedChanged(event.eventPayload())
-    }
-
-    public func onSourceLoad(_ event: SourceLoadEvent, player: Player) {
-        onBmpSourceLoad(event.eventPayload())
-    }
-
-    public func onSourceLoaded(_ event: SourceLoadedEvent, player: Player) {
-        onBmpSourceLoaded(event.eventPayload())
-    }
-
-    public func onSourceUnloaded(_ event: SourceUnloadedEvent, player: Player) {
-        onBmpSourceUnloaded(event.eventPayload())
-    }
-
-    public func onSourceError(_ event: SourceErrorEvent, player: Player) {
-        onBmpSourceError(event.eventPayload())
-    }
-
-    public func onSourceWarning(_ event: SourceWarningEvent, player: Player) {
-        onBmpSourceWarning(event.eventPayload())
-    }
-
-    public func onAudioAdded(_ event: AudioAddedEvent, player: Player) {
-        onBmpAudioAdded(event.eventPayload())
-    }
-
-    public func onAudioRemoved(_ event: AudioRemovedEvent, player: Player) {
-        onBmpAudioRemoved(event.eventPayload())
-    }
-
-    public func onAudioChanged(_ event: AudioChangedEvent, player: Player) {
-        onBmpAudioChanged(event.eventPayload())
-    }
-
-    public func onSubtitleAdded(_ event: SubtitleAddedEvent, player: Player) {
-        onBmpSubtitleAdded(event.eventPayload())
-    }
-
-    public func onSubtitleRemoved(_ event: SubtitleRemovedEvent, player: Player) {
-        onBmpSubtitleRemoved(event.eventPayload())
-    }
-
-    public func onSubtitleChanged(_ event: SubtitleChangedEvent, player: Player) {
-        onBmpSubtitleChanged(event.eventPayload())
-    }
-
-    public func onDownloadFinished(_ event: DownloadFinishedEvent, player: Player) {
-        onBmpDownloadFinished(event.eventPayload())
-    }
-
-    public func onAdBreakFinished(_ event: AdBreakFinishedEvent, player: Player) {
-        onBmpAdBreakFinished(event.eventPayload())
-    }
-
-    public func onAdBreakStarted(_ event: AdBreakStartedEvent, player: Player) {
-        onBmpAdBreakStarted(event.eventPayload())
-    }
-
-    public func onAdClicked(_ event: AdClickedEvent, player: Player) {
-        onBmpAdClicked(event.eventPayload())
-    }
-
-    public func onAdError(_ event: AdErrorEvent, player: Player) {
-        onBmpAdError(event.eventPayload())
-    }
-
-    public func onAdFinished(_ event: AdFinishedEvent, player: Player) {
-        onBmpAdFinished(event.eventPayload())
-    }
-
-    public func onAdManifestLoad(_ event: AdManifestLoadEvent, player: Player) {
-        onBmpAdManifestLoad(event.eventPayload())
-    }
-
-    public func onAdManifestLoaded(_ event: AdManifestLoadedEvent, player: Player) {
-        onBmpAdManifestLoaded(event.eventPayload())
-    }
-
-    public func onAdQuartile(_ event: AdQuartileEvent, player: Player) {
-        onBmpAdQuartile(event.eventPayload())
-    }
-
-    public func onAdScheduled(_ event: AdScheduledEvent, player: Player) {
-        onBmpAdScheduled(event.eventPayload())
-    }
-
-    public func onAdSkipped(_ event: AdSkippedEvent, player: Player) {
-        onBmpAdSkipped(event.eventPayload())
-    }
-
-    public func onAdStarted(_ event: AdStartedEvent, player: Player) {
-        onBmpAdStarted(event.eventPayload())
-    }
-
-    @_spi(ExperimentalApi)
-    public func onNonLinearAdStarted(_ event: NonLinearAdStartedEvent, player: Player) {
-        onBmpNonLinearAdStarted(event.eventPayload())
-    }
-
-    @_spi(ExperimentalApi)
-    public func onNonLinearAdSkipped(_ event: NonLinearAdSkippedEvent, player: Player) {
-        onBmpNonLinearAdSkipped(event.eventPayload())
-    }
-
-    @_spi(ExperimentalApi)
-    public func onNonLinearAdFinished(_ event: NonLinearAdFinishedEvent, player: Player) {
-        onBmpNonLinearAdFinished(event.eventPayload())
-    }
-
-    public func onVideoDownloadQualityChanged(_ event: VideoDownloadQualityChangedEvent, player: Player) {
-        onBmpVideoDownloadQualityChanged(event.eventPayload())
-     }
-
-    public func onVideoPlaybackQualityChanged(_ event: VideoPlaybackQualityChangedEvent, player: Player) {
-        onBmpVideoPlaybackQualityChanged(event.eventPayload())
-    }
-
-    public func onCueEnter(_ event: CueEnterEvent, player: Player) {
-        onBmpCueEnter(event.eventPayload())
-    }
-
-    public func onCueExit(_ event: CueExitEvent, player: Player) {
-        onBmpCueExit(event.eventPayload())
-    }
-
-    public func onMetadata(_ event: MetadataEvent, player: Player) {
-        onBmpMetadata(event.eventPayload())
-    }
-
-    public func onMetadataParsed(_ event: MetadataParsedEvent, player: Player) {
-        onBmpMetadataParsed(event.eventPayload())
-    }
-
-    public func onFairplayLicenseAcquired(_ event: FairplayLicenseAcquiredEvent, player: Player) {
-        onBmpFairplayLicenseAcquired(event.eventPayload())
-    }
-
-#if os(iOS)
-    public func onCastAvailable(_ event: CastAvailableEvent, player: Player) {
-        onBmpCastAvailable(event.eventPayload())
-    }
-
-    public func onCastPaused(_ event: CastPausedEvent, player: Player) {
-        onBmpCastPaused(event.eventPayload())
-    }
-
-    public func onCastPlaybackFinished(_ event: CastPlaybackFinishedEvent, player: Player) {
-        onBmpCastPlaybackFinished(event.eventPayload())
-    }
-
-    public func onCastPlaying(_ event: CastPlayingEvent, player: Player) {
-        onBmpCastPlaying(event.eventPayload())
-    }
-
-    public func onCastStarted(_ event: CastStartedEvent, player: Player) {
-        onBmpCastStarted(event.eventPayload())
-    }
-
-    public func onCastStart(_ event: CastStartEvent, player: Player) {
-        onBmpCastStart(event.eventPayload())
-    }
-
-    public func onCastStopped(_ event: CastStoppedEvent, player: Player) {
-        onBmpCastStopped(event.eventPayload())
-    }
-
-    public func onCastTimeUpdated(_ event: CastTimeUpdatedEvent, player: Player) {
-        onBmpCastTimeUpdated(event.eventPayload())
-    }
-
-    public func onCastWaiting(forDevice event: CastWaitingForDeviceEvent, player: Player) {
-        onBmpCastWaitingForDevice(event.eventPayload())
-    }
-#endif
-}
-
 extension RNPlayerView: UserInterfaceListener {
     public func onPictureInPictureEnter(_ event: PictureInPictureEnterEvent, view: PlayerView) {
         onBmpPictureInPictureEnter(event.eventPayload())
@@ -620,10 +288,6 @@ extension RNPlayerView: UserInterfaceListener {
 
     public func onFullscreenDisabled(_ event: FullscreenDisabledEvent, view: PlayerView) {
         onBmpFullscreenDisabled(event.eventPayload())
-    }
-
-    public func onEvent(_ event: any Event, player: any Player) {
-        onBmpEvent(event.eventPayload())
     }
 }
 

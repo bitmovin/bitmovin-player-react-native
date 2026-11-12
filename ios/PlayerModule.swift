@@ -5,23 +5,45 @@ import ExpoModulesCore
 public class PlayerModule: Module {
     private let shouldLoadAdItemWaiter = ResultWaiter<Bool>()
     private let imaSettingsWaiter = ResultWaiter<[String: Any]>()
+    private lazy var eventRelay = EventRelay<Player>(
+        subscribers: PlayerEventTypes.player
+    ) { [weak self] nativeId, eventName, event in
+        self?.sendEvent("onPlayerEvent", [
+            "nativeId": nativeId,
+            "eventName": eventName,
+            "event": event.eventPayload(),
+        ])
+    }
 
     // swiftlint:disable:next function_body_length
     public func definition() -> ModuleDefinition {
         Name("PlayerModule")
         OnCreate {}
         OnDestroy {
+            let eventRelay = self.eventRelay
             // Destroy all players on the main thread when the module is deallocated.
             // This is necessary when the IMA SDK is present in the app,
             // as it may crash if the players are destroyed on a background thread.
             DispatchQueue.main.async {
+                // Cancel the event subscriptions first, so destroying the players does not emit into this module.
+                eventRelay.clear()
                 PlayerRegistry.getAllPlayers().forEach { $0.destroy() }
                 PlayerRegistry.clear()
             }
             shouldLoadAdItemWaiter.removeAll()
             imaSettingsWaiter.removeAll()
         }
-        Events("onShouldLoadAdItem", "onImaBeforeInitialization")
+        Events("onShouldLoadAdItem", "onImaBeforeInitialization", "onPlayerEvent")
+        AsyncFunction("on") { [weak self] (nativeId: NativeId, eventName: String) in
+            self?.eventRelay.on(
+                nativeId: nativeId,
+                emitter: PlayerRegistry.getPlayer(nativeId: nativeId),
+                eventName: eventName
+            )
+        }.runOnQueue(.main)
+        AsyncFunction("off") { [weak self] (nativeId: NativeId, eventName: String) in
+            self?.eventRelay.off(nativeId: nativeId, eventName: eventName)
+        }.runOnQueue(.main)
         Constant("isGoogleImaEnabled") {
             NSClassFromString("IMAAdsLoader") != nil
         }
@@ -48,6 +70,7 @@ public class PlayerModule: Module {
                 player.destroy()
                 PlayerRegistry.unregister(nativeId: nativeId)
             }
+            self?.eventRelay.offAll(nativeId: nativeId)
             self?.appContext?.moduleRegistry.get(RNPlayerViewManager.self)?
                 .discardPendingPictureInPictureValues(playerId: nativeId)
         }.runOnQueue(.main)
@@ -235,7 +258,14 @@ public class PlayerModule: Module {
             guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
                   let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self),
                   let source = sourceModule.retrieve(sourceNativeId) else { return }
+            try Self.throwIfAttachedToAnotherPlayer([source], player: player)
             player.load(source: source)
+        }.runOnQueue(.main)
+        AsyncFunction("loadPlaylist") { [weak self] (nativeId: NativeId, sourceNativeIds: [NativeId], options: [String: Any]?) in // swiftlint:disable:this line_length
+            try self?.loadPlaylist(nativeId: nativeId, sourceNativeIds: sourceNativeIds, options: options)
+        }.runOnQueue(.main)
+        AsyncFunction("source") { (nativeId: NativeId) -> NativeId? in
+            PlayerRegistry.getPlayer(nativeId: nativeId)?.source.flatMap { SourceRegistry.nativeId(of: $0) }
         }.runOnQueue(.main)
     }
 
@@ -243,6 +273,76 @@ public class PlayerModule: Module {
     @objc
     public func retrieve(_ nativeId: NativeId) -> Player? {
         PlayerRegistry.getPlayer(nativeId: nativeId)
+    }
+
+    private func loadPlaylist(nativeId: NativeId, sourceNativeIds: [NativeId], options: [String: Any]?) throws {
+        guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
+              let sourceModule = appContext?.moduleRegistry.get(SourceModule.self) else { return }
+        let sources = try sourceNativeIds.map { sourceNativeId in
+            guard let source = sourceModule.retrieve(sourceNativeId) else {
+                throw Exception(
+                    name: "SOURCE_NOT_INITIALIZED",
+                    description: "Source \(sourceNativeId) is not initialized"
+                )
+            }
+            return source
+        }
+        // The SDK unloads the current session and then raises a `fatalError` for an invalid playlist config,
+        // so everything is validated before loading.
+        try Self.validatePlaylistSources(sources, sourceNativeIds: sourceNativeIds, player: player)
+        let playlistOptions = try RCTConvert.playlistOptions(options)
+        player.load(playlistConfig: PlaylistConfig(sources: sources, options: playlistOptions))
+    }
+
+    private static let supportedPlaylistSourceTypes: [SourceType] = [.hls, .progressive, .movpkg]
+
+    /// Throws if the iOS SDK cannot play `source` as part of a playlist.
+    internal static func validatePlaylistSourceType(_ source: Source, sourceNativeId: NativeId) throws {
+        guard supportedPlaylistSourceTypes.contains(source.sourceConfig.type) else {
+            throw Exception(
+                name: "UNSUPPORTED_PLAYLIST_SOURCE",
+                description: "Source \(sourceNativeId) cannot be part of a playlist on iOS: only HLS, progressive and movpkg sources are supported" // swiftlint:disable:this line_length
+            )
+        }
+    }
+
+    private static func validatePlaylistSources(
+        _ sources: [Source],
+        sourceNativeIds: [NativeId],
+        player: Player
+    ) throws {
+        guard !sources.isEmpty else {
+            throw Exception(name: "EMPTY_PLAYLIST", description: "Playlist config has no sources")
+        }
+        let sourcesWithNativeIds = zip(sources, sourceNativeIds)
+        for (source, sourceNativeId) in sourcesWithNativeIds {
+            try validatePlaylistSourceType(source, sourceNativeId: sourceNativeId)
+        }
+        // The SDK ignores a source listed more than once and only logs a warning.
+        var seenSources = Set<ObjectIdentifier>()
+        for (source, sourceNativeId) in sourcesWithNativeIds
+        where !seenSources.insert(ObjectIdentifier(source as AnyObject)).inserted {
+            throw Exception(
+                name: "DUPLICATE_PLAYLIST_SOURCE",
+                description: "Source \(sourceNativeId) is part of the playlist more than once"
+            )
+        }
+        try throwIfAttachedToAnotherPlayer(sources, player: player)
+    }
+
+    /// The SDK raises a `fatalError` for a source attached to another player. Sources of this player's current
+    /// session are fine, as loading unloads the session first.
+    private static func throwIfAttachedToAnotherPlayer(_ sources: [Source], player: Player) throws {
+        let sessionSources = Set(player.playlist.sources.map { ObjectIdentifier($0 as AnyObject) })
+        let attached = sources.first { source in
+            source.isAttachedToPlayer && !sessionSources.contains(ObjectIdentifier(source as AnyObject))
+        }
+        guard let attached else { return }
+        let sourceNativeId = SourceRegistry.nativeId(of: attached) ?? "unknown"
+        throw Exception(
+            name: "SOURCE_ALREADY_ATTACHED",
+            description: "Source \(sourceNativeId) is already attached to another player"
+        )
     }
 
     private func setupRemoteControlConfig(_ remoteControlConfig: RemoteControlConfig) {

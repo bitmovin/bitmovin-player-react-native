@@ -1,18 +1,26 @@
 package com.bitmovin.player.reactnative
 
+import android.os.Handler
+import android.os.Looper
 import androidx.core.os.bundleOf
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.advertising.AdvertisingConfig
 import com.bitmovin.player.api.analytics.create
+import com.bitmovin.player.api.event.Event
+import com.bitmovin.player.api.playlist.PlaylistConfig
+import com.bitmovin.player.api.playlist.PlaylistOptions
+import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.toAdItem
 import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
 import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toMediaControlConfig
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
+import com.bitmovin.player.reactnative.converter.toPlaylistOptions
 import com.bitmovin.player.reactnative.extensions.getMap
+import com.bitmovin.player.reactnative.util.NonFiniteSanitizer
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
@@ -24,6 +32,17 @@ class PlayerModule : Module() {
     private val shouldPlayAdBreakWaiter = ResultWaiter<Boolean>()
     private val imaSettingsWaiter = ResultWaiter<Map<String, Any?>>()
 
+    private val eventRelay = EventRelay<Event>(PlayerEventTypes.player) { nativeId, eventName, event ->
+        sendEvent(
+            "onPlayerEvent",
+            mapOf(
+                "nativeId" to nativeId,
+                "eventName" to eventName,
+                "event" to NonFiniteSanitizer.sanitizeEventData(event.toJson()),
+            ),
+        )
+    }
+
     override fun definition() = ModuleDefinition {
         Name("PlayerModule")
 
@@ -32,21 +51,37 @@ class PlayerModule : Module() {
         }
 
         OnDestroy {
-            // Clean up all players when module is destroyed
-            PlayerRegistry.getAllPlayers().forEach { player ->
-                try {
-                    player.destroy()
-                } catch (e: Exception) {
-                    // Log but don't crash on cleanup
+            // `OnDestroy` has no `runOnQueue` and is not guaranteed to run on the main thread, which the event relay
+            // and the players require. Post to the main looper directly: Expo cancels its `mainQueue` right after
+            // `OnDestroy`, which would drop a block launched on it.
+            Handler(Looper.getMainLooper()).post {
+                // Detach the listeners first, so destroying the players does not emit into this module.
+                eventRelay.clear { PlayerRegistry.getPlayer(it) }
+                // Clean up all players when module is destroyed
+                PlayerRegistry.getAllPlayers().forEach { player ->
+                    try {
+                        player.destroy()
+                    } catch (e: Exception) {
+                        // Log but don't crash on cleanup
+                    }
                 }
+                PlayerRegistry.clear()
             }
             shouldLoadAdItemWaiter.clear()
             shouldPlayAdBreakWaiter.clear()
             imaSettingsWaiter.clear()
-            PlayerRegistry.clear()
         }
 
-        Events("onShouldLoadAdItem", "onShouldPlayAdBreak", "onImaBeforeInitialization")
+        Events("onShouldLoadAdItem", "onShouldPlayAdBreak", "onImaBeforeInitialization", "onPlayerEvent")
+
+        AsyncFunction("on") { nativeId: NativeId, eventName: String ->
+            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
+            eventRelay.on(nativeId, player, eventName)
+        }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("off") { nativeId: NativeId, eventName: String ->
+            eventRelay.off(nativeId, PlayerRegistry.getPlayer(nativeId), eventName)
+        }.runOnQueue(Queues.MAIN)
 
         Constant("isGoogleImaEnabled") { ImaBeforeInitializationConfigurator.IS_GOOGLE_IMA_ENABLED }
 
@@ -88,6 +123,7 @@ class PlayerModule : Module() {
                 player.destroy()
                 PlayerRegistry.unregister(nativeId)
             }
+            eventRelay.offAll(nativeId, player)
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("setVolume") { nativeId: NativeId, volume: Double ->
@@ -308,14 +344,38 @@ class PlayerModule : Module() {
             val player = PlayerRegistry.getPlayer(nativeId)
             val source = appContext.registry.getModule<SourceModule>()?.getSourceOrNull(sourceNativeId)
             if (player != null && source != null) {
+                player.throwIfAttachedToAnotherPlayer(listOf(source))
                 player.load(source)
             }
         }.runOnQueue(Queues.MAIN)
 
+        AsyncFunction("loadPlaylist") { nativeId: NativeId, sourceNativeIds: List<NativeId>,
+            options: Map<String, Any?>?, ->
+            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
+            val sources = sourceNativeIds.map {
+                SourceRegistry.getSource(it) ?: throw SourceException.SourceNotInitialized(it)
+            }
+            player.throwIfAttachedToAnotherPlayer(sources)
+            player.load(PlaylistConfig(sources, options?.toPlaylistOptions() ?: PlaylistOptions()))
+        }.runOnQueue(Queues.MAIN)
+
         AsyncFunction("source") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.source?.toJson()
-        }
+            PlayerRegistry.getPlayer(nativeId)?.source?.let { SourceRegistry.getNativeId(it) }
+        }.runOnQueue(Queues.MAIN)
+    }
+
+    /**
+     * The SDK only checks for sources attached to another player while it sets up the new playback session, after
+     * unloading the current one. If the check fails there, the player cannot load any source afterwards.
+     * Sources of this player's current session are fine, as loading unloads the session first.
+     */
+    private fun Player.throwIfAttachedToAnotherPlayer(sources: List<Source>) {
+        val sessionSources = playlist.sources
+        val attached = sources
+            .filter { !sessionSources.contains(it) }
+            .firstOrNull { it.isAttachedToPlayer }
+            ?: return
+        throw SourceException.SourceAlreadyAttached(SourceRegistry.getNativeId(attached) ?: "unknown")
     }
 
     private fun initializePlayer(

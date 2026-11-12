@@ -1,6 +1,7 @@
 import type { NativeModule } from 'expo-modules-core';
 import { requireNativeModule } from 'expo-modules-core';
 import type { AdBreak, AdItem, ImaSettings } from '../advertising';
+import type { NativeEventPayload } from '../utils/eventListeners';
 
 export type PlayerModuleEvents = {
   onShouldLoadAdItem: ({
@@ -30,6 +31,7 @@ export type PlayerModuleEvents = {
     id: number;
     settings: ImaSettings;
   }) => void;
+  onPlayerEvent: (payload: NativeEventPayload) => void;
 };
 
 declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
@@ -37,6 +39,16 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
    * Whether the native app was built with Google IMA.
    */
   readonly isGoogleImaEnabled: boolean;
+
+  /**
+   * Attaches a native listener for `eventName` to nativeId's player.
+   */
+  on(nativeId: string, eventName: string): Promise<void>;
+
+  /**
+   * Detaches the native listener for `eventName` from nativeId's player.
+   */
+  off(nativeId: string, eventName: string): Promise<void>;
 
   /**
    * Call .play() on nativeId's player.
@@ -237,6 +249,21 @@ declare class PlayerModule extends NativeModule<PlayerModuleEvents> {
    * Requires SourceModule dependency.
    */
   loadSource(nativeId: string, sourceNativeId: string): Promise<void>;
+
+  /**
+   * Load a playlist into the player.
+   * Requires SourceModule dependency.
+   */
+  loadPlaylist(
+    nativeId: string,
+    sourceNativeIds: string[],
+    options?: Record<string, any>
+  ): Promise<void>;
+
+  /**
+   * Get the native id of the active source.
+   */
+  source(nativeId: string): Promise<string | null>;
 
   /**
    * Load offline content into the player.

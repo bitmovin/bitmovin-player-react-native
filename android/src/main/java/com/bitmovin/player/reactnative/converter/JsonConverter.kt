@@ -34,6 +34,7 @@ import com.bitmovin.player.api.casting.RemoteControlConfig
 import com.bitmovin.player.api.decoder.DecoderPriorityProvider.DecoderContext
 import com.bitmovin.player.api.decoder.MediaCodecInfo
 import com.bitmovin.player.api.drm.WidevineConfig
+import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.CastPayload
@@ -71,6 +72,9 @@ import com.bitmovin.player.api.network.HttpResponse
 import com.bitmovin.player.api.network.NetworkConfig
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
+import com.bitmovin.player.api.playlist.PlaylistOptions
+import com.bitmovin.player.api.playlist.ReplayMode
+import com.bitmovin.player.api.source.LoadingState
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceOptions
@@ -86,6 +90,7 @@ import com.bitmovin.player.reactnative.PictureInPictureConfig
 import com.bitmovin.player.reactnative.RNBufferLevels
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.RNStyleConfigWrapper
+import com.bitmovin.player.reactnative.SourceRegistry
 import com.bitmovin.player.reactnative.UserInterfaceType
 import com.bitmovin.player.reactnative.converter.toPictureInPictureActions
 import com.bitmovin.player.reactnative.extensions.getArray
@@ -153,6 +158,20 @@ fun Map<String, Any?>.toSourceOptions(): SourceOptions = SourceOptions(
     startOffset = getDoubleOrNull("startOffset"),
     startOffsetTimelineReference = getString("startOffsetTimelineReference")?.toTimelineReferencePoint(),
 )
+
+fun Map<String, Any?>.toPlaylistOptions(): PlaylistOptions {
+    val defaults = PlaylistOptions()
+    return PlaylistOptions(
+        preloadAllSources = getBooleanOrNull("preloadAllSources") ?: defaults.preloadAllSources,
+        replayMode = getString("replayMode")?.toReplayModeOrThrow() ?: defaults.replayMode,
+    )
+}
+
+private fun String.toReplayModeOrThrow(): ReplayMode = when (this) {
+    "playlist" -> ReplayMode.Playlist
+    "lastSource" -> ReplayMode.LastSource
+    else -> throw IllegalArgumentException("Unknown replay mode: $this")
+}
 
 private fun String.toTimelineReferencePoint(): TimelineReferencePoint? = when (this) {
     "start" -> TimelineReferencePoint.Start
@@ -281,11 +300,18 @@ fun String.toSourceType(): SourceType? = when (this) {
     else -> null
 }
 
+fun LoadingState.toJson(): Int = when (this) {
+    LoadingState.Unloaded -> 0
+    LoadingState.Loading -> 1
+    LoadingState.Loaded -> 2
+}
+
 fun Source.toJson(): Map<String, Any> = mapOf(
+    "nativeId" to SourceRegistry.getNativeId(this),
     "duration" to duration,
     "isActive" to isActive,
     "isAttachedToPlayer" to isAttachedToPlayer,
-    "loadingState" to loadingState.ordinal,
+    "loadingState" to loadingState.toJson(),
     "metadata" to (config.metadata ?: emptyMap<String, Any>()),
 ).filterNotNullValues()
 
@@ -376,6 +402,12 @@ fun SourceEvent.toJson(): Map<String, Any> {
     return baseMap.filterNotNullValues()
 }
 
+fun Event.toJson(): Map<String, Any> = when (this) {
+    is PlayerEvent -> toJson()
+    is SourceEvent -> toJson()
+    else -> throw IllegalArgumentException("Unsupported event: ${javaClass.name}")
+}
+
 @OptIn(ExperimentalBitmovinApi::class)
 fun PlayerEvent.toJson(): Map<String, Any> {
     val baseMap = mutableMapOf<String, Any?>(
@@ -417,9 +449,29 @@ fun PlayerEvent.toJson(): Map<String, Any> {
             baseMap["to"] = to.toJson()
         }
 
+        is PlayerEvent.SourceAdded -> {
+            baseMap["source"] = source.toJson()
+            baseMap["index"] = index
+        }
+
+        is PlayerEvent.SourceRemoved -> {
+            baseMap["source"] = source.toJson()
+            baseMap["index"] = index
+        }
+
+        is PlayerEvent.PlaylistTransition -> {
+            baseMap["from"] = from.toJson()
+            baseMap["to"] = to.toJson()
+        }
+
         is PlayerEvent.TimeShift -> {
             baseMap["position"] = position
             baseMap["targetPosition"] = target
+        }
+
+        is PlayerEvent.PlaybackSpeedChanged -> {
+            baseMap["from"] = from.toDouble()
+            baseMap["to"] = to.toDouble()
         }
 
         is PlayerEvent.PictureInPictureAvailabilityChanged -> {
