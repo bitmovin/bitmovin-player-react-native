@@ -205,14 +205,24 @@ test('readiness waits for native attachment and is announced once', async () => 
   const viewRef = { current: null };
   const player = playerWith();
   const eventRegistrations = [];
-  player.on = async (...args) => {
-    eventRegistrations.push(args);
-    return mockEventSubscription();
+  let activeListeners = [];
+  player.on = async (event, listener) => {
+    eventRegistrations.push([event, listener]);
+    activeListeners.push([event, listener]);
+    return {
+      // Expo removes every registration of the same function for this event.
+      remove() {
+        activeListeners = activeListeners.filter(
+          ([name, fn]) => name !== event || fn !== listener
+        );
+      },
+    };
   };
+  let readyEvents = 0;
   const props = {
     player,
     viewRef,
-    onReady: () => {},
+    onReady: () => readyEvents++,
     onPlayerViewReady: () => {
       assert.ok(viewRef.current, 'the public ref is available in the callback');
       notifications++;
@@ -227,10 +237,12 @@ test('readiness waits for native attachment and is announced once', async () => 
   );
   await flush();
   assert.ok(eventRegistrations.length > 0);
-  assert.ok(
-    eventRegistrations.every(
-      ([event, listener]) => event === 'ready' && listener === props.onReady
-    )
+  assert.ok(eventRegistrations.every(([event]) => event === 'ready'));
+  for (const [, listener] of activeListeners) listener({ name: 'onReady' });
+  assert.equal(
+    readyEvents,
+    1,
+    'old cleanup cannot remove the current listener'
   );
   assert.ok(
     committedView,
