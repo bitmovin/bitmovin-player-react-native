@@ -82,7 +82,7 @@ internal class JavaScriptCallbacks(private val context: AppContext, private val 
         mutating: Boolean,
         undefinedIndex: Int?,
     ): Any? {
-        if (context.reactContext?.isOnJSQueueThread == true) {
+        if (context.runtime.reactContext?.isOnJSQueueThread == true) {
             if (!scope.isActive) return null
             val holder = callback.holder(context) ?: return null
             return bridge(args, mutating, undefinedIndex, false, thisValue = holder, appContext = context)
