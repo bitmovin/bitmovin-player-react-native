@@ -66,6 +66,7 @@ if (mode.startsWith('redaction')) {
   console.log(license);
 }
 record(role + ':' + (operation || 'start') + ':' + process.env.EXPO_PUBLIC_CAVY_ONLY_TAGS);
+fs.writeFileSync(role + '-pid', String(process.pid));
 if (role === 'metro') {
   if (['metro-exit', 'redaction-startup-failure'].includes(mode)) process.exit(2);
   if (mode === 'descendant') {
@@ -226,8 +227,30 @@ test('releases its lock and signal handlers even when a process cannot be cleane
   };
   try {
     await assert.rejects(runCiTests(config), /injected kill failure/);
+    assert.match(
+      fs.readFileSync(path.join(root, 'supervisor.log'), 'utf8'),
+      /Metro process group \d+ SIGTERM failed: injected kill failure/
+    );
     assert.equal(process.listenerCount('SIGTERM'), signalListeners);
     assert.ok(!fs.existsSync(path.join(root, '.supervisor-lock')));
+  } finally {
+    process.kill = kill;
+  }
+});
+
+test('does not signal completed reporter or verified iOS launcher process groups', async (t) => {
+  const { root, config } = await fixture(t);
+  const kill = process.kill;
+  process.kill = function (pid, signal) {
+    for (const role of ['cavy', 'app']) {
+      const file = path.join(root, `${role}-pid`);
+      if (pid < 0 && fs.existsSync(file))
+        assert.notEqual(-pid, Number(fs.readFileSync(file, 'utf8')));
+    }
+    return kill.call(process, pid, signal);
+  };
+  try {
+    assert.equal(await runCiTests(config), 1);
   } finally {
     process.kill = kill;
   }
@@ -333,7 +356,17 @@ test('does not signal stopped process groups after Android diagnostics', async (
   };
   try {
     assert.equal(await runCiTests(config), 1);
-    assert.ok(stoppedGroups.size >= 2, 'Metro and Cavy groups must be stopped');
+    const metroPid = Number(
+      fs.readFileSync(path.join(root, 'metro-pid'), 'utf8')
+    );
+    const cavyPid = Number(
+      fs.readFileSync(path.join(root, 'cavy-pid'), 'utf8')
+    );
+    assert.ok(stoppedGroups.has(-metroPid), 'Metro must be stopped');
+    assert.ok(
+      !stoppedGroups.has(-cavyPid),
+      'completed Cavy PID must be retired'
+    );
   } finally {
     process.kill = kill;
   }
