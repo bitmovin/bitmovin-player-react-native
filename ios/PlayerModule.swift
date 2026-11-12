@@ -39,7 +39,7 @@ public class PlayerModule: Module {
                 (try owner.player).playbackSpeed = playbackSpeed
             }.runOnQueue(.main)
             AsyncFunction("setMaxSelectableBitrate") { (owner: SharedPlayer, maxSelectableBitrate: Int) in
-                (try owner.player).maxSelectableBitrate = UInt(maxSelectableBitrate)
+                (try owner.player).maxSelectableBitrate = UInt(max(0, maxSelectableBitrate))
             }.runOnQueue(.main)
             AsyncFunction("getVolume") { (owner: SharedPlayer) -> Int? in (try owner.player).volume }.runOnQueue(.main)
             AsyncFunction("getCurrentTime") { (owner: SharedPlayer, mode: String?) -> Double? in

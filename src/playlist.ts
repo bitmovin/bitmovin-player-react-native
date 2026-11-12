@@ -10,6 +10,10 @@ import { NativePlaylist } from './modules/playerModule';
 export enum ReplayMode {
   PLAYLIST = 'playlist',
   LAST_SOURCE = 'lastSource',
+  /** @deprecated Use PLAYLIST. */
+  Playlist = 'playlist',
+  /** @deprecated Use LAST_SOURCE. */
+  LastSource = 'lastSource',
 }
 
 /**

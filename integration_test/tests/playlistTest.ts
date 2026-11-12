@@ -7,6 +7,7 @@ import {
   Source,
   SourceAddedEvent,
   SourceRemovedEvent,
+  TimelineReferencePoint,
 } from 'bitmovin-player-react-native';
 import { TestScope } from 'cavy';
 import {
@@ -181,7 +182,13 @@ export default (spec: TestScope) => {
             async (player) => (await player.playlist.getSources())[1]
           );
           const event = await callPlayerAndExpectEvent<PlaylistTransitionEvent>(
-            (player) => player.playlist.seek(target!, 10),
+            (player) =>
+              Platform.OS === 'android'
+                ? player.playlist.seekTo(target!, {
+                    offset: 10,
+                    startOffsetTimelineReference: TimelineReferencePoint.START,
+                  })
+                : player.playlist.seek(target!, 10),
             EventType.PlaylistTransition
           );
           expect(event.from.metadata?.item).toBe('first');

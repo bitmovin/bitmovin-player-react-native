@@ -1,4 +1,5 @@
 import { TestScope } from 'cavy';
+import { Platform } from 'react-native';
 import {
   callPlayerAndExpectEvent,
   callPlayerAndExpectEvents,
@@ -33,6 +34,23 @@ export default (spec: TestScope) => {
       });
     });
   });
+  if (Platform.OS === 'ios') {
+    spec.describe('resetting the maximum selectable bitrate', () => {
+      spec.it(
+        'accepts null after a finite cap and continues playback',
+        async () => {
+          await startPlayerTest({}, async () => {
+            await loadSourceConfig(Sources.artOfMotionHls);
+            await callPlayerAndExpectEvent(async (player) => {
+              await player.setMaxSelectableBitrate(1_000_000);
+              await player.setMaxSelectableBitrate(null);
+              await player.play();
+            }, EventType.Playing);
+          });
+        }
+      );
+    });
+  }
   spec.describe('calling pause when a source is loaded', () => {
     spec.it('emits a Paused event', async () => {
       await startPlayerTest({}, async () => {

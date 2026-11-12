@@ -56,6 +56,9 @@
 
 ### Fixed
 
+- iOS: Reset `setMaxSelectableBitrate(null)` to the SDK's unlimited value without an unsigned-integer trap.
+- Preserve `ReplayMode.Playlist` and `ReplayMode.LastSource` as deprecated aliases for `PLAYLIST` and `LAST_SOURCE`.
+
 - Android: Include the owning Source metadata in `Source.on('sourceUnloaded')` events
 - Android: Reject loading a Source attached to another Player before unloading the current session, leaving the Player usable for later loads
 - Android: Stop adding `com.google.android.gms.permission.AD_ID` when Google IMA is disabled. Apps that use the advertising ID, for example through analytics, may need to add `com.google.android.gms:play-services-ads-identifier` to their own dependencies
