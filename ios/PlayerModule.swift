@@ -254,10 +254,9 @@ public class PlayerModule: Module {
             )
             PlayerRegistry.register(player: player, nativeId: nativeId)
         }.runOnQueue(.main)
-        AsyncFunction("loadSource") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId) in
+        AsyncFunction("loadSource") { (nativeId: NativeId, sourceNativeId: NativeId) in
             guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
-                  let sourceModule = self?.appContext?.moduleRegistry.get(SourceModule.self),
-                  let source = sourceModule.retrieve(sourceNativeId) else { return }
+                  let source = SourceRegistry.source(nativeId: sourceNativeId) else { return }
             try Self.throwIfAttachedToAnotherPlayer([source], player: player)
             player.load(source: source)
         }.runOnQueue(.main)
@@ -276,10 +275,9 @@ public class PlayerModule: Module {
     }
 
     private func loadPlaylist(nativeId: NativeId, sourceNativeIds: [NativeId], options: [String: Any]?) throws {
-        guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
-              let sourceModule = appContext?.moduleRegistry.get(SourceModule.self) else { return }
+        guard let player = PlayerRegistry.getPlayer(nativeId: nativeId) else { return }
         let sources = try sourceNativeIds.map { sourceNativeId in
-            guard let source = sourceModule.retrieve(sourceNativeId) else {
+            guard let source = SourceRegistry.source(nativeId: sourceNativeId) else {
                 throw Exception(
                     name: "SOURCE_NOT_INITIALIZED",
                     description: "Source \(sourceNativeId) is not initialized"
