@@ -13,6 +13,9 @@ import type { MediaControlConfig } from './mediaControlConfig';
 
 /**
  * Object used to configure a new `Player` instance.
+ * Settings and callback functions are captured when the Player is constructed.
+ * Use closures or bound functions when callbacks need application state; replacing
+ * configuration properties later does not update the native configuration.
  */
 export interface PlayerConfig extends NativeInstanceConfig {
   /**

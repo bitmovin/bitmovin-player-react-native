@@ -33,7 +33,7 @@ also includes delivery across Expo or SDK behavior in the app.
 | ----------------------------------------------------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------- |
 | Original config functions reach a native constructor                          | JS unit                         | The original objects and function references submitted to the boundary double                  |
 | A native-invoked callback throws or returns a rejected Promise                | Focused native test and/or Cavy | The native adapter selects the original SDK value and the SDK operation completes              |
-| A callback receives its original receiver and current configured function     | Focused native test and/or Cavy | The actual native call preserves this and follows the current callback property                |
+| A configured callback captures application state                              | Focused native test and/or Cavy | The native call invokes the captured function, including an explicit bound receiver            |
 | A native callback result cannot be converted                                  | Focused native test and/or Cavy | Native fallback, cleanup and completion are checked at the adapter boundary                    |
 | Missing fields, null values, or encoded bodies reach a native decoder         | Focused native test and/or Cavy | Real conversion accepts or rejects the payload as specified; Cavy for the actual Expo boundary |
 | A per-call completion receives a duplicate, late, or decoded result           | Focused native test and/or Cavy | Native completion, cleanup, and error behavior; Cavy if SDK resumption is part of the claim    |

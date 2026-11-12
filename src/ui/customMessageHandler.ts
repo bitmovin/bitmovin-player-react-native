@@ -1,5 +1,6 @@
 import { SharedCustomMessageHandler } from './customMessageHandlerModule';
 
+/** Callbacks are captured at construction. Use closures or bound functions for application state. */
 export interface CustomMessageHandlerProps {
   /**
    * A function that will be called when the Player UI sends a synchronous message through the native bridge.

@@ -34,17 +34,9 @@ export class Player {
   // Retains offline configuration callbacks while its SDK source is loaded.
   declare private offline?: OfflineContentManager;
 
-  // The SDK captures these functions; retain them if the mutable config later replaces them.
-  declare private readonly advertisingCallbacks: readonly unknown[];
-
   constructor(readonly config: PlayerConfig = {}) {
     const alias = legacyPlayerRegistry.get(config.nativeId);
     if (alias) return alias;
-    this.advertisingCallbacks = [
-      config.advertisingConfig?.shouldLoadAdItem,
-      config.advertisingConfig?.shouldPlayAdBreak,
-      config.advertisingConfig?.ima?.beforeInitialization,
-    ];
     this.native = new SharedPlayer(config, config.analyticsConfig);
     this.nativeId = legacyPlayerRegistry.register(config.nativeId, this);
     this.buffer = new BufferApi(this);

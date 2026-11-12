@@ -245,7 +245,9 @@ test('passes original advertising functions in the native configuration', async 
   const advertisingConfig = {
     shouldLoadAdItem: () => false,
     shouldPlayAdBreak: () => true,
-    ima: { beforeInitialization: () => ({ language: 'de' }) },
+    ima: {
+      beforeInitialization: (settings) => ({ ...settings, language: 'de' }),
+    },
   };
   const player = new Player({ advertisingConfig });
   await controlFor(player);
