@@ -7,8 +7,10 @@ public class CustomMessageHandlerModule: Module {
         Name("CustomMessageHandlerModule")
         Class(SharedCustomMessageHandler.self) {
             Constructor { (config: JavaScriptValue) in
-                let callback = try CallbackScope(config: config, context: appContext)
-                return try SharedCustomMessageHandler(config: callback.takeConfiguration() ?? [:], callback: callback)
+                guard let appContext else { throw Exceptions.AppContextLost() }
+                return try JavaScriptActor.assumeIsolated {
+                    try SharedCustomMessageHandler(config: config, context: appContext)
+                }
             }
 
             AsyncFunction("sendMessage") { (owner: SharedCustomMessageHandler, message: String, data: String?) in

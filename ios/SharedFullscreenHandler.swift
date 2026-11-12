@@ -1,35 +1,37 @@
 import BitmovinPlayer
 import ExpoModulesCore
+import ExpoModulesJSI
 
 public final class SharedFullscreenHandler: SharedObject {
     let handler = FullscreenHandlerBridge()
-    private let callback: CallbackScope
-    private let enter: JavaScriptCallback
-    private let exit: JavaScriptCallback
+    private weak var context: AppContext?
+    private let enter: JavaScriptRef<JavaScriptWeakObject>
+    private let exit: JavaScriptRef<JavaScriptWeakObject>
 
-    init(config: [String: Any], callback: CallbackScope) throws {
-        guard let enter = config["enterFullscreen"] as? JavaScriptCallback,
-              let exit = config["exitFullscreen"] as? JavaScriptCallback else {
-            callback.close()
+    @JavaScriptActor
+    init(config: JavaScriptValue, context: AppContext) throws {
+        guard let enter = weakCallback(config, "enterFullscreen"),
+              let exit = weakCallback(config, "exitFullscreen") else {
             throw Exception(name: "InvalidArgument", description: "Missing fullscreen callbacks")
         }
         self.enter = enter
         self.exit = exit
-        self.callback = callback
+        self.context = context
         super.init()
         handler.owner = self
     }
 
     @MainActor
     func request(entering: Bool) {
-        if let value = (entering ? enter : exit).call(arguments: []) as? Bool {
+        guard let context else { return }
+        if let value = (entering ? enter : exit).callBlocking(context, arguments: [], convert: { try $0.asBool() }) {
             handler.isFullscreen = value
         }
     }
 
-    func destroy() { callback.close() }
-    deinit { callback.close() }
-    override public func sharedObjectWillRelease() { callback.close() }
+    func destroy() { context = nil }
+    deinit { destroy() }
+    override public func sharedObjectWillRelease() { destroy() }
 }
 
 nonisolated internal class FullscreenHandlerBridge: NSObject, FullscreenHandler {

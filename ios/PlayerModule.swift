@@ -12,12 +12,10 @@ public class PlayerModule: Module {
         }
         Class(SharedPlayer.self) {
             Constructor { (config: JavaScriptValue?, analytics: [String: Any]?) in
-                let callback = try CallbackScope(config: config, context: appContext, captureAdvertising: true)
-                return try SharedPlayer.create(
-                    config: callback.takeConfiguration(),
-                    analyticsConfig: analytics,
-                    callback: callback
-                )
+                guard let appContext else { throw Exceptions.AppContextLost() }
+                return try JavaScriptActor.assumeIsolated {
+                    try SharedPlayer.create(config: config, analyticsConfig: analytics, context: appContext)
+                }
             }
             AsyncFunction("play") { (owner: SharedPlayer) in (try owner.player).play() }.runOnQueue(.main)
             AsyncFunction("pause") { (owner: SharedPlayer) in (try owner.player).pause() }.runOnQueue(.main)
@@ -158,7 +156,7 @@ public class PlayerModule: Module {
             }.runOnQueue(.main)
             AsyncFunction("getSource") { (owner: SharedPlayer, known: [SharedSource]) -> SharedSource? in
                 try owner.player.source.map { source in
-                    known.first { $0.source === source } ?? SharedSource(source: source, callback: nil)
+                    known.first { $0.source === source } ?? SharedSource(source: source)
                 }
             }.runOnQueue(.main)
 
@@ -208,7 +206,7 @@ public class PlayerModule: Module {
             Constructor { (owner: SharedPlayer) in SharedPlaylistApi(owner: owner) }
             AsyncFunction("getSources") { (owner: SharedPlaylistApi, known: [SharedSource]) -> [SharedSource] in
                 try owner.player.playlist.sources.map { source in
-                    known.first { $0.source === source } ?? SharedSource(source: source, callback: nil)
+                    known.first { $0.source === source } ?? SharedSource(source: source)
                 }
             }.runOnQueue(.main)
             AsyncFunction("add") { (owner: SharedPlaylistApi, source: SharedSource, index: Int?) in

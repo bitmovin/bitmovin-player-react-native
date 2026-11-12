@@ -7,8 +7,10 @@ public class FullscreenHandlerModule: Module {
         Name("FullscreenHandlerModule")
         Class(SharedFullscreenHandler.self) {
             Constructor { (config: JavaScriptValue) in
-                let callback = try CallbackScope(config: config, context: appContext)
-                return try SharedFullscreenHandler(config: callback.takeConfiguration() ?? [:], callback: callback)
+                guard let appContext else { throw Exceptions.AppContextLost() }
+                return try JavaScriptActor.assumeIsolated {
+                    try SharedFullscreenHandler(config: config, context: appContext)
+                }
             }
 
             AsyncFunction("setIsFullscreenActive") { (owner: SharedFullscreenHandler, value: Bool) in

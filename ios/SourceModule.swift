@@ -7,12 +7,10 @@ public class SourceModule: Module {
         Name("SourceModule")
         Class(SharedSource.self) {
             Constructor { (config: JavaScriptValue?, analytics: [String: Any]?) in
-                let callback = try CallbackScope(config: config, context: appContext)
-                return try SharedSource(
-                    config: callback.takeConfiguration(),
-                    analytics: analytics,
-                    callback: callback
-                )
+                guard let appContext else { throw Exceptions.AppContextLost() }
+                return try JavaScriptActor.assumeIsolated {
+                    try SharedSource(config: config, analytics: analytics, context: appContext)
+                }
             }
             Property("configSnapshot") { (owner: SharedSource) in owner.configSnapshot }
             AsyncFunction("isAttachedToPlayer") { (owner: SharedSource) -> Bool in

@@ -5,13 +5,14 @@ import BitmovinPlayer
 @_spi(ExperimentalApi)
 import BitmovinPlayerCore
 import ExpoModulesCore
+import ExpoModulesJSI
 import Foundation
 
 extension RCTConvert {
-    // swiftlint:disable:next cyclomatic_complexity
-    static func playerConfig(_ json: Any?) -> PlayerConfig {
+    @JavaScriptActor
+    static func playerConfig(_ raw: JavaScriptValue?, context: AppContext) -> PlayerConfig { // swiftlint:disable:this cyclomatic_complexity line_length
         let playerConfig = PlayerConfig()
-        guard let json = json as? [String: Any?] else {
+        guard let json = raw?.getAny() as? [String: Any?] else {
             return playerConfig
         }
         if let licenseKey = json["licenseKey"] as? String {
@@ -26,7 +27,7 @@ extension RCTConvert {
         if let tweaksConfig = Self.tweaksConfig(json["tweaksConfig"]) {
             playerConfig.tweaksConfig = tweaksConfig
         }
-        if let advertisingConfig = Self.advertisingConfig(json["advertisingConfig"]) {
+        if let advertisingConfig = Self.advertisingConfig(raw?.property("advertisingConfig"), context: context) {
             playerConfig.advertisingConfig = advertisingConfig
         }
         if let adaptationConfig = Self.adaptationConfig(json["adaptationConfig"]) {
@@ -38,14 +39,11 @@ extension RCTConvert {
         if let liveConfig = Self.liveConfig(json["liveConfig"]) {
             playerConfig.liveConfig = liveConfig
         }
-        if let networkConfig = Self.networkConfig(json["networkConfig"]) {
-            playerConfig.networkConfig = networkConfig
-        }
         if let nowPlayingConfig = Self.mediaControlConfig(json["mediaControlConfig"]) {
             playerConfig.nowPlayingConfig = nowPlayingConfig
         }
 #if os(iOS)
-        if let remoteControlConfig = Self.remoteControlConfig(json["remoteControlConfig"]) {
+        if let remoteControlConfig = Self.remoteControlConfig(raw?.property("remoteControlConfig"), context: context) {
             playerConfig.remoteControlConfig = remoteControlConfig
         }
 #endif
@@ -229,27 +227,30 @@ extension RCTConvert {
         )
     }
 
-    static func advertisingConfig(_ json: Any?) -> AdvertisingConfig? {
-        guard let json = json as? [String: Any?] else { return nil }
+    @JavaScriptActor
+    static func advertisingConfig(_ raw: JavaScriptValue?, context: AppContext) -> AdvertisingConfig? {
+        guard let json = raw?.getAny() as? [String: Any?] else { return nil }
         let config: AdvertisingConfig
         if let schedule = json["schedule"] as? [[String: Any?]] {
             config = AdvertisingConfig(schedule: schedule.compactMap { Self.adItem($0) })
         } else {
             config = AdvertisingConfig()
         }
-        if let callback = json["shouldLoadAdItem"] as? JavaScriptCallback {
-            config.shouldLoadAdItem = { adItem in
-                callback.call(
-                    arguments: [Self.toJson(adItem: adItem) as Any]
-                ) as? Bool ?? true
+        if let callback = weakCallback(raw, "shouldLoadAdItem") {
+            config.shouldLoadAdItem = { [weak context] adItem in
+                guard let context else { return true }
+                return callback.callBlocking(
+                    context, arguments: [Self.toJson(adItem: adItem) as Any]
+                ) { try $0.asBool() } ?? true
             }
         }
-        if let ima = json["ima"] as? [String: Any], let callback = ima["beforeInitialization"] as? JavaScriptCallback {
-            config.beforeInitialization = { settings in
-                guard let value = callback.call(
+        if let callback = weakCallback(raw?.property("ima"), "beforeInitialization") {
+            config.beforeInitialization = { [weak context] settings in
+                guard let context, let value = callback.callBlocking(
+                    context,
                     arguments: [Self.imaSettingsDictionary(settings)],
-                    mutating: true
-                ) as? [String: Any] else { return }
+                    convert: { $0.getAny() as? [String: Any] }
+                ) else { return }
                 Self.applyImaSettings(settings, from: value)
             }
         }
@@ -1062,8 +1063,9 @@ extension RCTConvert {
         ]
     }
 
-    static func remoteControlConfig(_ json: Any?) -> RemoteControlConfig? {
-        guard let json = json as? [String: Any?] else {
+    @JavaScriptActor
+    static func remoteControlConfig(_ raw: JavaScriptValue?, context: AppContext) -> RemoteControlConfig? {
+        guard let json = raw?.getAny() as? [String: Any?] else {
             return nil
         }
         let remoteControlConfig = RemoteControlConfig()
@@ -1086,11 +1088,13 @@ extension RCTConvert {
             remoteControlConfig.sendDrmLicenseRequestsWithCredentials = sendDrmLicenseRequestsWithCredentials
         }
 #if os(iOS)
-        if let callback = json["prepareSource"] as? JavaScriptCallback {
-            remoteControlConfig.prepareSource = { type, sourceConfig in
-                guard let prepared = callback.call(
-                    arguments: [type.rawValue, Self.toJson(sourceConfig: sourceConfig)]
-                ) as? [String: Any] else { return nil }
+        if let callback = weakCallback(raw, "prepareSource") {
+            remoteControlConfig.prepareSource = { [weak context] type, sourceConfig in
+                guard let context, let prepared = callback.callBlocking(
+                    context,
+                    arguments: [type.rawValue, Self.toJson(sourceConfig: sourceConfig)],
+                    convert: { $0.getAny() as? [String: Any] }
+                ) else { return nil }
                 return Self.sourceConfig(prepared, drmConfig: prepared["drmConfig"].flatMap(Self.drmConfig)?.widevine)
             }
         }

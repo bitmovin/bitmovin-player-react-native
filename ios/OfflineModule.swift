@@ -10,12 +10,10 @@ public class OfflineModule: Module {
         Class(SharedOfflineEvents.self) { Constructor { SharedOfflineEvents() } }
         Class(SharedOfflineContentManager.self) {
             Constructor { (config: JavaScriptValue, events: SharedOfflineEvents) in
-                let callback = try CallbackScope(config: config, context: appContext)
-                return try SharedOfflineContentManager(
-                    config: callback.takeConfiguration() ?? [:],
-                    callback: callback,
-                    events: events
-                )
+                guard let appContext else { throw Exceptions.AppContextLost() }
+                return try JavaScriptActor.assumeIsolated {
+                    try SharedOfflineContentManager(config: config, context: appContext, events: events)
+                }
             }
             Property("events") { (owner: SharedOfflineContentManager) in owner.events }
             AsyncFunction("state") { (owner: SharedOfflineContentManager) -> String? in

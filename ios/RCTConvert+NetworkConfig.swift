@@ -1,27 +1,35 @@
 import BitmovinPlayer
 import BitmovinPlayerCore
 import ExpoModulesCore
+import ExpoModulesJSI
 
 extension RCTConvert {
-    static func networkConfig(_ json: Any?) -> NetworkConfig? {
-        guard let json = json as? [String: Any] else { return nil }
+    @JavaScriptActor
+    static func networkConfig(
+        _ raw: JavaScriptValue?, context: AppContext, track: @escaping (CancellableCallback) -> Void
+    ) -> NetworkConfig? {
+        guard let raw, raw.isObject() else { return nil }
         let config = NetworkConfig()
-        if let callback = json["preprocessHttpRequest"] as? JavaScriptCallback {
-            config.preprocessHttpRequest = { type, request, completion in
-                callback.request(
-                    arguments: [Self.toJson(httpRequestType: type), Self.toJson(httpRequest: request)]
-                ) { value in
-                    completion((value as? [String: Any]).flatMap(Self.httpRequest) ?? request)
-                }
+        if let callback = weakCallback(raw, "preprocessHttpRequest") {
+            config.preprocessHttpRequest = { [weak context] type, request, completion in
+                guard let context else { completion(request); return }
+                track(callback.callAsync(
+                    context,
+                    arguments: [Self.toJson(httpRequestType: type), Self.toJson(httpRequest: request)],
+                    convert: { ($0.getAny() as? [String: Any]).flatMap(Self.httpRequest) },
+                    completion: { completion($0 ?? request) }
+                ))
             }
         }
-        if let callback = json["preprocessHttpResponse"] as? JavaScriptCallback {
-            config.preprocessHttpResponse = { type, response, completion in
-                callback.request(
-                    arguments: [Self.toJson(httpRequestType: type), Self.toJson(httpResponse: response)]
-                ) { value in
-                    completion((value as? [String: Any]).flatMap(Self.httpResponse) ?? response)
-                }
+        if let callback = weakCallback(raw, "preprocessHttpResponse") {
+            config.preprocessHttpResponse = { [weak context] type, response, completion in
+                guard let context else { completion(response); return }
+                track(callback.callAsync(
+                    context,
+                    arguments: [Self.toJson(httpRequestType: type), Self.toJson(httpResponse: response)],
+                    convert: { ($0.getAny() as? [String: Any]).flatMap(Self.httpResponse) },
+                    completion: { completion($0 ?? response) }
+                ))
             }
         }
         return config

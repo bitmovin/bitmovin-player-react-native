@@ -1,12 +1,14 @@
 import BitmovinCollector
 import BitmovinPlayer
 import ExpoModulesCore
+import ExpoModulesJSI
 import Foundation
 
 public final class SharedPlayer: SharedObject {
     private let factory: () -> Player
     private let events = SharedObjectEvents()
-    private let callback: CallbackScope?
+    private let callbackLock = NSLock()
+    private var pendingCallbacks: [CancellableCallback]? = []
     private var isDestroyed = false
     // Cleanup must not evaluate the lazy property for an unused player.
     private weak var initializedPlayer: Player?
@@ -29,7 +31,7 @@ public final class SharedPlayer: SharedObject {
 
     deinit {
         // Cancel preprocessing before SDK cleanup can wait for its completion.
-        callback?.close()
+        closeCallbacks()
         // Expo finalizers cannot await the SDK's required main-thread cleanup.
         guard let player = initializedPlayer else { return }
         let events = events
@@ -40,26 +42,26 @@ public final class SharedPlayer: SharedObject {
     }
 
     func destroy() {
-        callback?.close()
+        closeCallbacks()
         guard !isDestroyed else { return }
         isDestroyed = true
         // Keep listeners attached for the SDK's final DestroyEvent.
         initializedPlayer?.destroy()
     }
 
+    @JavaScriptActor
     static func create(
-        config: [String: Any]?,
+        config: JavaScriptValue?,
         analyticsConfig: [String: Any]?,
-        callback: CallbackScope?
+        context: AppContext
     ) throws -> SharedPlayer {
-        let playerConfig = RCTConvert.playerConfig(config)
+        let playerConfig = RCTConvert.playerConfig(config, context: context)
         let analytics = analyticsConfig.flatMap { RCTConvert.analyticsConfig($0) }
         guard analyticsConfig == nil || analytics != nil else {
-            callback?.close()
             throw Exception(name: "InvalidArgument", description: "Invalid analytics configuration")
         }
         let metadata = RCTConvert.analyticsDefaultMetadataFromAnalyticsConfig(analyticsConfig)
-        return SharedPlayer(factory: {
+        let owner = SharedPlayer {
             if let analytics {
                 return PlayerFactory.create(
                     playerConfig: playerConfig,
@@ -68,11 +70,37 @@ public final class SharedPlayer: SharedObject {
                 )
             }
             return PlayerFactory.create(playerConfig: playerConfig)
-        }, callback: callback)
+        }
+        if let network = RCTConvert.networkConfig(
+            config?.property("networkConfig"), context: context, track: { [weak owner] request in
+                if let owner { owner.track(request) } else { request.cancel() }
+            }
+        ) { playerConfig.networkConfig = network }
+        return owner
     }
-    private init(factory: @escaping () -> Player, callback: CallbackScope?) {
+    private func track(_ request: CancellableCallback) {
+        callbackLock.lock()
+        guard pendingCallbacks != nil else { callbackLock.unlock(); request.cancel(); return }
+        pendingCallbacks?.append(request)
+        callbackLock.unlock()
+        request.didComplete { [weak self, weak request] in
+            guard let self else { return }
+            self.callbackLock.lock()
+            self.pendingCallbacks?.removeAll { $0 === request }
+            self.callbackLock.unlock()
+        }
+    }
+
+    private func closeCallbacks() {
+        callbackLock.lock()
+        let pending = pendingCallbacks ?? []
+        pendingCallbacks = nil
+        callbackLock.unlock()
+        pending.forEach { $0.cancel() }
+    }
+
+    private init(factory: @escaping () -> Player) {
         self.factory = factory
-        self.callback = callback
         super.init()
         events.owner = self
     }

@@ -1,10 +1,10 @@
 import BitmovinPlayer
 import ExpoModulesCore
+import ExpoModulesJSI
 import Foundation
 
 public final class SharedOfflineContentManager: SharedObject {
     let events: SharedOfflineEvents
-    private let callback: CallbackScope?
 #if os(iOS)
     private struct Resource {
         let manager: OfflineContentManager
@@ -18,13 +18,12 @@ public final class SharedOfflineContentManager: SharedObject {
     var bridge: OfflineContentManagerBridge { get throws { try getResource().bridge } }
 #endif
 
-    init(config: [String: Any], callback: CallbackScope?, events: SharedOfflineEvents) throws {
-        self.callback = callback
+    @JavaScriptActor
+    init(config: JavaScriptValue, context: AppContext, events: SharedOfflineEvents) throws {
         self.events = events
 #if os(iOS)
-        guard let identifier = config["identifier"] as? String,
-              let sourceConfig = RCTConvert.sourceConfig(config["sourceConfig"]) else {
-            callback?.close()
+        guard let identifier = (config.getAny() as? [String: Any])?["identifier"] as? String,
+              let sourceConfig = RCTConvert.sourceConfig(config.property("sourceConfig"), context: context) else {
             throw Exception(name: "InvalidArgument", description: "Invalid offline identifier or source configuration")
         }
         self.identifier = identifier
@@ -34,7 +33,6 @@ public final class SharedOfflineContentManager: SharedObject {
     }
 
     func destroy() {
-        callback?.close()
 #if os(iOS)
         guard !isDestroyed else { return }
         isDestroyed = true
@@ -43,7 +41,6 @@ public final class SharedOfflineContentManager: SharedObject {
     }
 
     deinit {
-        callback?.close()
 #if os(iOS)
         guard let resource else { return }
         DispatchQueue.main.async {

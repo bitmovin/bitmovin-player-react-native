@@ -1,56 +1,68 @@
 import BitmovinPlayer
 import ExpoModulesCore
+import ExpoModulesJSI
 import Foundation
 
 extension RCTConvert {
-    static func sourceConfig(_ json: Any?) -> SourceConfig? {
-        let drm = ((json as? [String: Any])?["drmConfig"] as? [String: Any]).flatMap {
-            Self.fairplayConfig($0)
-        }
+    @JavaScriptActor
+    static func sourceConfig(_ raw: JavaScriptValue?, context: AppContext) -> SourceConfig? {
+        let json = raw?.getAny()
+        let drm = raw?.property("drmConfig").flatMap { Self.fairplayConfig($0, context: context) }
         return Self.sourceConfig(json, drmConfig: drm)
     }
 
-    static func fairplayConfig(_ json: [String: Any]) -> FairplayConfig? {
+    @JavaScriptActor
+    static func fairplayConfig(_ raw: JavaScriptValue, context: AppContext) -> FairplayConfig? {
+        guard let json = raw.getAny() as? [String: Any] else { return nil }
         let config = Self.drmConfig(json).fairplay
-        guard let fairplay = json["fairplay"] as? [String: Any], let config else { return config }
-        if let callback = fairplay["prepareCertificate"] as? JavaScriptCallback {
-            config.prepareCertificate = { data in
-                transform(callback, data: data)
+        guard let fairplay = raw.property("fairplay"), let config else { return config }
+        if let callback = weakCallback(fairplay, "prepareCertificate") {
+            config.prepareCertificate = { [weak context] data in
+                transform(callback, context: context, data: data)
             }
         }
-        if let callback = fairplay["prepareMessage"] as? JavaScriptCallback {
-            config.prepareMessage = { data, assetId in
-                transform(callback, data: data, arguments: [assetId])
+        if let callback = weakCallback(fairplay, "prepareMessage") {
+            config.prepareMessage = { [weak context] data, assetId in
+                guard let context else { return data }
+                return transform(callback, context: context, data: data, arguments: [assetId])
             }
         }
-        if let callback = fairplay["prepareSyncMessage"] as? JavaScriptCallback {
-            config.prepareSyncMessage = { data, assetId in
-                transform(callback, data: data, arguments: [assetId])
+        if let callback = weakCallback(fairplay, "prepareSyncMessage") {
+            config.prepareSyncMessage = { [weak context] data, assetId in
+                guard let context else { return data }
+                return transform(callback, context: context, data: data, arguments: [assetId])
             }
         }
-        if let callback = fairplay["prepareLicense"] as? JavaScriptCallback {
-            config.prepareLicense = { data in
-                transform(callback, data: data)
+        if let callback = weakCallback(fairplay, "prepareLicense") {
+            config.prepareLicense = { [weak context] data in
+                transform(callback, context: context, data: data)
             }
         }
-        if let callback = fairplay["prepareLicenseServerUrl"] as? JavaScriptCallback {
-            config.prepareLicenseServerUrl = { url in
-                callback.call(arguments: [url]) as? String ?? url
+        if let callback = weakCallback(fairplay, "prepareLicenseServerUrl") {
+            config.prepareLicenseServerUrl = { [weak context] url in
+                context.flatMap { context in
+                    callback.callBlocking(context, arguments: [url]) { try $0.asString() }
+                } ?? url
             }
         }
-        if let callback = fairplay["prepareContentId"] as? JavaScriptCallback {
-            config.prepareContentId = { contentId in
-                callback.call(arguments: [contentId]) as? String ?? contentId
+        if let callback = weakCallback(fairplay, "prepareContentId") {
+            config.prepareContentId = { [weak context] contentId in
+                context.flatMap { context in
+                    callback.callBlocking(context, arguments: [contentId]) { try $0.asString() }
+                } ?? contentId
             }
         }
         return config
     }
     private static func transform(
-        _ callback: JavaScriptCallback,
+        _ callback: JavaScriptRef<JavaScriptWeakObject>,
+        context: AppContext?,
         data: Data,
         arguments: [Any] = []
     ) -> Data {
-        let result = callback.call(arguments: [data.base64EncodedString()] + arguments)
-        return (result as? String).flatMap { Data(base64Encoded: $0) } ?? data
+        let result = context.flatMap { context in
+            callback.callBlocking(context, arguments: [data.base64EncodedString()] + arguments) { try $0.asString() }
+        }
+        return result.flatMap { Data(base64Encoded: $0) } ?? data
     }
 }

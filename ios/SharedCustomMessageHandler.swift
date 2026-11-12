@@ -4,9 +4,9 @@ import ExpoModulesJSI
 import Foundation
 
 public final class SharedCustomMessageHandler: SharedObject {
-    private let callback: CallbackScope
-    private let synchronousMessage: JavaScriptCallback
-    private let asynchronousMessage: JavaScriptCallback
+    private weak var context: AppContext?
+    private let synchronousMessage: JavaScriptRef<JavaScriptWeakObject>
+    private let asynchronousMessage: JavaScriptRef<JavaScriptWeakObject>
     #if os(iOS)
         private(set) lazy var customMessageHandler: CustomMessageHandler = {
             let handler = CustomMessageHandler()
@@ -15,31 +15,34 @@ public final class SharedCustomMessageHandler: SharedObject {
         }()
     #endif
 
-    init(config: [String: Any], callback: CallbackScope) throws {
-        guard let synchronousMessage = config["onReceivedSynchronousMessage"] as? JavaScriptCallback,
-            let asynchronousMessage = config["onReceivedAsynchronousMessage"] as? JavaScriptCallback
+    @JavaScriptActor
+    init(config: JavaScriptValue, context: AppContext) throws {
+        guard let synchronousMessage = weakCallback(config, "onReceivedSynchronousMessage"),
+            let asynchronousMessage = weakCallback(config, "onReceivedAsynchronousMessage")
         else {
-            callback.close()
             throw Exception(name: "InvalidArgument", description: "Missing custom-message callbacks")
         }
         self.synchronousMessage = synchronousMessage
         self.asynchronousMessage = asynchronousMessage
-        self.callback = callback
+        self.context = context
         super.init()
     }
 
     public func receivedSynchronousMessage(_ message: String, withData data: String?) -> String? {
-        synchronousMessage.call(arguments: [message, data.map { $0 as Any } ?? JavaScriptValue.undefined]) as? String
-            ?? ""
+        guard let context else { return "" }
+        return synchronousMessage.callBlocking(
+            context, arguments: [message, data.map { $0 as Any } ?? JavaScriptValue.undefined]
+        ) { try $0.asString() } ?? ""
     }
 
     public func receivedAsynchronousMessage(_ message: String, withData data: String?) {
-        asynchronousMessage.notify(arguments: [message, data.map { $0 as Any } ?? JavaScriptValue.undefined])
+        guard let context else { return }
+        asynchronousMessage.notify(context, arguments: [message, data.map { $0 as Any } ?? JavaScriptValue.undefined])
     }
 
-    func destroy() { callback.close() }
-    deinit { callback.close() }
-    override public func sharedObjectWillRelease() { callback.close() }
+    func destroy() { context = nil }
+    deinit { destroy() }
+    override public func sharedObjectWillRelease() { destroy() }
 }
 
 #if os(iOS)
