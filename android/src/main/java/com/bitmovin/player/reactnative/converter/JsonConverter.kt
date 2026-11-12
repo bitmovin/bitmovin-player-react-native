@@ -141,13 +141,14 @@ fun Map<String, Any?>?.toDecoderConfig(appContext: AppContext): DecoderConfig? {
                 context: DecoderPriorityProvider.DecoderContext,
                 preferredDecoders: List<MediaCodecInfo>,
             ): List<MediaCodecInfo> {
-                @Suppress("UNCHECKED_CAST")
-                val result = callback?.let {
-                    it.callBlocking(appContext, context.toJson(), preferredDecoders.map { it.toJson() }) { value ->
-                        value.toNativeValue()
-                    }
-                } as? List<Map<String, Any?>>
-                return result?.toMediaCodecInfoList() ?: preferredDecoders
+                return callback?.callBlocking(
+                    appContext,
+                    context.toJson(),
+                    preferredDecoders.map { it.toJson() },
+                ) {
+                    @Suppress("UNCHECKED_CAST")
+                    (it.toNativeValue() as? List<Map<String, Any?>>)?.toMediaCodecInfoList()
+                } ?: preferredDecoders
             }
         },
     )
@@ -651,12 +652,10 @@ fun Map<String, Any?>.toWidevineConfig(appContext: AppContext): WidevineConfig? 
         }
     }
 
-private fun JavaScriptWeakObject.prepare(appContext: AppContext, data: ByteArray): ByteArray {
-    val result = callBlocking(appContext, Base64.encodeToString(data, Base64.NO_WRAP)) {
-        if (it.isString()) it.getString() else null
-    }
-    return Base64.decode(result as? String ?: "", Base64.NO_WRAP)
-}
+private fun JavaScriptWeakObject.prepare(appContext: AppContext, data: ByteArray): ByteArray =
+    callBlocking(appContext, Base64.encodeToString(data, Base64.NO_WRAP)) {
+        if (it.isString()) Base64.decode(it.getString(), Base64.NO_WRAP) else null
+    } ?: ByteArray(0)
 
 fun String.toThumbnailTrack(): ThumbnailTrack = ThumbnailTrack(this)
 
@@ -961,26 +960,20 @@ fun Map<String, Any?>.toNetworkConfig(appContext: AppContext, scope: CoroutineSc
         withCallback("preprocessHttpRequest") { callback ->
             preprocessHttpRequestCallback = PreprocessHttpRequestCallback { type, request ->
                 scope.future {
-                    @Suppress("UNCHECKED_CAST")
-                    (
-                        callback.callSuspending(appContext, type.toJson(), request.toJson()) {
-                            it.toNativeValue()
-                        } as? Map<String, Any?>
-                        )
-                        ?.toHttpRequest() ?: request
+                    callback.callSuspending(appContext, type.toJson(), request.toJson()) {
+                        @Suppress("UNCHECKED_CAST")
+                        (it.toNativeValue() as? Map<String, Any?>)?.toHttpRequest()
+                    } ?: request
                 }.exceptionally { request }
             }
         }
         withCallback("preprocessHttpResponse") { callback ->
             preprocessHttpResponseCallback = PreprocessHttpResponseCallback { type, response ->
                 scope.future {
-                    @Suppress("UNCHECKED_CAST")
-                    (
-                        callback.callSuspending(appContext, type.toJson(), response.toJson()) {
-                            it.toNativeValue()
-                        } as? Map<String, Any?>
-                        )
-                        ?.toHttpResponse() ?: response
+                    callback.callSuspending(appContext, type.toJson(), response.toJson()) {
+                        @Suppress("UNCHECKED_CAST")
+                        (it.toNativeValue() as? Map<String, Any?>)?.toHttpResponse()
+                    } ?: response
                 }.exceptionally { response }
             }
         }
