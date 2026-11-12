@@ -29,11 +29,6 @@ internal extension JavaScriptRef where T == JavaScriptWeakObject {
         guard let runtime = try? context.runtime else { return nil }
         let invoke: @JavaScriptActor () -> R? = {
             guard let result = try? self.invoke(context, arguments: arguments) else { return nil }
-            if result.isObject(), result.getObject().getProperty("then").isFunction() {
-                let ignore = runtime.createFunction { _, _ in JavaScriptValue.undefined }
-                _ = try? result.getObject().callFunction("then", arguments: ignore.asValue(), ignore.asValue())
-                return nil
-            }
             return try? convert(result)
         }
         if runtime.isOnJavaScriptThread() { return JavaScriptActor.assumeIsolated { invoke() } }
