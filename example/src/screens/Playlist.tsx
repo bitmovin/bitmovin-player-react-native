@@ -143,6 +143,19 @@ export default function Playlist() {
     [player, sources]
   );
 
+  // The player does not destroy a source removed from its playlist, so the app destroys it.
+  const removeLastSource = useCallback(async () => {
+    const last = sources[sources.length - 1];
+    if (!last) {
+      return;
+    }
+    await player.playlist.remove(last);
+    // The active source cannot be removed.
+    if (!(await player.playlist.getSources()).includes(last)) {
+      last.destroy();
+    }
+  }, [player, sources]);
+
   const activeIndex = activeSource ? sources.indexOf(activeSource) : -1;
 
   return (
@@ -181,10 +194,7 @@ export default function Playlist() {
               )
             }
           />
-          <Button
-            title="Remove last"
-            onPress={() => void player.playlist.removeAt(sources.length - 1)}
-          />
+          <Button title="Remove last" onPress={() => void removeLastSource()} />
         </View>
       </View>
     </View>
