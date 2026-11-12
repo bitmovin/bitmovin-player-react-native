@@ -180,6 +180,26 @@ export function PlayerView({
     nativePlayerViewConfig,
   ]);
 
+  useEffect(
+    () => () => {
+      void fullscreenBridge.current?.destroy();
+      fullscreenBridge.current = undefined;
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!nativePlayer || !nativeView.current) {
+      return;
+    }
+
+    // Also populate a replacement ref supplied after readiness, when the ready event
+    // will not be replayed. A mounted view ref alone does not imply native readiness.
+    if (viewRef) {
+      viewRef.current = nativeView.current;
+    }
+  }, [nativePlayer, viewRef, nativeView]);
+
   // Compare the actions by content, so passing a new array with the same actions on every render
   // does not trigger a native update each time.
   const pictureInPictureActionsJson =
