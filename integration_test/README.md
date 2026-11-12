@@ -212,8 +212,8 @@ over HTTP; its playback and subtitle handling remain real.
 ### Advertising inputs
 
 Advertising lifecycle cases use the fixed VAST and VMAP XML in
-[`advertising.js`](./assets/fixtures/advertising.js). IMA and iOS BAM receive the
-same inline data URIs as before. Android BAM requires HTTP, so Metro serves its
+[`advertising.js`](./assets/fixtures/advertising.js). IMA and iOS BAM use inline
+data URIs. Android BAM requires HTTP, so Metro serves its
 manifests at `/cavy-fixtures/advertising/vast.xml` and
 `/cavy-fixtures/advertising/vmap.xml` for `GET` and `HEAD`. The existing
 [`fixtureUrl`](./tests/helper/FixtureUrl.ts) resolves their device-reachable host
