@@ -165,11 +165,11 @@ class PlayerModule : Module() {
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getSubtitleTrack") { shared: SharedPlayer ->
-                shared.player.subtitle?.toJson()
+                shared.player.subtitle?.takeUnless { it.id == "bitmovin-off" }?.toJson()
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getAvailableSubtitles") { shared: SharedPlayer ->
-                shared.player.availableSubtitles.map { it.toJson() }
+                shared.player.availableSubtitles.filterNot { it.id == "bitmovin-off" }.map { it.toJson() }
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("setSubtitleTrack") { shared: SharedPlayer, trackIdentifier: String? ->

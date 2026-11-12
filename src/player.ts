@@ -369,19 +369,15 @@ export class Player {
   /**
    * @returns The currently selected {@link SubtitleTrack}, or `null` when subtitles are disabled.
    */
-  getSubtitleTrack = async (): Promise<SubtitleTrack | null> => {
-    const track = await this.native.getSubtitleTrack();
-    return track?.identifier === 'bitmovin-off' ? null : track;
-  };
+  getSubtitleTrack = (): Promise<SubtitleTrack | null> =>
+    this.native.getSubtitleTrack();
 
   /**
    * @returns An array containing SubtitleTrack objects for all available subtitle tracks.
    * The SDK's Off placeholder is not included.
    */
-  getAvailableSubtitles = async (): Promise<SubtitleTrack[]> =>
-    (await this.native.getAvailableSubtitles()).filter(
-      (track) => track.identifier !== 'bitmovin-off'
-    );
+  getAvailableSubtitles = (): Promise<SubtitleTrack[]> =>
+    this.native.getAvailableSubtitles();
 
   /**
    * Sets the subtitle track to the ID specified by trackIdentifier. A list can be retrieved by calling getAvailableSubtitles.
