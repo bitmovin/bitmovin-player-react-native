@@ -168,9 +168,9 @@ export interface ImaAdvertisingConfig {
    * Invoked before the IMA SDK initializes, allowing mutation of the SDK settings.
    *
    * @param settings - Current IMA settings received from the native SDK.
-   * @returns The settings object to apply. If omitted, the (mutated) `settings` argument is used.
+   * @returns Settings to merge over the (mutated) `settings` argument. If omitted, that argument is used.
    */
-  beforeInitialization?: (settings: ImaSettings) => ImaSettings | void;
+  beforeInitialization?: (settings: ImaSettings) => Partial<ImaSettings> | void;
 }
 
 /**
