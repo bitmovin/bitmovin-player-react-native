@@ -62,8 +62,8 @@ function fixture(t) {
 
   const calls = [];
   const creations = [];
-  const callbacks = new WeakMap();
-  const create = (kind, config, callback) => {
+  const configurations = new WeakMap();
+  const create = (kind, config) => {
     const emitter = new EventEmitter();
     let playlist = [];
     const native = {
@@ -74,7 +74,7 @@ function fixture(t) {
       emit: (event, payload) => emitter.emit(event, payload),
       sdkSource: Symbol(kind),
       destroy: async () => {
-        callbacks.delete(native);
+        configurations.delete(native);
       },
       loadSource: async (source) => {
         playlist = [source];
@@ -121,25 +121,24 @@ function fixture(t) {
         calls.push({ native, skdUri });
       },
     };
-    if (callback) callbacks.set(native, { config, callback });
+    configurations.set(native, config);
     creations.push({ kind, native, config });
     return native;
   };
   const modules = {
     PlayerModule: {
-      create: async (...args) => create('player', args[0], args[2]),
+      create: async (config) => create('player', config),
       isGoogleImaEnabled: true,
     },
     SourceModule: {
-      create: async (...args) => create('source', args[0], args[2]),
+      create: async (config) => create('source', config),
     },
     FullscreenHandlerModule: {
-      create: (callback) => create('fullscreen', {}, callback),
+      create: (config) => create('fullscreen', config),
     },
     CustomMessageHandlerModule: {
-      create: (config, callback) => create('custom-message', config, callback),
+      create: (config) => create('custom-message', config),
     },
-    NativeCallbacksModule: {},
     OfflineModule: {},
     DebugModule: {},
   };
@@ -164,17 +163,14 @@ function fixture(t) {
     modules,
     calls,
     creations,
-    dispatch: (native, operation, args = []) =>
-      callbacks.get(native)?.callback(operation, args),
-    invoke: (native, field, args, mutating = false) => {
-      const entry = callbacks.get(native);
-      const token = field
-        .split('.')
-        .reduce((value, key) => value?.[key], entry?.config);
-      return (
-        entry?.callback(token, structuredClone(args), undefined, mutating) ??
-        null
+    invoke: (native, field, args) => {
+      const keys = field.split('.');
+      const method = keys.pop();
+      const owner = keys.reduce(
+        (value, key) => value?.[key],
+        configurations.get(native)
       );
+      return owner?.[method]?.(...args);
     },
   };
 }
@@ -186,7 +182,7 @@ test('Player aliases share one lazily created SDK player', async (t) => {
   assert.equal(creations.length, 0);
   assert.equal(await alias.getVolume(), 37);
   assert.equal(creations.length, 1);
-  assert.equal(Object.hasOwn(creations[0].config, 'nativeId'), false);
+  assert.equal(creations[0].config, player.config);
   assert.equal(player.config.nativeId, 'shared');
   assert.equal(player, alias);
   assert.equal(await controlFor(player), await controlFor(alias));
@@ -244,32 +240,20 @@ test('replacement aliases receive only their own destruction event', async (t) =
   }
 });
 
-test('advertising callbacks return decisions and update IMA settings', async (t) => {
-  const { Player, invoke } = fixture(t);
-  const player = new Player({
-    advertisingConfig: {
-      shouldLoadAdItem: () => false,
-      ima: {
-        beforeInitialization: (settings) => {
-          settings.language = 'de';
-          return { playerType: 'custom' };
-        },
-      },
-    },
-  });
-  const native = await controlFor(player);
+test('passes original advertising functions in the native configuration', async (t) => {
+  const { Player, creations } = fixture(t);
+  const advertisingConfig = {
+    shouldLoadAdItem: () => false,
+    shouldPlayAdBreak: () => true,
+    ima: { beforeInitialization: () => ({ language: 'de' }) },
+  };
+  const player = new Player({ advertisingConfig });
+  await controlFor(player);
+  assert.equal(creations[0].config, player.config);
+  assert.equal(creations[0].config.advertisingConfig, advertisingConfig);
   assert.equal(
-    invoke(native, 'advertisingConfig.shouldLoadAdItem', [{}]),
-    false
-  );
-  assert.deepEqual(
-    invoke(
-      native,
-      'advertisingConfig.ima.beforeInitialization',
-      [{ language: 'en' }],
-      true
-    ),
-    { language: 'de', playerType: 'custom' }
+    creations[0].config.advertisingConfig.ima.beforeInitialization,
+    advertisingConfig.ima.beforeInitialization
   );
   await player.destroy();
 });

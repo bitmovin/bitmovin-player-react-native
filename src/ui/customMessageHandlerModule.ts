@@ -2,8 +2,10 @@
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
-import type { CustomMessageHandler } from './customMessageHandler';
-import type { NativeCallback } from '../native/nativeCallbacks';
+import type {
+  CustomMessageHandler,
+  CustomMessageHandlerProps,
+} from './customMessageHandler';
 
 /** @internal */
 export type SharedCustomMessageHandler = SharedObject &
@@ -11,8 +13,7 @@ export type SharedCustomMessageHandler = SharedObject &
 
 declare class CustomMessageHandlerModule extends NativeModule {
   readonly SharedCustomMessageHandler: new (
-    config: { synchronousMessage: string; asynchronousMessage: string },
-    callback: NativeCallback
+    config: CustomMessageHandlerProps
   ) => SharedCustomMessageHandler;
 }
 const nativeModule = requireNativeModule<CustomMessageHandlerModule>(

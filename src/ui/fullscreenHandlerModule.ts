@@ -3,7 +3,6 @@ import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
 import type { FullscreenHandlerBridge } from './fullscreenHandlerBridge';
-import type { NativeCallback } from '../native/nativeCallbacks';
 
 /** @internal */
 export type SharedFullscreenHandler = SharedObject &
@@ -12,9 +11,10 @@ export type SharedFullscreenHandler = SharedObject &
   };
 
 declare class FullscreenHandlerModule extends NativeModule {
-  readonly SharedFullscreenHandler: new (
-    callback: NativeCallback
-  ) => SharedFullscreenHandler;
+  readonly SharedFullscreenHandler: new (config: {
+    enterFullscreen(): boolean;
+    exitFullscreen(): boolean;
+  }) => SharedFullscreenHandler;
 }
 const nativeModule = requireNativeModule<FullscreenHandlerModule>(
   'FullscreenHandlerModule'

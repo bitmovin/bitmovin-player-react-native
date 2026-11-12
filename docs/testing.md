@@ -12,7 +12,7 @@ JS unit tests run in Node without a simulator or emulator. They can run real
 TypeScript code while replacing the Expo boundary with a controlled mock. Use
 them for callback invocation, synchronous throws and rejected promises,
 fallback selection, callback selection, and handling completion failures.
-Assertions about arguments submitted to a mock prove the JS submission only.
+Assertions about original configuration objects and functions submitted to a mock prove JS submission only. Native invocation, DTO conversion, fallback and cancellation require native checks.
 
 An integration test checks cooperating components across a chosen boundary.
 A test using real JS modules and a mocked bridge may cover their JS integration,
@@ -57,23 +57,21 @@ Run commands from the repository root after the documented development setup.
 ### JS and repository tooling
 
 ```sh
-node --test scripts/test-network-preprocessing.js
 node --test scripts/test-shared-object-compatibility.js
 yarn test:plugin
 python3 -m unittest discover -s .github/scripts -p 'test_*.py'
 ```
 
-The [network preprocessing tests](../scripts/test-network-preprocessing.js)
-use Node's test runner, TypeScript transpilation, and a mocked Expo module.
-They need installed root dependencies, including TypeScript, but no native
-build or Player license. They exercise the real JS handlers for request and
-response callbacks, synchronous throws, rejected promises, absent callbacks, and
-completion failures. The fixtures use direct callback functions and per-call
-completion objects. They do not run a native decoder or completion object.
-
 The [SharedObject compatibility](../scripts/test-shared-object-compatibility.js)
-suite checks public TS aliases, Source reuse, callback forwarding, and failure
-propagation against controlled native doubles.
+suite checks public TS aliases, Source reuse, original configuration/function
+submission, callback adapters and failure propagation against controlled native
+doubles. Configuration functions now cross the native boundary directly; the
+old JS token dispatcher and its completion-error matrix no longer exist.
+
+The `network` Cavy suite covers real request/response preprocessing, callback
+failure fallbacks and destruction while a callback remains pending. Focused native
+checks must cover conversion, cancellation and late completion. Do not
+replace those checks with a JS mock of native scheduling or fallback logic.
 
 `yarn test:plugin` builds and tests the config plugin. The Python command tests
 repository automation. Neither establishes Player runtime behavior. There is

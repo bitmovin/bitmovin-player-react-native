@@ -1,4 +1,3 @@
-import type { NativeCallbacks } from '../native/nativeCallbacks';
 import type { EventSubscription } from 'expo-modules-core';
 import type {
   BitmovinNativeOfflineEventData,
@@ -13,7 +12,6 @@ import {
   SharedOfflineEvents,
 } from './offlineModule';
 import { legacyOfflineRegistry } from '../nativeInstanceRegistry';
-import { NativeConfigSerializer } from '../native/nativeConfigSerializer';
 
 const handleBitmovinNativeOfflineEvent = (
   data: BitmovinNativeOfflineEventData,
@@ -56,24 +54,14 @@ export class OfflineContentManager {
   private readonly listeners = new Set<OfflineContentManagerListener>();
   private subscription?: EventSubscription;
 
-  // Native forwarding holds the dispatcher weakly; this field owns configured callbacks.
-  declare private readonly callbacks?: NativeCallbacks;
-
   constructor(readonly config: OfflineContentConfig) {
     const alias = legacyOfflineRegistry.get(config.nativeId);
     if (alias) return alias;
-    const serializer = new NativeConfigSerializer();
-    const converted = serializer.serialize({
-      identifier: config.identifier,
-      sourceConfig: config.sourceConfig,
-    });
     const events = new SharedOfflineEvents();
     this.native = new SharedOfflineContentManager(
-      converted,
-      events,
-      serializer.dispatcher.callback
+      { identifier: config.identifier, sourceConfig: config.sourceConfig },
+      events
     );
-    this.callbacks = serializer.dispatcher;
     this.nativeId = legacyOfflineRegistry.register(config.nativeId, this);
     this.observeEvents(events);
   }

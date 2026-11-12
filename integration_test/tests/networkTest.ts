@@ -3,6 +3,7 @@ import {
   HttpRequest,
   HttpRequestType,
   HttpResponse,
+  NetworkConfig,
 } from 'bitmovin-player-react-native';
 import {
   callPlayer,
@@ -51,52 +52,94 @@ export default (spec: TestScope) => {
         const requests: { type: HttpRequestType; request: HttpRequest }[] = [];
         const responses: { type: HttpRequestType; response: HttpResponse }[] =
           [];
+        const networkConfig: NetworkConfig = {
+          preprocessHttpRequest: async (_type, request) => request,
+          preprocessHttpResponse: async (_type, response) => response,
+        };
 
-        await startPlayerTest(
-          {
-            networkConfig: {
-              preprocessHttpRequest: async (type, request) => {
-                requests.push({ type, request });
-                return request;
-              },
-              preprocessHttpResponse: async (type, response) => {
-                responses.push({ type, response });
-                return response;
-              },
-            },
-          },
-          async () => {
-            // The manifest has to pass through both callbacks before the player can become ready.
-            await callPlayerAndExpectEvent(async (player) => {
-              await player.load(Sources.artOfMotionHls);
-            }, EventType.Ready);
-
-            expect(
-              requests.length,
-              'preprocessHttpRequest invocations'
-            ).toBeGreaterThan(0);
-            expect(
-              responses.length,
-              'preprocessHttpResponse invocations'
-            ).toBeGreaterThan(0);
-            expect(
-              requests.some(
-                ({ type }) => type === HttpRequestType.ManifestHlsMaster
-              ),
-              'preprocessHttpRequest saw the HLS master manifest'
-            ).toBe(true);
-            expect(
-              responses.some(
-                ({ type }) => type === HttpRequestType.ManifestHlsMaster
-              ),
-              'preprocessHttpResponse saw the HLS master manifest'
-            ).toBe(true);
-            expect(requests[0]?.request.url, 'preprocessHttpRequest URL').toBe(
-              Sources.artOfMotionHls.url
+        await startPlayerTest({ networkConfig }, async () => {
+          networkConfig.preprocessHttpRequest = async function (type, request) {
+            expect(this === networkConfig, 'request callback receiver').toBe(
+              true
             );
-          }
-        );
+            requests.push({ type, request });
+            return request;
+          };
+          networkConfig.preprocessHttpResponse = async function (
+            type,
+            response
+          ) {
+            expect(this === networkConfig, 'response callback receiver').toBe(
+              true
+            );
+            responses.push({ type, response });
+            return response;
+          };
+          // The manifest has to pass through both callbacks before the player can become ready.
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.load(Sources.artOfMotionHls);
+          }, EventType.Ready);
+
+          expect(
+            requests.length,
+            'preprocessHttpRequest invocations'
+          ).toBeGreaterThan(0);
+          expect(
+            responses.length,
+            'preprocessHttpResponse invocations'
+          ).toBeGreaterThan(0);
+          expect(
+            requests.some(
+              ({ type }) => type === HttpRequestType.ManifestHlsMaster
+            ),
+            'preprocessHttpRequest saw the HLS master manifest'
+          ).toBe(true);
+          expect(
+            responses.some(
+              ({ type }) => type === HttpRequestType.ManifestHlsMaster
+            ),
+            'preprocessHttpResponse saw the HLS master manifest'
+          ).toBe(true);
+          expect(requests[0]?.request.url, 'preprocessHttpRequest URL').toBe(
+            Sources.artOfMotionHls.url
+          );
+        });
       }
     );
+    for (const failure of ['throw', 'reject']) {
+      spec.it(
+        `loads using the original HTTP values when preprocessing callbacks ${failure}`,
+        async () => {
+          let requests = 0;
+          let responses = 0;
+          const fail = () => {
+            if (failure === 'throw') throw new Error('preprocessing failed');
+            return Promise.reject(new Error('preprocessing rejected'));
+          };
+          await startPlayerTest(
+            {
+              networkConfig: {
+                preprocessHttpRequest: () => {
+                  requests++;
+                  return fail();
+                },
+                preprocessHttpResponse: () => {
+                  responses++;
+                  return fail();
+                },
+              },
+            },
+            async () => {
+              await callPlayerAndExpectEvent(
+                (player) => player.load(Sources.artOfMotionHls),
+                EventType.Ready
+              );
+              expect(requests > 0, 'request fallback callback').toBe(true);
+              expect(responses > 0, 'response fallback callback').toBe(true);
+            }
+          );
+        }
+      );
+    }
   });
 };

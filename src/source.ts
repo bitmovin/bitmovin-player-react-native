@@ -1,4 +1,3 @@
-import type { NativeCallbacks } from './native/nativeCallbacks';
 import type { EventSubscription } from 'expo-modules-core';
 import type { SourceEventMap, EventCallbacks } from './native/eventMap';
 import type { CmcdConfig } from './cmcdConfig';
@@ -8,7 +7,6 @@ import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
 import { SharedSource } from './modules/sourceModule';
-import { NativeConfigSerializer } from './native/nativeConfigSerializer';
 
 /**
  * Types of media that can be handled by the player.
@@ -153,9 +151,6 @@ export class Source {
   readonly native: SharedSource;
   readonly config?: SourceConfig;
 
-  // Native forwarding holds the dispatcher weakly; this field owns configured callbacks.
-  declare private readonly callbacks?: NativeCallbacks;
-
   constructor(config: SourceConfig);
   constructor(config?: SourceConfig, native?: SharedSource) {
     if (native) {
@@ -163,16 +158,10 @@ export class Source {
       this.config = native.configSnapshot;
     } else {
       if (!config) throw new Error('SourceConfig is required');
-      const callbacks = new NativeConfigSerializer();
       this.native = Object.assign(
-        new SharedSource(
-          callbacks.serialize(config),
-          callbacks.serialize(config.analyticsSourceMetadata),
-          callbacks.dispatcher.callback
-        ),
+        new SharedSource(config, config.analyticsSourceMetadata),
         { source: this }
       );
-      this.callbacks = callbacks.dispatcher;
       this.config = config;
     }
     this.drm = new SourceDrmApi(this);

@@ -2,9 +2,9 @@
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
-import type { NativeCallback } from '../native/nativeCallbacks';
 import type { NativeMethods } from '../native/nativeMethods';
 import type { Player } from '../player';
+import type { PlayerConfig } from '../playerConfig';
 import type { PlayerEventMap, EventCallbacks } from '../native/eventMap';
 import type { SharedSource } from './sourceModule';
 import type { SharedOfflineContentManager } from '../offline/offlineModule';
@@ -61,9 +61,8 @@ export type SharedPlaylistApi = SharedObject &
 declare class PlayerModule extends NativeModule {
   readonly isGoogleImaEnabled: boolean;
   readonly SharedPlayer: new (
-    config: Record<string, any>,
-    analytics: Record<string, any> | undefined,
-    callback: NativeCallback
+    config: PlayerConfig,
+    analytics: PlayerConfig['analyticsConfig']
   ) => SharedPlayer;
   readonly SharedBufferApi: new (player: SharedPlayer) => SharedBufferApi;
   readonly SharedAnalyticsApi: new (player: SharedPlayer) => SharedAnalyticsApi;

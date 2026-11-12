@@ -1,4 +1,3 @@
-import type { NativeCallbacks } from './native/nativeCallbacks';
 import type { EventSubscription } from 'expo-modules-core';
 import type { PlayerEventMap, EventCallbacks } from './native/eventMap';
 import { Platform } from 'react-native';
@@ -16,7 +15,6 @@ import type { AdItem } from './advertising';
 import { BufferApi } from './bufferApi';
 import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
-import { NativeConfigSerializer } from './native/nativeConfigSerializer';
 import { PlaylistApi } from './playlist';
 import type { PlaylistConfig } from './playlist';
 
@@ -36,23 +34,18 @@ export class Player {
   // Retains offline configuration callbacks while its SDK source is loaded.
   declare private offline?: OfflineContentManager;
 
-  // Native forwarding holds the dispatcher weakly; this field owns configured callbacks.
-  declare private readonly callbacks?: NativeCallbacks;
+  // The SDK captures these functions; retain them if the mutable config later replaces them.
+  declare private readonly advertisingCallbacks: readonly unknown[];
 
   constructor(readonly config: PlayerConfig = {}) {
     const alias = legacyPlayerRegistry.get(config.nativeId);
     if (alias) return alias;
-    const callbacks = new NativeConfigSerializer();
-    const converted = callbacks.serialize(config, {
-      capture: 'advertisingConfig',
-    });
-    delete converted.nativeId;
-    this.native = new SharedPlayer(
-      converted,
-      callbacks.serialize(config.analyticsConfig),
-      callbacks.dispatcher.callback
-    );
-    this.callbacks = callbacks.dispatcher;
+    this.advertisingCallbacks = [
+      config.advertisingConfig?.shouldLoadAdItem,
+      config.advertisingConfig?.shouldPlayAdBreak,
+      config.advertisingConfig?.ima?.beforeInitialization,
+    ];
+    this.native = new SharedPlayer(config, config.analyticsConfig);
     this.nativeId = legacyPlayerRegistry.register(config.nativeId, this);
     this.buffer = new BufferApi(this);
     this.mediaControls = new MediaControlsApi(this);

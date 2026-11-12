@@ -27,7 +27,7 @@ function fixture(t) {
       rootDir: source,
       outDir: output,
       module: ts.ModuleKind.CommonJS,
-      target: ts.ScriptTarget.ES2020,
+      target: ts.ScriptTarget.ESNext,
       noCheck: true,
       types: [],
     }
@@ -36,24 +36,19 @@ function fixture(t) {
   const expo = path.join(output, 'node_modules/expo-modules-core');
   fs.mkdirSync(expo, { recursive: true });
   fs.writeFileSync(path.join(expo, 'index.js'), 'module.exports = {};');
-  const callbacks = new WeakMap();
+  const configurations = new WeakMap();
   const transport = {
-    create(config, callback) {
-      if (callback == null) {
-        callback = config;
-        config = undefined;
-      }
+    create(config) {
       const native = {
         setIsFullscreenActive: async () => {},
         sendMessage: async () => {},
-        destroy: async () => callbacks.delete(native),
+        destroy: async () => configurations.delete(native),
       };
-      callbacks.set(native, { config, callback });
+      configurations.set(native, config);
       return native;
     },
   };
   const modules = {
-    NativeCallbacksModule: {},
     FullscreenHandlerModule: transport,
     CustomMessageHandlerModule: transport,
   };
@@ -65,10 +60,10 @@ function fixture(t) {
     ).FullscreenHandlerBridge,
     CustomMessageHandler: require(path.join(output, 'ui/customMessageHandler'))
       .CustomMessageHandler,
-    dispatch: (native, operation, args = []) =>
-      callbacks
-        .get(native)
-        .callback(callbacks.get(native).config?.[operation] ?? operation, args),
+    dispatch: (native, operation, args = []) => {
+      const config = configurations.get(native);
+      return config[operation](...args);
+    },
   };
 }
 
@@ -100,10 +95,10 @@ test('custom messages preserve synchronous replies and async delivery', async (t
   });
   const native = await controlFor(handler);
   assert.equal(
-    dispatch(native, 'synchronousMessage', ['get', 'value']),
+    dispatch(native, 'onReceivedSynchronousMessage', ['get', 'value']),
     'get:value'
   );
-  dispatch(native, 'asynchronousMessage', ['notify', 'value']);
+  dispatch(native, 'onReceivedAsynchronousMessage', ['notify', 'value']);
   assert.deepEqual(received, [['notify', 'value']]);
   await handler.destroy();
 });

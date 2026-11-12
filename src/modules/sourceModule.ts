@@ -2,7 +2,6 @@
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
-import type { NativeCallback } from '../native/nativeCallbacks';
 import type { NativeMethods } from '../native/nativeMethods';
 import type { Source, SourceConfig } from '../source';
 import type { SourceEventMap, EventCallbacks } from '../native/eventMap';
@@ -17,9 +16,8 @@ export type SharedSource = SharedObject<EventCallbacks<SourceEventMap>> &
 
 declare class SourceModule extends NativeModule {
   readonly SharedSource: new (
-    config: Record<string, any>,
-    analytics: Record<string, any> | undefined,
-    callback: NativeCallback
+    config: SourceConfig,
+    analytics: SourceConfig['analyticsSourceMetadata']
   ) => SharedSource;
 }
 const nativeModule = requireNativeModule<SourceModule>('SourceModule');

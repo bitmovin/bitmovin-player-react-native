@@ -2,8 +2,8 @@
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
-import type { NativeCallback } from '../native/nativeCallbacks';
 import type { OfflineContentManager } from './offlineContentManager';
+import type { OfflineContentConfig } from './offlineContentConfig';
 import type { NativeMethods } from '../native/nativeMethods';
 import type { BitmovinNativeOfflineEventData } from './offlineContentManagerListener';
 
@@ -25,9 +25,8 @@ export type SharedOfflineContentManager = SharedObject &
 declare class OfflineModule extends NativeModule {
   readonly SharedOfflineEvents: new () => SharedOfflineEvents;
   readonly SharedOfflineContentManager: new (
-    config: { identifier: string; sourceConfig: Record<string, any> },
-    events: SharedOfflineEvents,
-    callback: NativeCallback
+    config: Pick<OfflineContentConfig, 'identifier' | 'sourceConfig'>,
+    events: SharedOfflineEvents
   ) => SharedOfflineContentManager;
 }
 const nativeModule = requireNativeModule<OfflineModule>('OfflineModule');
