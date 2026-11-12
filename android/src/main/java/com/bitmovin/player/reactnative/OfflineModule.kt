@@ -7,6 +7,7 @@ import com.bitmovin.player.reactnative.offline.SharedOfflineContentManager
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.jni.JavaScriptObject
+import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
@@ -42,7 +43,7 @@ class OfflineModule : Module() {
         Class(SharedOfflineContentManager::class) {
             Property("events") { owner: SharedOfflineContentManager -> owner.events }
 
-            Constructor { config: JavaScriptObject?, events: SharedOfflineEvents -> create(config, events) }
+            Constructor { config: JavaScriptValue?, events: SharedOfflineEvents -> create(config?.getObject(), events) }
 
             AsyncFunction("state") { owner: SharedOfflineContentManager -> owner.state.name }.runOnQueue(Queues.MAIN)
             AsyncFunction("getOptions", SharedOfflineContentManager::getOptions).runOnQueue(Queues.MAIN)

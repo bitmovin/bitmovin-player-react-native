@@ -17,7 +17,7 @@ import com.bitmovin.player.reactnative.converter.toTimelineReferencePoint
 import com.bitmovin.player.reactnative.offline.SharedOfflineContentManager
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.functions.Queues
-import expo.modules.kotlin.jni.JavaScriptObject
+import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
@@ -28,8 +28,14 @@ class PlayerModule : Module() {
         Name("PlayerModule")
         Constant("isGoogleImaEnabled") { IS_GOOGLE_IMA_ENABLED }
         Class(SharedPlayer::class) {
-            Constructor { config: JavaScriptObject?, analytics: Map<String, Any>? ->
-                SharedPlayer.create(appContext, config, analytics, this@PlayerModule, mediaSessionPlaybackManager)
+            Constructor { config: JavaScriptValue?, analytics: Map<String, Any>? ->
+                SharedPlayer.create(
+                    appContext,
+                    config?.getObject(),
+                    analytics,
+                    this@PlayerModule,
+                    mediaSessionPlaybackManager,
+                )
             }
             AsyncFunction("loadPlaylist") { shared: SharedPlayer, sources: List<SharedSource>,
                 options: Map<String, Any>?, ->

@@ -2,7 +2,7 @@ package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.reactnative.converter.toJson
 import expo.modules.kotlin.functions.Queues
-import expo.modules.kotlin.jni.JavaScriptObject
+import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
@@ -10,8 +10,8 @@ class SourceModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("SourceModule")
         Class(SharedSource::class) {
-            Constructor { config: JavaScriptObject?, analytics: Map<String, Any>? ->
-                SharedSource.create(appContext, config, analytics, this@SourceModule)
+            Constructor { config: JavaScriptValue?, analytics: Map<String, Any>? ->
+                SharedSource.create(appContext, config?.getObject(), analytics, this@SourceModule)
             }
             Property("configSnapshot") { owner: SharedSource -> owner.configSnapshot }
             AsyncFunction("isAttachedToPlayer") { shared: SharedSource ->
