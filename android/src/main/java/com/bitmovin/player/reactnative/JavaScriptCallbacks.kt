@@ -28,7 +28,7 @@ internal class JavaScriptCallbacks(private val context: AppContext, private val 
     )
 
     // The bridge only adapts SDK argument/return conventions; it performs no function lookup or dispatch.
-    private val invoke = context.runtime.eval(
+    private val bridge = context.runtime.eval(
         """(function(args, mutating, undefinedIndex, awaitPromise) {
           if (undefinedIndex != null && args[undefinedIndex] == null) args[undefinedIndex] = undefined;
           const value = this.callback.apply(this.receiver, args);
@@ -85,7 +85,7 @@ internal class JavaScriptCallbacks(private val context: AppContext, private val 
         if (context.reactContext?.isOnJSQueueThread == true) {
             if (!scope.isActive) return null
             val holder = callback.holder(context) ?: return null
-            return invoke(args, mutating, undefinedIndex, false, thisValue = holder, appContext = context)
+            return bridge(args, mutating, undefinedIndex, false, thisValue = holder, appContext = context)
                 .toCallbackValue()
         }
         return runBlocking {
@@ -101,7 +101,7 @@ internal class JavaScriptCallbacks(private val context: AppContext, private val 
         awaitPromise: Boolean,
     ): Any? {
         val operation = scope.async {
-            suspendCancellableCoroutine { continuation ->
+            suspendCancellableCoroutine<Any?> { continuation ->
                 val waiting = AtomicReference(continuation)
                 continuation.invokeOnCancellation { waiting.set(null) }
                 try {
@@ -112,7 +112,7 @@ internal class JavaScriptCallbacks(private val context: AppContext, private val 
                                 waiting.getAndSet(null)?.resume(null)
                                 return@schedule
                             }
-                            val reply = invoke(
+                            val reply = bridge(
                                 args,
                                 mutating,
                                 undefinedIndex,
