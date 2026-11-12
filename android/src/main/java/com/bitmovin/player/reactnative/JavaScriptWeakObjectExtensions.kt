@@ -6,6 +6,7 @@ import expo.modules.kotlin.jni.JavaScriptObject
 import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.jni.JavaScriptWeakObject
 import expo.modules.kotlin.objects.Object
+import expo.modules.kotlin.types.obtainTypeConverter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -50,6 +51,17 @@ internal fun <T> JavaScriptWeakObject.callBlocking(
             }
         }
     }
+}
+
+/** Converts a returned native value through Expo before applying the SDK-specific mapping on JS. */
+@JvmName("callBlockingTyped")
+internal inline fun <reified Input : Any, Output> JavaScriptWeakObject.callBlocking(
+    appContext: AppContext,
+    vararg arguments: Any?,
+    timeout: Duration = 250.milliseconds,
+    crossinline convert: (Input) -> Output,
+): Output? = callBlocking<Output?>(appContext, *arguments, timeout = timeout) { value ->
+    obtainTypeConverter<Input>().convert(value.toNativeValue(), appContext, forceConversion = true)?.let { convert(it) }
 }
 
 /** Awaits only the returned value/Promise; cancellation drops the per-call continuation and late replies. */
@@ -100,6 +112,16 @@ internal suspend fun <T> JavaScriptWeakObject.callSuspending(
     } catch (error: Exception) {
         fail(error)
     }
+}
+
+/** Converts a fulfilled Promise or immediate result through Expo, without changing cancellation behavior. */
+@JvmName("callSuspendingTyped")
+internal suspend inline fun <reified Input : Any, Output> JavaScriptWeakObject.callSuspending(
+    appContext: AppContext,
+    vararg arguments: Any?,
+    crossinline convert: (Input) -> Output,
+): Output? = callSuspending<Output?>(appContext, *arguments) { value ->
+    obtainTypeConverter<Input>().convert(value.toNativeValue(), appContext, forceConversion = true)?.let { convert(it) }
 }
 
 /** Recover a callable wrapper transiently: Expo exposes getFunction on values, not on weak object locks. */
