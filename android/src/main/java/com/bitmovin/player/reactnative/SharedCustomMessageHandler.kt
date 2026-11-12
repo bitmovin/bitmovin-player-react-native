@@ -25,7 +25,10 @@ class SharedCustomMessageHandler(appContext: AppContext, config: JavaScriptObjec
     @JavascriptInterface
     fun sendAsynchronous(name: String, data: String?) {
         val arguments = if (data == null) arrayOf(name) else arrayOf(name, data)
-        context.runtime.schedule { asynchronousMessage?.callBlocking(context, *arguments) { Unit } }
+        if (asynchronousMessage == null) return
+        runCatching {
+            context.runtime.schedule { asynchronousMessage?.callBlocking(context, *arguments) { Unit } }
+        }
     }
     fun destroy() {
         synchronousMessage = null
