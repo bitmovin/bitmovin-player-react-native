@@ -20,30 +20,40 @@ export default (spec: TestScope) => {
       'destroys a Player with an unresolved preprocessing callback',
       async () => {
         let invoked!: () => void;
-        const pendingRequest = new Promise<void>((resolve) => {
+        let deadline: ReturnType<typeof setTimeout> | undefined;
+        const pendingRequest = new Promise<void>((resolve, reject) => {
           invoked = resolve;
+          deadline = setTimeout(
+            () => reject(new Error('Native request callback was not invoked')),
+            10000
+          );
         });
-        await startPlayerTest(
-          {
-            networkConfig: {
-              preprocessHttpRequest: () => {
-                invoked();
-                return new Promise<HttpRequest>(() => {});
+        void pendingRequest.catch(() => {});
+        try {
+          await startPlayerTest(
+            {
+              networkConfig: {
+                preprocessHttpRequest: () => {
+                  invoked();
+                  return new Promise<HttpRequest>(() => {});
+                },
               },
             },
-          },
-          async () => {
-            await callPlayer(async (player) => {
-              await player.load(Sources.artOfMotionHls);
-              await pendingRequest;
-              await player.destroy();
-              expect(
-                player.isDestroyed,
-                'Player destroyed while callback is pending'
-              ).toBe(true);
-            });
-          }
-        );
+            async () => {
+              await callPlayer(async (player) => {
+                await player.load(Sources.artOfMotionHls);
+                await pendingRequest;
+                await player.destroy();
+                expect(
+                  player.isDestroyed,
+                  'Player destroyed while callback is pending'
+                ).toBe(true);
+              });
+            }
+          );
+        } finally {
+          clearTimeout(deadline);
+        }
       }
     );
     spec.it(
