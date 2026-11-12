@@ -16,18 +16,16 @@ class SharedCustomMessageHandler(
     private val options = callbacks.snapshot(config)!!
     private val synchronousMessage = options["onReceivedSynchronousMessage"] as? JavaScriptCallback
     private val asynchronousMessage = options["onReceivedAsynchronousMessage"] as? JavaScriptCallback
-    val customMessageHandler = CustomMessageHandler(
-        object : Any() {
-            @JavascriptInterface
-            fun sendSynchronous(name: String, data: String?): String? =
-                synchronousMessage?.blockingCall(listOf(name, data), undefinedIndex = 1) as? String
+    val customMessageHandler = CustomMessageHandler(this)
 
-            @JavascriptInterface
-            fun sendAsynchronous(name: String, data: String?) {
-                asynchronousMessage?.emit(listOf(name, data), undefinedIndex = 1)
-            }
-        },
-    )
+    @JavascriptInterface
+    fun sendSynchronous(name: String, data: String?): String? =
+        synchronousMessage?.blockingCall(listOf(name, data), undefinedIndex = 1) as? String
+
+    @JavascriptInterface
+    fun sendAsynchronous(name: String, data: String?) {
+        asynchronousMessage?.emit(listOf(name, data), undefinedIndex = 1)
+    }
     fun destroy() = callbacks.close()
     override fun sharedObjectDidRelease() = destroy()
 }
