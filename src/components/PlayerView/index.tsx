@@ -128,8 +128,14 @@ export function PlayerView({
     // Method arguments cross Expo directly; public objects never become Fabric host props.
     void player
       .initialize()
-      .then(() =>
-        target.attachBindings(
+      .then(() => {
+        if (
+          cancelled ||
+          nativeView.current !== target ||
+          currentPlayer.current !== player
+        )
+          return;
+        return target.attachBindings(
           nativePlayer,
           fullscreenHandler && fullscreenBridge.current
             ? getNativeFullscreen(fullscreenBridge.current)
@@ -138,8 +144,8 @@ export function PlayerView({
             ? getNativeCustomMessage(customMessageHandler)
             : undefined,
           nativePlayerViewConfig
-        )
-      )
+        );
+      })
       .then(
         () => {
           if (
