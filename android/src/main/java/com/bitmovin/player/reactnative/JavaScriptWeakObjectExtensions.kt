@@ -12,36 +12,44 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 /** Calls an immediate SDK callback on JS, bounding cross-thread waiting without blocking the JS thread. */
 internal fun <T> JavaScriptWeakObject.callBlocking(
     appContext: AppContext,
     vararg arguments: Any?,
+    timeout: Duration = 250.milliseconds,
     convert: (JavaScriptValue) -> T,
 ): T? {
     fun call(): T? {
         val value = invokeOnJs(appContext, arguments) ?: return null
         return convert(value)
     }
-    return runCatching {
-        if (appContext.runtime.reactContext?.isOnJSQueueThread == true) {
-            call()
-        } else {
-            runBlocking {
-                withTimeoutOrNull(250) {
-                    suspendCancellableCoroutine<T?> { continuation ->
-                        try {
-                            appContext.runtime.schedule {
-                                if (continuation.isActive) continuation.resume(runCatching { call() }.getOrNull())
+    return if (appContext.runtime.reactContext?.isOnJSQueueThread == true) {
+        call()
+    } else {
+        runBlocking {
+            withTimeoutOrNull(timeout) {
+                suspendCancellableCoroutine<T?> { continuation ->
+                    try {
+                        appContext.runtime.schedule {
+                            if (continuation.isActive) {
+                                try {
+                                    continuation.resume(call())
+                                } catch (error: Exception) {
+                                    continuation.resumeWithException(error)
+                                }
                             }
-                        } catch (_: Exception) {
-                            continuation.resume(null)
                         }
+                    } catch (error: Exception) {
+                        continuation.resumeWithException(error)
                     }
                 }
             }
         }
-    }.getOrNull()
+    }
 }
 
 /** Awaits only the returned value/Promise; cancellation drops the per-call continuation and late replies. */
