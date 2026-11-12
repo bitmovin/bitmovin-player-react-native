@@ -1,5 +1,5 @@
-import { NativeAnalytics } from '../modules/playerModule';
-import { type Player, getNativePlayer } from '../player';
+import { NativeAnalyticsApi } from '../modules/playerModule';
+import type { Player } from '../player';
 import type { CustomDataConfig } from './config';
 
 /**
@@ -7,11 +7,14 @@ import type { CustomDataConfig } from './config';
  * Use the `Player.analytics` property to access a `Player`'s `AnalyticsApi`.
  */
 export class AnalyticsApi {
-  private readonly native: InternalAnalyticsApi;
+  private readonly native: NativeAnalyticsApi;
+  // Retain the configured Player while this runtime helper is reachable.
+  declare private readonly player: Player;
 
   /** @internal */
-  constructor(owner: Player) {
-    this.native = new InternalAnalyticsApi(this, owner);
+  constructor(player: Player) {
+    this.player = player;
+    this.native = new NativeAnalyticsApi(player.native);
   }
 
   /**
@@ -27,14 +30,4 @@ export class AnalyticsApi {
    * @returns The current user id.
    */
   getUserId = (): Promise<string | null> => this.native.getUserId();
-}
-
-/** Raw Expo peer retains the public API and its configured Player. @internal */
-class InternalAnalyticsApi extends NativeAnalytics {
-  constructor(
-    readonly analytics: AnalyticsApi,
-    readonly player: Player
-  ) {
-    super(getNativePlayer(player));
-  }
 }

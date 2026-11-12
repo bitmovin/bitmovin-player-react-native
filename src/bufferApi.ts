@@ -1,5 +1,5 @@
-import { NativeBuffer } from './modules/playerModule';
-import { type Player, getNativePlayer } from './player';
+import { NativeBufferApi } from './modules/playerModule';
+import type { Player } from './player';
 
 /**
  * Represents different types of media.
@@ -70,11 +70,14 @@ export interface BufferLevels {
  * Accessible through {@link Player.buffer}.
  */
 export class BufferApi {
-  private readonly native: InternalBufferApi;
+  private readonly native: NativeBufferApi;
+  // Retain the configured Player while this runtime helper is reachable.
+  declare private readonly player: Player;
 
   /** @internal */
-  constructor(owner: Player) {
-    this.native = new InternalBufferApi(this, owner);
+  constructor(player: Player) {
+    this.player = player;
+    this.native = new NativeBufferApi(player.native);
   }
 
   /**
@@ -93,14 +96,4 @@ export class BufferApi {
    */
   setTargetLevel = (type: BufferType, value: number): Promise<void> =>
     this.native.setTargetLevel(type, value);
-}
-
-/** Raw Expo peer retains the public API and its configured Player. @internal */
-class InternalBufferApi extends NativeBuffer {
-  constructor(
-    readonly buffer: BufferApi,
-    readonly player: Player
-  ) {
-    super(getNativePlayer(player));
-  }
 }

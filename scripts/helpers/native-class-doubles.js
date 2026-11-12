@@ -47,6 +47,9 @@ function nativeClass(factory, methods, { synchronous = false } = {}) {
     emit(event, payload) {
       peers.get(this).emitter.emit(event, payload);
     }
+    removeListener(event, listener) {
+      peers.get(this).emitter.off(event, listener);
+    }
     get sdkSource() {
       return peers.get(this).control?.sdkSource;
     }

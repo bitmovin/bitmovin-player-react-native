@@ -1,16 +1,17 @@
-import { NativeCustomMessage } from './customMessageHandlerModule';
+import type { NativeCallbacks } from '../native/nativeCallbacks';
+import { NativeCustomMessageHandler } from './customMessageHandlerModule';
 import { NativeConfigSerializer } from '../native/nativeConfigSerializer';
 
 export interface CustomMessageHandlerProps {
   /**
-   * A function that will be called when the Player UI sends a synchronous message to the integration.
+   * A function that will be called when the Player UI sends a synchronous message to the native.
    */
   onReceivedSynchronousMessage: (
     message: string,
     data: string | undefined
   ) => string | undefined;
   /**
-   * A function that will be called when the Player UI sends an asynchronous message to the integration.
+   * A function that will be called when the Player UI sends an asynchronous message to the native.
    */
   onReceivedAsynchronousMessage: (
     message: string,
@@ -20,10 +21,13 @@ export interface CustomMessageHandlerProps {
 
 /**
  * Provides two-way communication between the Player UI and the integration.
- * @platform Android, iOS
  */
 export class CustomMessageHandler {
-  private readonly native: InternalCustomMessage;
+  /** @internal Native peer used by the view and runtime API adapters. */
+  readonly native: NativeCustomMessageHandler;
+  // Native forwarding holds the dispatcher weakly; this field owns configured callbacks.
+  declare private readonly callbacks?: NativeCallbacks;
+
   constructor(private readonly options: CustomMessageHandlerProps) {
     const serializer = new NativeConfigSerializer();
     const config = serializer.serialize({
@@ -32,12 +36,11 @@ export class CustomMessageHandler {
       asynchronousMessage: (message: string, data: string | null) =>
         options.onReceivedAsynchronousMessage(message, data ?? undefined),
     });
-    this.native = new InternalCustomMessage(
-      this,
+    this.native = new NativeCustomMessageHandler(
       config,
       serializer.dispatcher.callback
     );
-    serializer.dispatcher.retain(this);
+    this.callbacks = serializer.dispatcher;
   }
   /** Releases the configured message callbacks. */
   destroy = (): Promise<void> => this.native.destroy();
@@ -56,21 +59,4 @@ export class CustomMessageHandler {
   /** Sends a message to the Player UI. Resolution acknowledges native submission. */
   sendMessage = (message: string, data?: string): Promise<void> =>
     this.native.sendMessage(message, data);
-}
-
-/** @internal */
-class InternalCustomMessage extends NativeCustomMessage {
-  constructor(
-    readonly handler: CustomMessageHandler,
-    ...args: ConstructorParameters<typeof NativeCustomMessage>
-  ) {
-    super(...args);
-  }
-}
-
-/** @internal */
-export function getNativeCustomMessage(
-  handler: CustomMessageHandler
-): NativeCustomMessage {
-  return handler['native'];
 }

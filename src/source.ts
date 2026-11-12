@@ -1,6 +1,6 @@
+import type { NativeCallbacks } from './native/nativeCallbacks';
 import type { EventSubscription } from 'expo-modules-core';
 import type { SourceEvents } from './events';
-import { subscribeToNativeEvent } from './nativeEvents';
 import type { CmcdConfig } from './cmcdConfig';
 import type { DrmConfig } from './drm';
 import { SourceDrmApi } from './drm/sourceDrmApi';
@@ -149,8 +149,12 @@ export interface SourceConfig {
  * Represents audio and video content that can be loaded into a player.
  */
 export class Source {
-  private readonly native: InternalSource;
+  /** @internal Native peer used by Player, playlist and DRM operations. */
+  readonly native: NativeSource;
   readonly config?: SourceConfig;
+
+  // Native forwarding holds the dispatcher weakly; this field owns configured callbacks.
+  declare private readonly callbacks?: NativeCallbacks;
 
   constructor(config: SourceConfig);
   constructor(config?: SourceConfig, native?: NativeSource) {
@@ -166,7 +170,7 @@ export class Source {
         callbacks.serialize(config.analyticsSourceMetadata),
         callbacks.dispatcher.callback
       );
-      callbacks.dispatcher.retain(this);
+      this.callbacks = callbacks.dispatcher;
       this.config = config;
     }
     this.drm = new SourceDrmApi(this);
@@ -195,13 +199,18 @@ export class Source {
    * `await source.on('sourceLoaded', listener)`.
    * Use `event` to listen to all supported native object events.
    * Await registration before triggering events. Call `remove()` on the resolved
-   * subscription to stop listening.
+   * subscription or use off(event, listener) to stop listening.
    */
   on = async <Name extends keyof SourceEvents>(
     event: Name,
     listener: SourceEvents[Name]
-  ): Promise<EventSubscription> =>
-    subscribeToNativeEvent(this.native, event, listener);
+  ): Promise<EventSubscription> => this.native.addListener(event, listener);
+
+  /** Stops a listener previously registered with on for this event. */
+  off = <Name extends keyof SourceEvents>(
+    event: Name,
+    listener: SourceEvents[Name]
+  ): void => this.native.removeListener(event, listener);
 
   /**
    * The duration of the source in seconds if it’s a VoD or `INFINITY` if it’s a live stream.
@@ -261,9 +270,4 @@ class InternalSource extends NativeSource {
   ) {
     super(...args);
   }
-}
-
-/** @internal */
-export function getNativeSource(source: Source): NativeSource {
-  return source['native'];
 }

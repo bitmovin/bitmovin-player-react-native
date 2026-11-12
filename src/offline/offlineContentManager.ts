@@ -1,3 +1,4 @@
+import type { NativeCallbacks } from '../native/nativeCallbacks';
 import type { EventSubscription } from 'expo-modules-core';
 import type {
   BitmovinNativeOfflineEventData,
@@ -7,7 +8,10 @@ import { OfflineEventType } from './offlineContentManagerListener';
 import type { OfflineContentConfig } from './offlineContentConfig';
 import type { OfflineDownloadRequest } from './offlineDownloadRequest';
 import type { OfflineState } from './offlineState';
-import { NativeOffline, NativeOfflineEvents } from './offlineModule';
+import {
+  NativeOfflineContentManager,
+  NativeOfflineEvents,
+} from './offlineModule';
 import { legacyOfflineRegistry } from '../nativeInstanceRegistry';
 import { NativeConfigSerializer } from '../native/nativeConfigSerializer';
 
@@ -45,12 +49,15 @@ const handleBitmovinNativeOfflineEvent = (
  * without an active network connection. An OfflineContentManager instance can be created via
  * the constructor. Native SDK resources are created on the first SDK operation.
  *
- * @platform Android, iOS
  */
 export class OfflineContentManager {
-  private readonly native!: InternalOffline;
+  /** @internal Native peer used by the view and runtime API adapters. */
+  readonly native!: NativeOfflineContentManager;
   private readonly listeners = new Set<OfflineContentManagerListener>();
   private subscription?: EventSubscription;
+
+  // Native forwarding holds the dispatcher weakly; this field owns configured callbacks.
+  declare private readonly callbacks?: NativeCallbacks;
 
   constructor(readonly config: OfflineContentConfig) {
     const alias = legacyOfflineRegistry.get(config.nativeId);
@@ -61,13 +68,12 @@ export class OfflineContentManager {
       sourceConfig: config.sourceConfig,
     });
     const events = new NativeOfflineEvents();
-    this.native = new InternalOffline(
-      this,
+    this.native = new NativeOfflineContentManager(
       converted,
       events,
       serializer.dispatcher.callback
     );
-    serializer.dispatcher.retain(this);
+    this.callbacks = serializer.dispatcher;
     this.nativeId = legacyOfflineRegistry.register(config.nativeId, this);
     this.observeEvents(events);
   }
@@ -77,29 +83,6 @@ export class OfflineContentManager {
 
   /** Whether `destroy()` has been called on this wrapper. */
   isDestroyed = false;
-
-  private observeEvents(events: NativeOfflineEvents) {
-    if (!this.subscription)
-      this.subscription = events.addListener(
-        'onBitmovinOfflineEvent',
-        OfflineContentManager.weakEventListener(new WeakRef(this))
-      );
-  }
-
-  // A separate scope keeps the native-held listener from capturing the manager.
-  private static weakEventListener(reference: WeakRef<OfflineContentManager>) {
-    return (event: Omit<BitmovinNativeOfflineEventData, 'nativeId'>) => {
-      const manager = reference.deref();
-      if (!manager) return;
-      handleBitmovinNativeOfflineEvent(
-        {
-          ...event,
-          nativeId: manager.nativeId,
-        } as BitmovinNativeOfflineEventData,
-        manager.listeners
-      );
-    };
-  }
 
   /**
    * Adds a listener to the receive data from the native `OfflineContentManagerListener` callbacks
@@ -192,21 +175,26 @@ export class OfflineContentManager {
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    */
   renewOfflineLicense = (): Promise<void> => this.native.renewOfflineLicense();
-}
-
-/** @internal */
-class InternalOffline extends NativeOffline {
-  constructor(
-    readonly offline: OfflineContentManager,
-    ...args: ConstructorParameters<typeof NativeOffline>
-  ) {
-    super(...args);
+  private observeEvents(events: NativeOfflineEvents) {
+    if (!this.subscription)
+      this.subscription = events.addListener(
+        'onBitmovinOfflineEvent',
+        OfflineContentManager.weakEventListener(new WeakRef(this))
+      );
   }
-}
 
-/** @internal */
-export function getNativeOffline(
-  offline: OfflineContentManager
-): NativeOffline {
-  return offline['native'];
+  // A separate scope keeps the native-held listener from capturing the manager.
+  private static weakEventListener(reference: WeakRef<OfflineContentManager>) {
+    return (event: Omit<BitmovinNativeOfflineEventData, 'nativeId'>) => {
+      const manager = reference.deref();
+      if (!manager) return;
+      handleBitmovinNativeOfflineEvent(
+        {
+          ...event,
+          nativeId: manager.nativeId,
+        } as BitmovinNativeOfflineEventData,
+        manager.listeners
+      );
+    };
+  }
 }

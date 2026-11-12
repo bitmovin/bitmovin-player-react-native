@@ -370,8 +370,9 @@ test('awaited object subscriptions use their native owner and can be removed', a
     'sourceLoaded',
     () => sourceCalls++
   );
-  const removed = await player.on('ready', () => removedCalls++);
-  removed.remove();
+  const removedListener = () => removedCalls++;
+  await player.on('ready', removedListener);
+  player.off('ready', removedListener);
   (await controlFor(other)).emit('ready', { name: 'onReady' });
   (await controlFor(player)).emit('ready', { name: 'onReady' });
   assert.equal(playerCalls, 1);
@@ -574,7 +575,8 @@ test('public facades keep transport on their paired Expo peer', async (t) => {
   ]) {
     assert.equal(owner instanceof Native, false);
     assert.equal(owner.native instanceof Native, true);
-    assert.equal(owner.native[backref], owner);
+    if (backref === 'source') assert.equal(owner.native[backref], owner);
+    else assert.equal(owner.native[backref], undefined);
     assert.equal('release' in owner, false);
     assert.equal('emit' in owner, false);
     assert.equal('addListener' in owner, false);

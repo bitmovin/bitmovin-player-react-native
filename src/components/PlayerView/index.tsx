@@ -5,12 +5,7 @@ import { useKeepAwake } from 'expo-keep-awake';
 import type { NativePlayerViewConfig, NativePlayerViewRef } from './native';
 import { NativePlayerView } from './native';
 import { useProxy } from '../../hooks/useProxy';
-import { getNativePlayer } from '../../player';
-import { getNativeCustomMessage } from '../../ui/customMessageHandler';
-import {
-  FullscreenHandlerBridge,
-  getNativeFullscreen,
-} from '../../ui/fullscreenHandlerBridge';
+import { FullscreenHandlerBridge } from '../../ui/fullscreenHandlerBridge';
 import type { PlayerViewProps } from './properties';
 import type { PictureInPictureAction } from './pictureInPictureAction';
 
@@ -84,7 +79,7 @@ export function PlayerView({
     [player, config]
   );
 
-  const nativePlayer = getNativePlayer(player);
+  const nativePlayer = player.native;
   const didNotifyPlayerViewReady = useRef<
     | {
         player: typeof player;
@@ -129,11 +124,9 @@ export function PlayerView({
       .attachBindings(
         nativePlayer,
         fullscreenHandler && fullscreenBridge.current
-          ? getNativeFullscreen(fullscreenBridge.current)
+          ? fullscreenBridge.current.native
           : undefined,
-        customMessageHandler
-          ? getNativeCustomMessage(customMessageHandler)
-          : undefined,
+        customMessageHandler ? customMessageHandler.native : undefined,
         nativePlayerViewConfig
       )
       .then(

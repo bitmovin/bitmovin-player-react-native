@@ -9,7 +9,7 @@ import type { SourceEvents } from '../events';
 export type SourceModuleEvents = SourceEvents;
 /** @internal */
 export type NativeSource = SharedObject<SourceEvents> &
-  Omit<NativeMethods<Source>, 'on'> & {
+  Omit<NativeMethods<Source>, 'on' | 'off'> & {
     readonly configSnapshot?: SourceConfig;
     readonly source?: Source;
     drmFairplayRenewExpiringLicense(skdUri: string): Promise<void>;

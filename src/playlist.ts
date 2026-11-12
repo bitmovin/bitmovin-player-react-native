@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
-import { Source, TimelineReferencePoint, getNativeSource } from './source';
-import { type Player, getNativePlayer } from './player';
-import { NativePlaylist } from './modules/playerModule';
+import { Source, TimelineReferencePoint } from './source';
+import type { Player } from './player';
+import { NativePlaylistApi } from './modules/playerModule';
 
 /**
  * Where playback starts when replaying a finished playlist.
@@ -54,10 +54,10 @@ export interface SeekTarget {
  * @experimental
  */
 export class PlaylistApi {
-  private readonly native: InternalPlaylist;
+  private readonly native: NativePlaylistApi;
   /** @internal */
-  constructor(private readonly owner: Player) {
-    this.native = new InternalPlaylist(this, owner);
+  constructor(private readonly player: Player) {
+    this.native = new NativePlaylistApi(player.native);
   }
 
   /**
@@ -65,45 +65,36 @@ export class PlaylistApi {
    * Reuses the original Source objects while they remain reachable.
    */
   getSources = async (): Promise<Source[]> => {
-    const owner = this.owner;
+    const player = this.player;
     const sources = (
-      await this.native.getSources(owner.knownSources.map(getNativeSource))
+      await this.native.getSources(
+        player.knownSources.map((source) => source.native)
+      )
     ).map(Source.fromNative);
-    sources.forEach(owner.retainSource);
+    sources.forEach(player.retainSource);
     return sources;
   };
 
   /** Adds a source at the given index, or appends it when omitted. */
   add = async (source: Source, index?: number): Promise<void> => {
-    await this.native.add(getNativeSource(source), index);
-    this.owner.retainSource(source);
+    await this.native.add(source.native, index);
+    this.player.retainSource(source);
   };
 
   /** Removes a source. The active source cannot be removed. */
-  remove = (source: Source): Promise<void> =>
-    this.native.remove(getNativeSource(source));
+  remove = (source: Source): Promise<void> => this.native.remove(source.native);
 
   /** Removes the source at the given index. The active source cannot be removed. */
   removeAt = (index: number): Promise<void> => this.native.removeAt(index);
 
   /** Seeks to a time in a source that is already part of the playlist. */
   seek = (source: Source, time: number): Promise<void> =>
-    this.native.seek(getNativeSource(source), time);
+    this.native.seek(source.native, time);
 
   /** Seeks relative to a timeline reference point. @platform Android */
   seekTo = async (source: Source, target: SeekTarget): Promise<void> => {
     if (Platform.OS !== 'android')
       throw new Error('PlaylistApi.seekTo is only supported on Android.');
-    await this.native.seekTo(getNativeSource(source), target);
+    await this.native.seekTo(source.native, target);
   };
-}
-
-/** @internal */
-class InternalPlaylist extends NativePlaylist {
-  constructor(
-    readonly playlist: PlaylistApi,
-    readonly player: Player
-  ) {
-    super(getNativePlayer(player));
-  }
 }

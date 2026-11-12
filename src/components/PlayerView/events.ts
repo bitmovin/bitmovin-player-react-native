@@ -79,25 +79,11 @@ import type {
 /**
  * Event props for `PlayerView`.
  *
- * Note the events of `PlayerView` are simply a proxy over
- * the events from `NativePlayerView` just removing RN's bubbling data.
+ * Player and Source events follow the supplied Player. View-only fullscreen and
+ * picture-in-picture events come from the mounted native view. React's event
+ * wrapper is removed before invoking these public callbacks.
  */
 export type PlayerViewEvents = {
-  /**
-   * Emitted by the native playlist.
-   * @experimental
-   */
-  onSourceAdded?: (event: SourceAddedEvent) => void;
-  /**
-   * Emitted by the native playlist.
-   * @experimental
-   */
-  onSourceRemoved?: (event: SourceRemovedEvent) => void;
-  /**
-   * Emitted by the native playlist.
-   * @experimental
-   */
-  onPlaylistTransition?: (event: PlaylistTransitionEvent) => void;
   /**
    * Event emitted when an ad break has finished.
    */
@@ -381,6 +367,21 @@ export type PlayerViewEvents = {
    * Event emitted when the current source has been unloaded.
    */
   onSourceUnloaded?: (event: SourceUnloadedEvent) => void;
+  /**
+   * Emitted by the native playlist.
+   * @experimental
+   */
+  onSourceAdded?: (event: SourceAddedEvent) => void;
+  /**
+   * Emitted by the native playlist.
+   * @experimental
+   */
+  onSourceRemoved?: (event: SourceRemovedEvent) => void;
+  /**
+   * Emitted by the native playlist.
+   * @experimental
+   */
+  onPlaylistTransition?: (event: PlaylistTransitionEvent) => void;
   /**
    * Event emitted when a source warning occurred.
    */

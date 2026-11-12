@@ -280,7 +280,7 @@ export interface SourceLoadedEvent extends Event {
  */
 export interface SourceUnloadedEvent extends Event {
   /**
-   * Snapshot of the unloaded Source.
+   * Source that was unloaded from the player.
    * Android includes it for {@link Source.on} subscriptions, while Player subscriptions
    * and PlayerView events omit it because the SDK does not identify the unloaded Source.
    * iOS includes it on all subscription paths.

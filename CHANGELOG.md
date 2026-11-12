@@ -4,6 +4,8 @@
 
 ### Changed
 
+- Keep `Player.off(event, listener)` and `Source.off(event, listener)` for removing object-event listeners. The subscription returned by `on` can also be removed directly.
+
 - Keep native SharedObject ownership behind the public Player, Source, OfflineContentManager, CustomMessageHandler and runtime helper APIs. Their methods remain bound when passed as callbacks.
 - Reuse the original Player and OfflineContentManager instances when constructing aliases with the same `nativeId`.
 - Return a native-submission Promise from `CustomMessageHandler.sendMessage`.

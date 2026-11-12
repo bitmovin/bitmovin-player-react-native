@@ -1,5 +1,5 @@
-import { NativeMediaControls } from './modules/playerModule';
-import { type Player, getNativePlayer } from './player';
+import { NativeMediaControlsApi } from './modules/playerModule';
+import type { Player } from './player';
 import { Platform } from 'react-native';
 
 /**
@@ -10,11 +10,15 @@ import { Platform } from 'react-native';
  * @platform iOS/tvOS
  */
 export class MediaControlsApi {
-  private readonly native: InternalMediaControlsApi;
+  private readonly native?: NativeMediaControlsApi;
+  // Retain the configured Player while this runtime helper is reachable.
+  declare private readonly player: Player;
 
   /** @internal */
-  constructor(owner: Player) {
-    this.native = new InternalMediaControlsApi(this, owner);
+  constructor(player: Player) {
+    this.player = player;
+    if (Platform.OS === 'ios')
+      this.native = new NativeMediaControlsApi(player.native);
   }
 
   /**
@@ -39,7 +43,7 @@ export class MediaControlsApi {
       );
       return false;
     }
-    return (await this.native.isEnabled()) ?? false;
+    return (await this.native?.isEnabled()) ?? false;
   };
 
   /**
@@ -55,16 +59,6 @@ export class MediaControlsApi {
       );
       return;
     }
-    return this.native.setEnabled(enabled);
+    return this.native?.setEnabled(enabled);
   };
-}
-
-/** Raw Expo peer retains the public API and its configured Player. @internal */
-class InternalMediaControlsApi extends NativeMediaControls {
-  constructor(
-    readonly mediaControls: MediaControlsApi,
-    readonly player: Player
-  ) {
-    super(getNativePlayer(player));
-  }
 }

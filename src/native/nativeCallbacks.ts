@@ -1,4 +1,3 @@
-import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
 
 // Registers the native class used for one invocation's completion value.
@@ -18,18 +17,28 @@ export type NativeCallback = (
   fallbackArgument?: number
 ) => any;
 
-const callbackOwner = Symbol('callbackOwner');
-
 /**
  * Dispatches configuration callbacks through a weak native forwarder
  * to avoid strong reference loops. Synchronous SDK decisions return immediately;
  * only asynchronous replies use a per-call completion object.
+ *
+ * Keep the dispatcher in an owner's readonly field for its callback lifetime:
+ * ```ts
+ * this.callbacks = new NativeCallbacks((operation, args) => handlers[operation](...args));
+ * this.native = new NativeOwner(config, this.callbacks.callback);
+ * ```
+ * Native code retains the forwarder, which holds only a WeakRef to this dispatcher.
+ * Releasing the owner therefore does not create a native-to-JavaScript strong cycle.
  * @internal
  */
 export class NativeCallbacks {
   constructor(
     private readonly invoke: (operation: string, args: any[]) => any
   ) {}
+
+  get callback(): NativeCallback {
+    return NativeCallbacks.forward(new WeakRef(this));
+  }
 
   private readonly invokeCallback: NativeCallback = (
     operation,
@@ -61,24 +70,6 @@ export class NativeCallbacks {
     } catch {
       return null;
     }
-  }
-
-  create<T extends SharedObject>(create: (callback: NativeCallback) => T): T {
-    return this.retain(create(this.callback));
-  }
-
-  async createAsync<T extends SharedObject>(
-    create: (callback: NativeCallback) => Promise<T>
-  ): Promise<T> {
-    return this.retain(await create(this.callback));
-  }
-
-  retain<T extends object>(native: T): T {
-    return Object.defineProperty(native, callbackOwner, { value: this });
-  }
-
-  get callback(): NativeCallback {
-    return NativeCallbacks.forward(new WeakRef(this));
   }
 
   private async complete(

@@ -1,15 +1,14 @@
+import type { NativeCallbacks } from './native/nativeCallbacks';
 import type { EventSubscription } from 'expo-modules-core';
 import type { PlayerEvents } from './events';
-import { subscribeToNativeEvent } from './nativeEvents';
 import { Platform } from 'react-native';
 import PlayerModule, { NativePlayer } from './modules/playerModule';
 import { legacyPlayerRegistry } from './nativeInstanceRegistry';
 import type { SourceConfig } from './source';
-import { Source, getNativeSource } from './source';
+import { Source } from './source';
 import type { AudioTrack } from './audioTrack';
 import type { SubtitleTrack } from './subtitleTrack';
 import type { OfflineContentManager, OfflineSourceOptions } from './offline';
-import { getNativeOffline } from './offline/offlineContentManager';
 import type { Thumbnail } from './thumbnail';
 import { AnalyticsApi } from './analytics/analyticsApi';
 import type { PlayerConfig } from './playerConfig';
@@ -31,10 +30,14 @@ import type { PlaylistConfig } from './playlist';
  * @see PlayerView
  */
 export class Player {
-  private readonly native!: InternalPlayer;
+  /** @internal Native peer used by the view and runtime API adapters. */
+  readonly native!: NativePlayer;
   private sources = new Set<Source>();
   // Retains offline configuration callbacks while its SDK source is loaded.
   declare private offline?: OfflineContentManager;
+
+  // Native forwarding holds the dispatcher weakly; this field owns configured callbacks.
+  declare private readonly callbacks?: NativeCallbacks;
 
   constructor(readonly config: PlayerConfig = {}) {
     const alias = legacyPlayerRegistry.get(config.nativeId);
@@ -44,13 +47,12 @@ export class Player {
       capture: 'advertisingConfig',
     });
     delete converted.nativeId;
-    this.native = new InternalPlayer(
-      this,
+    this.native = new NativePlayer(
       converted,
       callbacks.serialize(config.analyticsConfig),
       callbacks.dispatcher.callback
     );
-    callbacks.dispatcher.retain(this);
+    this.callbacks = callbacks.dispatcher;
     this.nativeId = legacyPlayerRegistry.register(config.nativeId, this);
     this.buffer = new BufferApi(this);
     this.mediaControls = new MediaControlsApi(this);
@@ -127,10 +129,7 @@ export class Player {
     options?: OfflineSourceOptions
   ): Promise<void> => {
     if (
-      (await this.native.loadOfflineContent(
-        getNativeOffline(manager),
-        options
-      )) !== false
+      (await this.native.loadOfflineContent(manager.native, options)) !== false
     ) {
       this.sources = new Set();
       this.offline = manager;
@@ -142,7 +141,7 @@ export class Player {
    */
   loadSource = async (source: Source): Promise<void> => {
     this.source = source;
-    await this.native.loadSource(getNativeSource(source));
+    await this.native.loadSource(source.native);
     this.sources = new Set([source]);
     this.offline = undefined;
   };
@@ -153,7 +152,7 @@ export class Player {
    */
   getSource = async (): Promise<Source | undefined> => {
     const source = await this.native.getSource(
-      [...this.sources].map(getNativeSource)
+      [...this.sources].map((source) => source.native)
     );
     if (!source) return undefined;
     const owner = Source.fromNative(source);
@@ -168,7 +167,7 @@ export class Player {
    */
   loadPlaylist = async (config: PlaylistConfig): Promise<void> => {
     await this.native.loadPlaylist(
-      config.sources.map(getNativeSource),
+      config.sources.map((source) => source.native),
       config.options
     );
     this.sources = new Set(config.sources);
@@ -180,13 +179,18 @@ export class Player {
    * `await player.on('play', listener)`.
    * Use `event` to listen to all supported native object events.
    * Await registration before triggering events. Call `remove()` on the resolved
-   * subscription to stop listening.
+   * subscription or use off(event, listener) to stop listening.
    */
   on = async <Name extends keyof PlayerEvents>(
     event: Name,
     listener: PlayerEvents[Name]
-  ): Promise<EventSubscription> =>
-    subscribeToNativeEvent(this.native, event, listener);
+  ): Promise<EventSubscription> => this.native.addListener(event, listener);
+
+  /** Stops a listener previously registered with on for this event. */
+  off = <Name extends keyof PlayerEvents>(
+    event: Name,
+    listener: PlayerEvents[Name]
+  ): void => this.native.removeListener(event, listener);
 
   /** @internal Keeps callback peers available while this SDK playback session owns their sources. */
   retainSource = (source: Source): void => {
@@ -540,19 +544,4 @@ export class Player {
     }
     return (await this.native.canPlayAtPlaybackSpeed(playbackSpeed)) ?? false;
   };
-}
-
-/** Raw Expo peer. Its JavaScript back-reference keeps public callback ownership together. @internal */
-class InternalPlayer extends NativePlayer {
-  constructor(
-    readonly player: Player,
-    ...args: ConstructorParameters<typeof NativePlayer>
-  ) {
-    super(...args);
-  }
-}
-
-/** @internal Only the Expo peer crosses native method boundaries. */
-export function getNativePlayer(player: Player): NativePlayer {
-  return player['native'];
 }

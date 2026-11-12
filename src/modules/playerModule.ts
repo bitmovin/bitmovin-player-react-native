@@ -2,13 +2,12 @@
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
-import { Platform } from 'react-native';
 import type { NativeCallback } from '../native/nativeCallbacks';
 import type { NativeMethods } from '../native/nativeMethods';
 import type { Player } from '../player';
 import type { PlayerEvents } from '../events';
 import type { NativeSource } from './sourceModule';
-import type { NativeOffline } from '../offline/offlineModule';
+import type { NativeOfflineContentManager } from '../offline/offlineModule';
 import type { OfflineSourceOptions } from '../offline';
 import type { BufferApi } from '../bufferApi';
 import type { AnalyticsApi } from '../analytics/analyticsApi';
@@ -21,6 +20,7 @@ export type NativePlayer = SharedObject<PlayerEvents> &
   Omit<
     NativeMethods<Player>,
     | 'on'
+    | 'off'
     | 'load'
     | 'retainSource'
     | 'loadSource'
@@ -36,20 +36,20 @@ export type NativePlayer = SharedObject<PlayerEvents> &
     ): Promise<void>;
     getSource(known: NativeSource[]): Promise<NativeSource | null | undefined>;
     loadOfflineContent(
-      manager: NativeOffline,
+      manager: NativeOfflineContentManager,
       options?: OfflineSourceOptions
     ): Promise<boolean>;
     setMaxSelectableBitrate(value: number): Promise<void>;
   };
 /** @internal */
-export type NativeBuffer = SharedObject & NativeMethods<BufferApi>;
+export type NativeBufferApi = SharedObject & NativeMethods<BufferApi>;
 /** @internal */
-export type NativeAnalytics = SharedObject & NativeMethods<AnalyticsApi>;
+export type NativeAnalyticsApi = SharedObject & NativeMethods<AnalyticsApi>;
 /** @internal */
-export type NativeMediaControls = SharedObject &
+export type NativeMediaControlsApi = SharedObject &
   NativeMethods<MediaControlsApi>;
 /** @internal */
-export type NativePlaylist = SharedObject &
+export type NativePlaylistApi = SharedObject &
   Pick<PlaylistApi, 'removeAt'> & {
     getSources(known: NativeSource[]): Promise<NativeSource[]>;
     add(source: NativeSource, index?: number): Promise<void>;
@@ -65,32 +65,22 @@ declare class PlayerModule extends NativeModule {
     analytics: Record<string, any> | undefined,
     callback: NativeCallback
   ) => NativePlayer;
-  readonly BufferApi: new (player: NativePlayer) => NativeBuffer;
-  readonly AnalyticsApi: new (player: NativePlayer) => NativeAnalytics;
-  readonly MediaControlsApi: new (player: NativePlayer) => NativeMediaControls;
-  readonly PlaylistApi: new (player: NativePlayer) => NativePlaylist;
+  readonly BufferApi: new (player: NativePlayer) => NativeBufferApi;
+  readonly AnalyticsApi: new (player: NativePlayer) => NativeAnalyticsApi;
+  readonly MediaControlsApi: new (
+    player: NativePlayer
+  ) => NativeMediaControlsApi;
+  readonly PlaylistApi: new (player: NativePlayer) => NativePlaylistApi;
 }
 const nativeModule = requireNativeModule<PlayerModule>('PlayerModule');
 /** @internal */
 export const NativePlayer = nativeModule.Player;
 /** @internal */
-export const NativeBuffer = nativeModule.BufferApi;
+export const NativeBufferApi = nativeModule.BufferApi;
 /** @internal */
-export const NativeAnalytics = nativeModule.AnalyticsApi;
+export const NativeAnalyticsApi = nativeModule.AnalyticsApi;
 /** @internal */
-export const NativeMediaControls: new (
-  player: NativePlayer
-) => Pick<NativeMediaControls, 'isEnabled' | 'setEnabled'> =
-  Platform.OS === 'ios'
-    ? nativeModule.MediaControlsApi
-    : class {
-        isEnabled(): Promise<boolean> {
-          return Promise.resolve(false);
-        }
-        setEnabled(_enabled: boolean): Promise<void> {
-          return Promise.resolve();
-        }
-      };
+export const NativeMediaControlsApi = nativeModule.MediaControlsApi;
 /** @internal */
-export const NativePlaylist = nativeModule.PlaylistApi;
+export const NativePlaylistApi = nativeModule.PlaylistApi;
 export default nativeModule;
