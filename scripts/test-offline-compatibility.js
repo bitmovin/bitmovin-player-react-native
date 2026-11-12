@@ -19,7 +19,7 @@ before(() => {
       rootDir: path.resolve(__dirname, '../src'),
       outDir: compiled,
       module: ts.ModuleKind.CommonJS,
-      target: ts.ScriptTarget.ES2020,
+      target: ts.ScriptTarget.ESNext,
       noCheck: true,
       types: [],
     }

@@ -3,12 +3,12 @@ import { NativeCallbacks } from './nativeCallbacks';
 /**
  * Serializes configuration data, replacing functions with string tokens. Native
  * converters pass those tokens to the dispatcher to call the matching handler.
- * A native subclass passes the weak callback to its constructor, then retains
- * the dispatcher on its JS instance for the configured callbacks' lifetime:
+ * A public facade passes the weak callback to its internal peer, then retains
+ * the dispatcher for the configured callbacks' lifetime:
  *
  * ```ts
  * const serializer = new NativeConfigSerializer();
- * super(serializer.serialize(config), serializer.dispatcher.callback);
+ * this.native = new InternalOwner(this, serializer.serialize(config), serializer.dispatcher.callback);
  * serializer.dispatcher.retain(this);
  * ```
  *

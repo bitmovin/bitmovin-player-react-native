@@ -8,8 +8,6 @@ import type { SideLoadedSubtitleTrack } from './subtitleTrack';
 import type { Thumbnail } from './thumbnail';
 import type { SourceMetadata } from './analytics';
 import { NativeSource } from './modules/sourceModule';
-import { adoptNative } from './native/adoptNative';
-import { bindNativeMethods } from './native/bindNativeMethods';
 import { NativeConfigSerializer } from './native/nativeConfigSerializer';
 
 /**
@@ -150,38 +148,39 @@ export interface SourceConfig {
 /**
  * Represents audio and video content that can be loaded into a player.
  */
-export class Source extends NativeSource {
+export class Source {
+  private readonly native: InternalSource;
   readonly config?: SourceConfig;
 
-  constructor(config: SourceConfig) {
-    const callbacks = new NativeConfigSerializer();
-    super(
-      callbacks.serialize(config),
-      callbacks.serialize(config.analyticsSourceMetadata),
-      callbacks.dispatcher.callback
-    );
-    callbacks.dispatcher.retain(this);
-    this.config = config;
+  constructor(config: SourceConfig);
+  constructor(config?: SourceConfig, native?: NativeSource) {
+    if (native) {
+      this.native = Object.assign(native, { source: this });
+      this.config = native.configSnapshot;
+    } else {
+      if (!config) throw new Error('SourceConfig is required');
+      const callbacks = new NativeConfigSerializer();
+      this.native = new InternalSource(
+        this,
+        callbacks.serialize(config),
+        callbacks.serialize(config.analyticsSourceMetadata),
+        callbacks.dispatcher.callback
+      );
+      callbacks.dispatcher.retain(this);
+      this.config = config;
+    }
     this.drm = new SourceDrmApi(this);
-    bindNativeMethods(this, Source.prototype);
   }
 
-  /**
-   * SDK offline loading creates content without calling the JS constructor.
-   * Promote that existing peer; ordinary source queries return the original instance.
-   * @internal
-   */
+  /** SDK offline loading creates a source without a public constructor. @internal */
   static fromNative(native: NativeSource): Source {
-    return adoptNative(native, Source.prototype, (owner) => {
-      if (!Object.hasOwn(owner, 'drm')) {
-        // This native peer skipped the JS constructor; install the same instance fields once.
-        Object.assign(owner, {
-          config: owner.configSnapshot,
-          drm: new SourceDrmApi(owner),
-        });
-        bindNativeMethods(owner, Source.prototype);
-      }
-    });
+    if (native.source) return native.source;
+    // The implementation's second argument is internal; the public constructor accepts configuration only.
+    const FromNative = Source as new (
+      config: SourceConfig | undefined,
+      native: NativeSource
+    ) => Source;
+    return new FromNative(native.configSnapshot, native);
   }
 
   /**
@@ -198,34 +197,33 @@ export class Source extends NativeSource {
    * Await registration before triggering events. Call `remove()` on the resolved
    * subscription to stop listening.
    */
-  async on<Name extends keyof SourceEvents>(
+  on = async <Name extends keyof SourceEvents>(
     event: Name,
     listener: SourceEvents[Name]
-  ): Promise<EventSubscription> {
-    return subscribeToNativeEvent(this, event, listener);
-  }
+  ): Promise<EventSubscription> =>
+    subscribeToNativeEvent(this.native, event, listener);
 
   /**
    * The duration of the source in seconds if it’s a VoD or `INFINITY` if it’s a live stream.
    * @defaultValue `0` when the duration is unavailable or unknown.
    */
-  declare duration: () => Promise<number>;
+  duration = (): Promise<number> => this.native.duration();
 
   /**
    * Whether the source is currently active in a player (i.e. playing back or paused).
    * Only one source can be active in the same player instance at any time.
    */
-  declare isActive: () => Promise<boolean>;
+  isActive = (): Promise<boolean> => this.native.isActive();
 
   /**
    * Whether the source is currently attached to a player instance.
    */
-  declare isAttachedToPlayer: () => Promise<boolean>;
+  isAttachedToPlayer = (): Promise<boolean> => this.native.isAttachedToPlayer();
 
   /**
    * Metadata for the currently loaded source.
    */
-  declare metadata: () => Promise<Record<string, any> | null>;
+  metadata = (): Promise<Record<string, any> | null> => this.native.metadata();
 
   /**
    * Set metadata for the currently loaded source.
@@ -233,12 +231,13 @@ export class Source extends NativeSource {
    *
    * @param metadata metadata to be set.
    */
-  declare setMetadata: (metadata: Record<string, any> | null) => Promise<void>;
+  setMetadata = (metadata: Record<string, any> | null): Promise<void> =>
+    this.native.setMetadata(metadata);
 
   /**
    * The current `LoadingState` of the source.
    */
-  declare loadingState: () => Promise<LoadingState>;
+  loadingState = (): Promise<LoadingState> => this.native.loadingState();
 
   /**
    * @returns a `Thumbnail` for the specified playback time if available.
@@ -250,5 +249,21 @@ export class Source extends NativeSource {
    *
    * @param time - The time in seconds for which to retrieve the thumbnail.
    */
-  declare getThumbnail: (time: number) => Promise<Thumbnail | null>;
+  getThumbnail = (time: number): Promise<Thumbnail | null> =>
+    this.native.getThumbnail(time);
+}
+
+/** @internal */
+class InternalSource extends NativeSource {
+  constructor(
+    readonly source: Source,
+    ...args: ConstructorParameters<typeof NativeSource>
+  ) {
+    super(...args);
+  }
+}
+
+/** @internal */
+export function getNativeSource(source: Source): NativeSource {
+  return source['native'];
 }

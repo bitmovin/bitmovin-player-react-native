@@ -1,146 +1,62 @@
-/* eslint-disable @typescript-eslint/no-redeclare -- Native constructor values intentionally share their instance interface names. */
-import type { PlayerEvents } from '../events';
+/* eslint-disable @typescript-eslint/no-redeclare -- Native constructor values share their instance type names. */
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
 import { Platform } from 'react-native';
 import type { NativeCallback } from '../native/nativeCallbacks';
-import type { OfflineContentManager, OfflineSourceOptions } from '../offline';
+import type { NativeMethods } from '../native/nativeMethods';
+import type { Player } from '../player';
+import type { PlayerEvents } from '../events';
 import type { NativeSource } from './sourceModule';
-import type { Source } from '../source';
-import type { AudioTrack } from '../audioTrack';
-import type { SubtitleTrack } from '../subtitleTrack';
-import type { VideoQuality } from '../media';
-import type { Thumbnail } from '../thumbnail';
-import type { AdItem } from '../advertising';
-import type { CustomDataConfig } from '../analytics/config';
-import type { BufferLevels, BufferType } from '../bufferApi';
-import type { PlaylistConfig, SeekTarget } from '../playlist';
+import type { NativeOffline } from '../offline/offlineModule';
+import type { OfflineSourceOptions } from '../offline';
+import type { BufferApi } from '../bufferApi';
+import type { AnalyticsApi } from '../analytics/analyticsApi';
+import type { MediaControlsApi } from '../mediaControlsApi';
+import type { PlaylistApi, PlaylistOptions, SeekTarget } from '../playlist';
 
 export type PlayerModuleEvents = PlayerEvents;
-
 /** @internal */
-export interface NativePlayer extends SharedObject<PlayerModuleEvents> {
-  play(): Promise<void>;
-
-  pause(): Promise<void>;
-
-  mute(): Promise<void>;
-
-  unmute(): Promise<void>;
-
-  seek(time: number): Promise<void>;
-
-  timeShift(offset: number): Promise<void>;
-
-  destroy(): Promise<void>;
-
-  setVolume(volume: number): Promise<void>;
-
-  getVolume(): Promise<number>;
-
-  getCurrentTime(mode?: 'relative' | 'absolute'): Promise<number>;
-
-  isPlaying(): Promise<boolean>;
-
-  isPaused(): Promise<boolean>;
-
-  getDuration(): Promise<number>;
-
-  isMuted(): Promise<boolean>;
-
-  unload(): Promise<void>;
-
-  getTimeShift(): Promise<number>;
-
-  isLive(): Promise<boolean>;
-
-  getMaxTimeShift(): Promise<number>;
-
-  getPlaybackSpeed(): Promise<number>;
-
-  setPlaybackSpeed(playbackSpeed: number): Promise<void>;
-
-  isAd(): Promise<boolean>;
-
-  setMaxSelectableBitrate(maxBitrate: number | null): Promise<void>;
-
-  isAirPlayActive(): Promise<boolean>;
-
-  isAirPlayAvailable(): Promise<boolean>;
-
-  showAirPlayTargetPicker(): Promise<void>;
-
-  isCastAvailable(): Promise<boolean>;
-
-  isCasting(): Promise<boolean>;
-
-  castVideo(): Promise<void>;
-
-  castStop(): Promise<void>;
-
-  skipAd(): Promise<void>;
-
-  canPlayAtPlaybackSpeed(playbackSpeed: number): Promise<boolean | undefined>;
-
-  loadSource(source: Source): Promise<void>;
-
-  loadPlaylist(config: PlaylistConfig): Promise<void>;
-  getSource(
-    knownSources: NativeSource[]
-  ): Promise<NativeSource | null | undefined>;
-  loadOfflineContent(
-    offlineContent: OfflineContentManager,
-    options?: OfflineSourceOptions
-  ): Promise<boolean | void>;
-
-  getAudioTrack(): Promise<AudioTrack | null>;
-
-  getAvailableAudioTracks(): Promise<AudioTrack[]>;
-
-  setAudioTrack(trackId: string): Promise<void>;
-
-  getSubtitleTrack(): Promise<SubtitleTrack | null>;
-
-  getAvailableSubtitles(): Promise<SubtitleTrack[]>;
-
-  setSubtitleTrack(trackId: string | undefined): Promise<void>;
-
-  scheduleAd(adConfig: AdItem): Promise<void>;
-
-  getThumbnail(time: number): Promise<Thumbnail | null>;
-
-  getVideoQuality(): Promise<VideoQuality>;
-
-  getAvailableVideoQualities(): Promise<VideoQuality[]>;
-
-  setVideoQuality(qualityId: string): Promise<void>;
-}
-
+export type NativePlayer = SharedObject<PlayerEvents> &
+  Omit<
+    NativeMethods<Player>,
+    | 'on'
+    | 'load'
+    | 'retainSource'
+    | 'loadSource'
+    | 'loadPlaylist'
+    | 'getSource'
+    | 'loadOfflineContent'
+    | 'setMaxSelectableBitrate'
+  > & {
+    loadSource(source: NativeSource): Promise<void>;
+    loadPlaylist(config: {
+      sources: NativeSource[];
+      options?: PlaylistOptions;
+    }): Promise<void>;
+    getSource(known: NativeSource[]): Promise<NativeSource | null | undefined>;
+    loadOfflineContent(
+      manager: NativeOffline,
+      options?: OfflineSourceOptions
+    ): Promise<boolean>;
+    setMaxSelectableBitrate(value: number): Promise<void>;
+  };
 /** @internal */
-export interface NativeBuffer extends SharedObject {
-  getLevel(type: BufferType): Promise<BufferLevels>;
-  setTargetLevel(type: BufferType, value: number): Promise<void>;
-}
+export type NativeBuffer = SharedObject & NativeMethods<BufferApi>;
 /** @internal */
-export interface NativeAnalytics extends SharedObject {
-  sendCustomDataEvent(data: CustomDataConfig): Promise<void>;
-  getUserId(): Promise<string | null>;
-}
+export type NativeAnalytics = SharedObject & NativeMethods<AnalyticsApi>;
 /** @internal */
-export interface NativeMediaControls extends SharedObject {
-  isEnabled(): Promise<boolean>;
-  setEnabled(enabled: boolean): Promise<void>;
-}
+export type NativeMediaControls = SharedObject &
+  NativeMethods<MediaControlsApi>;
 /** @internal */
-export interface NativePlaylist extends SharedObject {
-  getSources(known: NativeSource[]): Promise<NativeSource[]>;
-  add(source: Source, index?: number): Promise<void>;
-  remove(source: Source): Promise<void>;
-  removeAt(index: number): Promise<void>;
-  seek(source: Source, time: number): Promise<void>;
-  seekTo(source: Source, target: SeekTarget): Promise<void>;
-}
+export type NativePlaylist = SharedObject &
+  Pick<PlaylistApi, 'removeAt'> & {
+    getSources(known: NativeSource[]): Promise<NativeSource[]>;
+    add(source: NativeSource, index?: number): Promise<void>;
+    remove(source: NativeSource): Promise<void>;
+    seek(source: NativeSource, time: number): Promise<void>;
+    seekTo(source: NativeSource, target: SeekTarget): Promise<void>;
+  };
 
 declare class PlayerModule extends NativeModule {
   readonly isGoogleImaEnabled: boolean;

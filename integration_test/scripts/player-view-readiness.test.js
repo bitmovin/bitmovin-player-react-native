@@ -15,6 +15,7 @@ const bindings = new Map();
 function playerWith() {
   return {
     config: {},
+    native: {},
     on: async () => mockEventSubscription(),
   };
 }
@@ -129,14 +130,21 @@ const playerViewContext = vm.createContext({
     if (name === 'expo-keep-awake') return { useKeepAwake() {} };
     if (name === './native') return { NativePlayerView: 'ProbePlayerView' };
     if (name.endsWith('/useProxy')) return { useProxy: () => (x) => x };
+    if (name === '../../player')
+      return { getNativePlayer: (player) => player.native };
+    if (name.endsWith('/customMessageHandler'))
+      return { getNativeCustomMessage: (handler) => handler.native };
     if (name.endsWith('/fullscreenHandlerBridge'))
       return {
+        getNativeFullscreen: (bridge) => bridge.native,
         FullscreenHandlerBridge: class {
+          native = {};
           setFullscreenHandler(handler) {
             this.handler = handler;
           }
           async destroy() {
             this.destroyed = true;
+            this.native.destroyed = true;
           }
         },
       };
@@ -216,7 +224,7 @@ test('readiness waits for native attachment and is announced once', async () => 
     committedView,
     'the native host mounts without a JS initialization stage'
   );
-  assert.equal(bindings.get(committedView.tag).player, player);
+  assert.equal(bindings.get(committedView.tag).player, player.native);
   for (const prop of ['player', 'fullscreenHandler', 'customMessageHandler'])
     assert.equal(Object.hasOwn(committedView.props, prop), false);
   assert.equal(
@@ -295,7 +303,7 @@ test('A to B to A keeps the host and ignores superseded native acknowledgments',
     tag,
     'Player changes preserve the native host'
   );
-  assert.equal(current.player, first);
+  assert.equal(current.player, first.native);
   assert.equal(current.fullscreen, bridge);
   assert.equal(bridge.destroyed, undefined);
 

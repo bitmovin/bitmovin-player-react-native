@@ -5,10 +5,11 @@ import { Platform } from 'react-native';
 import PlayerModule, { NativePlayer } from './modules/playerModule';
 import { legacyPlayerRegistry } from './nativeInstanceRegistry';
 import type { SourceConfig } from './source';
-import { Source } from './source';
+import { Source, getNativeSource } from './source';
 import type { AudioTrack } from './audioTrack';
 import type { SubtitleTrack } from './subtitleTrack';
 import type { OfflineContentManager, OfflineSourceOptions } from './offline';
+import { getNativeOffline } from './offline/offlineContentManager';
 import type { Thumbnail } from './thumbnail';
 import { AnalyticsApi } from './analytics/analyticsApi';
 import type { PlayerConfig } from './playerConfig';
@@ -19,7 +20,6 @@ import type { VideoQuality } from './media';
 import { NativeConfigSerializer } from './native/nativeConfigSerializer';
 import { PlaylistApi } from './playlist';
 import type { PlaylistConfig } from './playlist';
-import { bindNativeMethods } from './native/bindNativeMethods';
 
 /**
  * Loads, controls and renders audio and video content represented through {@link Source}s. A player
@@ -30,20 +30,22 @@ import { bindNativeMethods } from './native/bindNativeMethods';
  * Can be attached to {@link PlayerView} component in order to use Bitmovin's Player Web UI.
  * @see PlayerView
  */
-export class Player extends NativePlayer {
+export class Player {
+  private readonly native!: InternalPlayer;
   private sources = new Set<Source>();
   // Retains offline configuration callbacks while its SDK source is loaded.
   declare private offline?: OfflineContentManager;
 
   constructor(readonly config: PlayerConfig = {}) {
     const alias = legacyPlayerRegistry.get(config.nativeId);
-    if (alias) return alias as Player;
+    if (alias) return alias;
     const callbacks = new NativeConfigSerializer();
     const converted = callbacks.serialize(config, {
       capture: 'advertisingConfig',
     });
     delete converted.nativeId;
-    super(
+    this.native = new InternalPlayer(
+      this,
       converted,
       callbacks.serialize(config.analyticsConfig),
       callbacks.dispatcher.callback
@@ -56,7 +58,6 @@ export class Player extends NativePlayer {
     this.analytics = config.analyticsConfig
       ? new AnalyticsApi(this)
       : undefined;
-    bindNativeMethods(this, NativePlayer.prototype);
     if (
       config.advertisingConfig?.ima?.beforeInitialization &&
       !PlayerModule.isGoogleImaEnabled
@@ -96,7 +97,7 @@ export class Player extends NativePlayer {
   /**
    * The {@link MediaControlsApi} for interactions regarding the Player's media controls integration.
    *
-   * @platform iOS, tvOS
+   * @platform iOS/tvOS
    */
   declare readonly mediaControls: MediaControlsApi;
 
@@ -106,7 +107,7 @@ export class Player extends NativePlayer {
   destroy = async (): Promise<void> => {
     this.isDestroyed = true;
     legacyPlayerRegistry.remove(this.nativeId, this);
-    await super.destroy();
+    await this.native.destroy();
     this.sources.clear();
     this.offline = undefined;
   };
@@ -125,7 +126,12 @@ export class Player extends NativePlayer {
     manager: OfflineContentManager,
     options?: OfflineSourceOptions
   ): Promise<void> => {
-    if ((await super.loadOfflineContent(manager, options)) !== false) {
+    if (
+      (await this.native.loadOfflineContent(
+        getNativeOffline(manager),
+        options
+      )) !== false
+    ) {
       this.sources = new Set();
       this.offline = manager;
     }
@@ -136,7 +142,7 @@ export class Player extends NativePlayer {
    */
   loadSource = async (source: Source): Promise<void> => {
     this.source = source;
-    await super.loadSource(source);
+    await this.native.loadSource(getNativeSource(source));
     this.sources = new Set([source]);
     this.offline = undefined;
   };
@@ -146,7 +152,9 @@ export class Player extends NativePlayer {
    * Reuses the original Source while it is reachable; adopts SDK-created sources on first query.
    */
   getSource = async (): Promise<Source | undefined> => {
-    const source = await super.getSource([...this.sources]);
+    const source = await this.native.getSource(
+      [...this.sources].map(getNativeSource)
+    );
     if (!source) return undefined;
     const owner = Source.fromNative(source);
     this.retainSource(owner);
@@ -159,7 +167,10 @@ export class Player extends NativePlayer {
    * @experimental
    */
   loadPlaylist = async (config: PlaylistConfig): Promise<void> => {
-    await super.loadPlaylist(config);
+    await this.native.loadPlaylist({
+      ...config,
+      sources: config.sources.map(getNativeSource),
+    });
     this.sources = new Set(config.sources);
     this.offline = undefined;
   };
@@ -175,7 +186,7 @@ export class Player extends NativePlayer {
     event: Name,
     listener: PlayerEvents[Name]
   ): Promise<EventSubscription> =>
-    subscribeToNativeEvent(this, event, listener);
+    subscribeToNativeEvent(this.native, event, listener);
 
   /** @internal Keeps callback peers available while this SDK playback session owns their sources. */
   retainSource = (source: Source): void => {
@@ -191,7 +202,7 @@ export class Player extends NativePlayer {
    * Unloads all {@link Source}s from the player.
    */
   unload = async (): Promise<void> => {
-    await super.unload();
+    await this.native.unload();
     this.sources.clear();
     this.offline = undefined;
   };
@@ -199,12 +210,12 @@ export class Player extends NativePlayer {
   /**
    * Starts or resumes playback after being paused. Has no effect if the player is already playing.
    */
-  declare play: () => Promise<void>;
+  play = (): Promise<void> => this.native.play();
 
   /**
    * Pauses the video if it is playing. Has no effect if the player is already paused.
    */
-  declare pause: () => Promise<void>;
+  pause = (): Promise<void> => this.native.pause();
 
   /**
    * Seeks to the given playback time specified by the parameter `time` in seconds. Must not be
@@ -213,7 +224,7 @@ export class Player extends NativePlayer {
    *
    * @param time - The time to seek to in seconds.
    */
-  declare seek: (time: number) => Promise<void>;
+  seek = (time: number): Promise<void> => this.native.seek(time);
 
   /**
    * Shifts the time to the given `offset` in seconds from the live edge. The resulting offset has to be within the
@@ -226,29 +237,29 @@ export class Player extends NativePlayer {
    *
    * @param offset - Target offset from the live edge in seconds.
    */
-  declare timeShift: (offset: number) => Promise<void>;
+  timeShift = (offset: number): Promise<void> => this.native.timeShift(offset);
 
   /**
    * Mutes the player if an audio track is available. Has no effect if the player is already muted.
    */
-  declare mute: () => Promise<void>;
+  mute = (): Promise<void> => this.native.mute();
 
   /**
    * Unmutes the player if it is muted. Has no effect if the player is already unmuted.
    */
-  declare unmute: () => Promise<void>;
+  unmute = (): Promise<void> => this.native.unmute();
 
   /**
    * Sets the player's volume between 0 (silent) and 100 (max volume).
    *
    * @param volume - The volume level to set.
    */
-  declare setVolume: (volume: number) => Promise<void>;
+  setVolume = (volume: number): Promise<void> => this.native.setVolume(volume);
 
   /**
    * @returns The player's current volume level.
    */
-  declare getVolume: () => Promise<number>;
+  getVolume = (): Promise<number> => this.native.getVolume();
 
   /**
    * @returns The current playback time in seconds.
@@ -260,32 +271,33 @@ export class Player extends NativePlayer {
    *
    * @param mode - The time mode to specify: an absolute UNIX timestamp ('absolute') or relative time ('relative').
    */
-  declare getCurrentTime: (mode?: 'relative' | 'absolute') => Promise<number>;
+  getCurrentTime = (mode?: 'relative' | 'absolute'): Promise<number> =>
+    this.native.getCurrentTime(mode);
 
   /**
    * @returns The total duration in seconds of the current video or INFINITY if it’s a live stream.
    */
-  declare getDuration: () => Promise<number>;
+  getDuration = (): Promise<number> => this.native.getDuration();
 
   /**
    * @returns `true` if the player is muted.
    */
-  declare isMuted: () => Promise<boolean>;
+  isMuted = (): Promise<boolean> => this.native.isMuted();
 
   /**
    * @returns `true` if the player is currently playing, i.e. has started and is not paused.
    */
-  declare isPlaying: () => Promise<boolean>;
+  isPlaying = (): Promise<boolean> => this.native.isPlaying();
 
   /**
    * @returns `true` if the player has started playback but it's currently paused.
    */
-  declare isPaused: () => Promise<boolean>;
+  isPaused = (): Promise<boolean> => this.native.isPaused();
 
   /**
    * @returns `true` if the displayed video is a live stream.
    */
-  declare isLive: () => Promise<boolean>;
+  isLive = (): Promise<boolean> => this.native.isLive();
 
   /**
    * @platform iOS
@@ -298,7 +310,7 @@ export class Player extends NativePlayer {
       );
       return false;
     }
-    return (await super.isAirPlayActive()) ?? false;
+    return (await this.native.isAirPlayActive()) ?? false;
   };
 
   /**
@@ -312,7 +324,7 @@ export class Player extends NativePlayer {
       );
       return false;
     }
-    return (await super.isAirPlayAvailable()) ?? false;
+    return (await this.native.isAirPlayAvailable()) ?? false;
   };
 
   /**
@@ -328,35 +340,39 @@ export class Player extends NativePlayer {
       );
       return;
     }
-    await super.showAirPlayTargetPicker();
+    await this.native.showAirPlayTargetPicker();
   };
 
   /**
    * @returns The currently selected audio track or `null`.
    */
-  declare getAudioTrack: () => Promise<AudioTrack | null>;
+  getAudioTrack = (): Promise<AudioTrack | null> => this.native.getAudioTrack();
 
   /**
    * @returns An array containing {@link AudioTrack} objects for all available audio tracks.
    */
-  declare getAvailableAudioTracks: () => Promise<AudioTrack[]>;
+  getAvailableAudioTracks = (): Promise<AudioTrack[]> =>
+    this.native.getAvailableAudioTracks();
 
   /**
    * Sets the audio track to the ID specified by trackIdentifier. A list can be retrieved by calling getAvailableAudioTracks.
    *
    * @param trackIdentifier - The {@link AudioTrack.identifier} to be set.
    */
-  declare setAudioTrack: (trackIdentifier: string) => Promise<void>;
+  setAudioTrack = (trackIdentifier: string): Promise<void> =>
+    this.native.setAudioTrack(trackIdentifier);
 
   /**
    * @returns The currently selected {@link SubtitleTrack} or `null`.
    */
-  declare getSubtitleTrack: () => Promise<SubtitleTrack | null>;
+  getSubtitleTrack = (): Promise<SubtitleTrack | null> =>
+    this.native.getSubtitleTrack();
 
   /**
    * @returns An array containing SubtitleTrack objects for all available subtitle tracks.
    */
-  declare getAvailableSubtitles: () => Promise<SubtitleTrack[]>;
+  getAvailableSubtitles = (): Promise<SubtitleTrack[]> =>
+    this.native.getAvailableSubtitles();
 
   /**
    * Sets the subtitle track to the ID specified by trackIdentifier. A list can be retrieved by calling getAvailableSubtitles.
@@ -364,9 +380,8 @@ export class Player extends NativePlayer {
    *
    * @param trackIdentifier - The {@link SubtitleTrack.identifier} to be set.
    */
-  declare setSubtitleTrack: (
-    trackIdentifier: string | undefined
-  ) => Promise<void>;
+  setSubtitleTrack = (trackIdentifier: string | undefined): Promise<void> =>
+    this.native.setSubtitleTrack(trackIdentifier);
 
   /**
    * Dynamically schedules the {@link AdItem} for playback.
@@ -374,9 +389,9 @@ export class Player extends NativePlayer {
    *
    * @param adItem - Ad to be scheduled for playback.
    *
-   * @platform iOS, Android
    */
-  declare scheduleAd: (adItem: AdItem) => Promise<void>;
+  scheduleAd = (adItem: AdItem): Promise<void> =>
+    this.native.scheduleAd(adItem);
 
   /**
    * Skips the current ad.
@@ -384,29 +399,27 @@ export class Player extends NativePlayer {
    *
    * Also dismisses a visible pause ad. The main content stays paused.
    *
-   * @platform iOS, Android
    */
-  declare skipAd: () => Promise<void>;
+  skipAd = (): Promise<void> => this.native.skipAd();
 
   /**
    * @returns `true` while an ad is being played back or when main content playback has been paused for ad playback.
    * `false` while a pause ad is shown.
    *
-   * @platform iOS, Android
    */
-  declare isAd: () => Promise<boolean>;
+  isAd = (): Promise<boolean> => this.native.isAd();
 
   /**
    * The current time shift of the live stream in seconds. This value is always 0 if the active {@link Source} is not a
    * live stream or no sources are loaded.
    */
-  declare getTimeShift: () => Promise<number>;
+  getTimeShift = (): Promise<number> => this.native.getTimeShift();
 
   /**
    * The limit in seconds for time shifting. This value is either negative or 0 and it is always 0 if the active
    * {@link Source} is not a live stream or no sources are loaded.
    */
-  declare getMaxTimeShift: () => Promise<number>;
+  getMaxTimeShift = (): Promise<number> => this.native.getMaxTimeShift();
 
   /**
    * Sets the upper bitrate boundary for video qualities. All qualities with a bitrate
@@ -415,7 +428,7 @@ export class Player extends NativePlayer {
    * Can be set to `null` for no limitation.
    */
   setMaxSelectableBitrate = async (bitrate: number | null): Promise<void> => {
-    await super.setMaxSelectableBitrate(bitrate || -1);
+    await this.native.setMaxSelectableBitrate(bitrate || -1);
   };
 
   /**
@@ -428,49 +441,47 @@ export class Player extends NativePlayer {
    *
    * @param time - The time in seconds for which to retrieve the thumbnail.
    */
-  declare getThumbnail: (time: number) => Promise<Thumbnail | null>;
+  getThumbnail = (time: number): Promise<Thumbnail | null> =>
+    this.native.getThumbnail(time);
 
   /**
    * Whether casting to a cast-compatible remote device is available. {@link CastAvailableEvent} signals when
    * casting becomes available.
    *
-   * @platform iOS, Android
    */
-  declare isCastAvailable: () => Promise<boolean>;
+  isCastAvailable = (): Promise<boolean> => this.native.isCastAvailable();
 
   /**
    * Whether video is currently being casted to a remote device and not played locally.
    *
-   * @platform iOS, Android
    */
-  declare isCasting: () => Promise<boolean>;
+  isCasting = (): Promise<boolean> => this.native.isCasting();
 
   /**
    * Initiates casting the current video to a cast-compatible remote device. The user has to choose to which device it
    * should be sent.
    *
-   * @platform iOS, Android
    */
-  declare castVideo: () => Promise<void>;
+  castVideo = (): Promise<void> => this.native.castVideo();
 
   /**
    * Stops casting the current video. Has no effect if {@link Player.isCasting} is `false`.
    *
-   * @platform iOS, Android
    */
-  declare castStop: () => Promise<void>;
+  castStop = (): Promise<void> => this.native.castStop();
 
   /**
    * Returns the currently selected video quality.
    * @returns The currently selected video quality.
    */
-  declare getVideoQuality: () => Promise<VideoQuality>;
+  getVideoQuality = (): Promise<VideoQuality> => this.native.getVideoQuality();
 
   /**
    * Returns an array containing all available video qualities the player can adapt between.
    * @returns An array containing all available video qualities the player can adapt between.
    */
-  declare getAvailableVideoQualities: () => Promise<VideoQuality[]>;
+  getAvailableVideoQualities = (): Promise<VideoQuality[]> =>
+    this.native.getAvailableVideoQualities();
 
   /**
    * Sets the video quality.
@@ -485,13 +496,12 @@ export class Player extends NativePlayer {
       );
       return;
     }
-    await super.setVideoQuality(qualityId);
+    await this.native.setVideoQuality(qualityId);
   };
 
   /**
    * Sets the playback speed of the player. Fast forward, slow motion and reverse playback are supported.
    * @remarks
-   * Platform: iOS, tvOS
    *
    * - Slow motion is indicated by values between `0` and `1`.
    * - Fast forward by values greater than `1`.
@@ -504,19 +514,20 @@ export class Player extends NativePlayer {
    *
    * @param playbackSpeed - The playback speed to set.
    */
-  declare setPlaybackSpeed: (playbackSpeed: number) => Promise<void>;
+  setPlaybackSpeed = (playbackSpeed: number): Promise<void> =>
+    this.native.setPlaybackSpeed(playbackSpeed);
 
   /**
    * @see {@link setPlaybackSpeed} for details on which values playback speed can assume.
    * @returns The player's current playback speed.
    */
-  declare getPlaybackSpeed: () => Promise<number>;
+  getPlaybackSpeed = (): Promise<number> => this.native.getPlaybackSpeed();
 
   /**
    * Checks the possibility to play the media at specified playback speed.
    * @param playbackSpeed - The playback speed to check.
    * @returns `true` if it's possible to play the media at the specified playback speed, otherwise `false`. On Android it always returns `undefined`.
-   * @platform iOS, tvOS
+   * @platform iOS/tvOS
    */
   canPlayAtPlaybackSpeed = async (
     playbackSpeed: number
@@ -527,6 +538,21 @@ export class Player extends NativePlayer {
       );
       return undefined;
     }
-    return (await super.canPlayAtPlaybackSpeed(playbackSpeed)) ?? false;
+    return (await this.native.canPlayAtPlaybackSpeed(playbackSpeed)) ?? false;
   };
+}
+
+/** Raw Expo peer. Its JavaScript back-reference keeps public callback ownership together. @internal */
+class InternalPlayer extends NativePlayer {
+  constructor(
+    readonly player: Player,
+    ...args: ConstructorParameters<typeof NativePlayer>
+  ) {
+    super(...args);
+  }
+}
+
+/** @internal Only the Expo peer crosses native method boundaries. */
+export function getNativePlayer(player: Player): NativePlayer {
+  return player['native'];
 }

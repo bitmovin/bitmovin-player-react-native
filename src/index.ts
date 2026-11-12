@@ -7,9 +7,15 @@ export * from './components';
 export * from './drm';
 export * from './events';
 export * from './hooks';
-export * from './player';
+export { Player } from './player';
 export * from './playlist';
-export * from './source';
+export {
+  Source,
+  SourceType,
+  LoadingState,
+  TimelineReferencePoint,
+} from './source';
+export type { SourceConfig, SourceOptions } from './source';
 export * from './subtitleTrack';
 export * from './styleConfig';
 export * from './ui';

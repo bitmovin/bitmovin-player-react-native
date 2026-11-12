@@ -1,4 +1,3 @@
-import { bindNativeMethods } from '../native/bindNativeMethods';
 import { NativeCustomMessage } from './customMessageHandlerModule';
 import { NativeConfigSerializer } from '../native/nativeConfigSerializer';
 
@@ -23,7 +22,8 @@ export interface CustomMessageHandlerProps {
  * Provides two-way communication between the Player UI and the integration.
  * @platform Android, iOS
  */
-export class CustomMessageHandler extends NativeCustomMessage {
+export class CustomMessageHandler {
+  private readonly native: InternalCustomMessage;
   constructor(private readonly options: CustomMessageHandlerProps) {
     const serializer = new NativeConfigSerializer();
     const config = serializer.serialize({
@@ -32,10 +32,16 @@ export class CustomMessageHandler extends NativeCustomMessage {
       asynchronousMessage: (message: string, data: string | null) =>
         options.onReceivedAsynchronousMessage(message, data ?? undefined),
     });
-    super(config, serializer.dispatcher.callback);
-    bindNativeMethods(this, NativeCustomMessage.prototype);
+    this.native = new InternalCustomMessage(
+      this,
+      config,
+      serializer.dispatcher.callback
+    );
     serializer.dispatcher.retain(this);
   }
+  /** Releases the configured message callbacks. */
+  destroy = (): Promise<void> => this.native.destroy();
+
   /** Handles a synchronous message delivered by the Player UI. */
   receivedSynchronousMessage(
     message: string,
@@ -48,5 +54,23 @@ export class CustomMessageHandler extends NativeCustomMessage {
     this.options.onReceivedAsynchronousMessage(message, data);
   }
   /** Sends a message to the Player UI. Resolution acknowledges native submission. */
-  declare sendMessage: (message: string, data?: string) => Promise<void>;
+  sendMessage = (message: string, data?: string): Promise<void> =>
+    this.native.sendMessage(message, data);
+}
+
+/** @internal */
+class InternalCustomMessage extends NativeCustomMessage {
+  constructor(
+    readonly handler: CustomMessageHandler,
+    ...args: ConstructorParameters<typeof NativeCustomMessage>
+  ) {
+    super(...args);
+  }
+}
+
+/** @internal */
+export function getNativeCustomMessage(
+  handler: CustomMessageHandler
+): NativeCustomMessage {
+  return handler['native'];
 }

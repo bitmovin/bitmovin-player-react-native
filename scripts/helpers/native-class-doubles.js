@@ -1,9 +1,12 @@
 const { EventEmitter } = require('node:events');
+const assert = require('node:assert/strict');
 
 // Controlled JS boundary doubles only. SDK scheduling, decoding and playback are
 // established by Cavy, not by the behavior modeled in this fixture.
 const peers = new WeakMap();
 function controlFor(peer) {
+  // A test actuator may inspect a facade's private peer; native arguments below must already be raw.
+  peer = peers.has(peer) ? peer : (peer?.native ?? peer);
   const state = peers.get(peer);
   if (!state) return Promise.resolve(peer);
   state.ready ??= Promise.resolve()
@@ -80,6 +83,20 @@ function nativeClass(factory, methods, { synchronous = false } = {}) {
         }
       }
       const control = await controlFor(this);
+      if (name === 'loadSource' || name === 'loadOfflineContent')
+        assert.ok(peers.has(args[0]), `${name} requires a raw Expo peer`);
+      if (name === 'loadPlaylist')
+        for (const source of args[0].sources)
+          assert.ok(
+            peers.has(source),
+            'loadPlaylist requires raw Source peers'
+          );
+      if (name === 'getSource')
+        for (const source of args[0] ?? [])
+          assert.ok(
+            peers.has(source),
+            'getSource requires raw known Source peers'
+          );
       for (const arg of args) {
         if (peers.has(arg)) await controlFor(arg);
         if (arg?.sources) await Promise.all(arg.sources.map(controlFor));
@@ -144,6 +161,10 @@ function installNativeClasses(modules) {
     getDuration: 'duration',
     getSource: async (control, args) => {
       const source = await control.getSource(...args);
+      const known = (args[0] ?? []).find(
+        (peer) => peer.sdkSource === source?.sdkSource
+      );
+      if (known) return known;
       return source && !peers.has(source)
         ? modules.SourceModule.Source.fromControl(source)
         : source;
@@ -197,6 +218,18 @@ function installNativeClasses(modules) {
     for (const [method, target] of Object.entries(methods)) {
       Helper.prototype[method] = async function (...args) {
         const owner = peers.get(this).args[0];
+        assert.ok(
+          peers.has(owner),
+          'Native helper constructor requires a raw Player peer'
+        );
+        if (['add', 'remove', 'seek', 'seekTo'].includes(method))
+          assert.ok(peers.has(args[0]), `${method} requires a raw Source peer`);
+        if (method === 'getSources')
+          for (const source of args[0] ?? [])
+            assert.ok(
+              peers.has(source),
+              'getSources requires raw known Source peers'
+            );
         const control = await controlFor(owner);
         for (const arg of args) if (peers.has(arg)) await controlFor(arg);
         const value = await control[target](...args);

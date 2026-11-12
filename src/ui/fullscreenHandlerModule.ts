@@ -2,13 +2,14 @@
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
+import type { FullscreenHandlerBridge } from './fullscreenHandlerBridge';
 import type { NativeCallback } from '../native/nativeCallbacks';
 
 /** @internal */
-export interface NativeFullscreen extends SharedObject {
-  setIsFullscreenActive(active: boolean): Promise<void>;
-  destroy(): Promise<void>;
-}
+export type NativeFullscreen = SharedObject &
+  Pick<FullscreenHandlerBridge, 'destroy'> & {
+    setIsFullscreenActive(active: boolean): Promise<void>;
+  };
 
 declare class FullscreenHandlerModule extends NativeModule {
   readonly FullscreenHandler: new (

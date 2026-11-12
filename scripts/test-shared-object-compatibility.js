@@ -28,7 +28,7 @@ before(() => {
       rootDir: path.resolve(__dirname, '../src'),
       outDir: compiled,
       module: ts.ModuleKind.CommonJS,
-      target: ts.ScriptTarget.ES2020,
+      target: ts.ScriptTarget.ESNext,
       noCheck: true,
       types: [],
     }
@@ -254,7 +254,7 @@ test('a Source can be loaded by another Player and still use its DRM API', async
     source.config.metadata
   );
   assert.deepEqual(
-    calls.map((call) => call.source),
+    calls.map((call) => call.source.source),
     [source, source]
   );
   assert.equal(
@@ -374,10 +374,15 @@ test('playlist mutations delegate without querying or reconciling native sources
     assert.fail('Mutation queried the active source');
   const options = { preloadAllSources: true, replayMode: 'lastSource' };
   await player.loadPlaylist({ sources: [first], options });
-  assert.deepEqual(calls[0], { sources: [first], options });
+  assert.deepEqual(
+    calls[0].sources.map((peer) => peer.source),
+    [first]
+  );
+  assert.equal(calls[0].options, options);
   await player.playlist.add(second);
   await player.playlist.seek(second, 12);
-  assert.deepEqual(calls[1], { source: second, time: 12 });
+  assert.equal(calls[1].source.source, second);
+  assert.equal(calls[1].time, 12);
   await player.playlist.remove(second);
   await player.playlist.removeAt(0);
   player.destroy();
@@ -515,5 +520,25 @@ test('detached native methods remain usable as UI callbacks', async (t) => {
   const play = player.play;
   await play();
   assert.equal(calls, 1);
+  await player.destroy();
+});
+
+// This inspects only the controlled Expo boundary; native lifetime is exercised in Cavy.
+test('public facades keep transport on their paired Expo peer', async (t) => {
+  const { Player, Source, modules } = fixture(t);
+  const player = new Player();
+  const source = new Source({ url: 'https://test/source', type: 'hls' });
+  for (const [owner, Native, backref] of [
+    [player, modules.PlayerModule.Player, 'player'],
+    [source, modules.SourceModule.Source, 'source'],
+    [player.buffer, modules.PlayerModule.BufferApi, 'buffer'],
+  ]) {
+    assert.equal(owner instanceof Native, false);
+    assert.equal(owner.native instanceof Native, true);
+    assert.equal(owner.native[backref], owner);
+    assert.equal('release' in owner, false);
+    assert.equal('emit' in owner, false);
+    assert.equal('addListener' in owner, false);
+  }
   await player.destroy();
 });

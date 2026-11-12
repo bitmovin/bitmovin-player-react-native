@@ -1,6 +1,5 @@
-import { bindNativeMethods } from './native/bindNativeMethods';
 import { NativeMediaControls } from './modules/playerModule';
-import type { Player } from './player';
+import { type Player, getNativePlayer } from './player';
 import { Platform } from 'react-native';
 
 /**
@@ -8,17 +7,14 @@ import { Platform } from 'react-native';
  *
  * Accessible through {@link Player.mediaControls}.
  *
- * @platform iOS, tvOS
+ * @platform iOS/tvOS
  */
-export class MediaControlsApi extends NativeMediaControls {
-  // Retains configured JS callbacks while this native API handle is retained.
-  declare private readonly owner: Player;
+export class MediaControlsApi {
+  private readonly native: InternalMediaControlsApi;
 
   /** @internal */
   constructor(owner: Player) {
-    super(owner);
-    this.owner = owner;
-    bindNativeMethods(this, NativeMediaControls.prototype);
+    this.native = new InternalMediaControlsApi(this, owner);
   }
 
   /**
@@ -33,7 +29,7 @@ export class MediaControlsApi extends NativeMediaControls {
    *   It does not manage media controls, sessions, command handlers, or metadata
    *   created directly by the app or by other libraries.
    *
-   * @platform iOS, tvOS
+   * @platform iOS/tvOS
    * @returns `true` if the media controls integration is enabled, `false` otherwise. Always `false` on Android.
    */
   isEnabled = async (): Promise<boolean> => {
@@ -43,13 +39,13 @@ export class MediaControlsApi extends NativeMediaControls {
       );
       return false;
     }
-    return (await super.isEnabled()) ?? false;
+    return (await this.native.isEnabled()) ?? false;
   };
 
   /**
    * Enables or disables the Player's media controls integration at runtime.
    *
-   * @platform iOS, tvOS
+   * @platform iOS/tvOS
    * @param enabled Whether the media controls integration should be enabled.
    */
   setEnabled = async (enabled: boolean): Promise<void> => {
@@ -59,6 +55,16 @@ export class MediaControlsApi extends NativeMediaControls {
       );
       return;
     }
-    return super.setEnabled(enabled);
+    return this.native.setEnabled(enabled);
   };
+}
+
+/** Raw Expo peer retains the public API and its configured Player. @internal */
+class InternalMediaControlsApi extends NativeMediaControls {
+  constructor(
+    readonly mediaControls: MediaControlsApi,
+    readonly player: Player
+  ) {
+    super(getNativePlayer(player));
+  }
 }

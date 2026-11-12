@@ -21,7 +21,7 @@ export type NativeCallback = (
 const callbackOwner = Symbol('callbackOwner');
 
 /**
- * Wraps synchronous and asynchronous SharedObject factories with weak callbacks
+ * Dispatches configuration callbacks through a weak native forwarder
  * to avoid strong reference loops. Synchronous SDK decisions return immediately;
  * only asynchronous replies use a per-call completion object.
  * @internal

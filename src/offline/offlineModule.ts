@@ -2,9 +2,9 @@
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
-import type { SourceConfig } from '../source';
 import type { NativeCallback } from '../native/nativeCallbacks';
-import type { OfflineDownloadRequest } from './offlineDownloadRequest';
+import type { OfflineContentManager } from './offlineContentManager';
+import type { NativeMethods } from '../native/nativeMethods';
 import type { BitmovinNativeOfflineEventData } from './offlineContentManagerListener';
 
 type OfflineEvents = {
@@ -17,27 +17,15 @@ type OfflineEvents = {
 export type NativeOfflineEvents = SharedObject<OfflineEvents>;
 
 /** @internal */
-export interface NativeOffline extends SharedObject {
-  /** @internal */
-  readonly events: NativeOfflineEvents;
-  state(): Promise<import('./offlineState').OfflineState>;
-  getOptions(): Promise<void>;
-  download(request: OfflineDownloadRequest): Promise<void>;
-  resume(): Promise<void>;
-  suspend(): Promise<void>;
-  cancelDownload(): Promise<void>;
-  usedStorage(): Promise<number>;
-  deleteAll(): Promise<void>;
-  downloadLicense(): Promise<void>;
-  releaseLicense(): Promise<void>;
-  renewOfflineLicense(): Promise<void>;
-  destroy(): Promise<void>;
-}
+export type NativeOffline = SharedObject &
+  Omit<NativeMethods<OfflineContentManager>, 'addListener'> & {
+    readonly events: NativeOfflineEvents;
+  };
 
 declare class OfflineModule extends NativeModule {
   readonly OfflineEvents: new () => NativeOfflineEvents;
   readonly OfflineContentManager: new (
-    config: { identifier: string; sourceConfig: SourceConfig },
+    config: { identifier: string; sourceConfig: Record<string, any> },
     events: NativeOfflineEvents,
     callback: NativeCallback
   ) => NativeOffline;

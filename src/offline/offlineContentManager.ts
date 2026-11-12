@@ -10,7 +10,6 @@ import type { OfflineState } from './offlineState';
 import { NativeOffline, NativeOfflineEvents } from './offlineModule';
 import { legacyOfflineRegistry } from '../nativeInstanceRegistry';
 import { NativeConfigSerializer } from '../native/nativeConfigSerializer';
-import { bindNativeMethods } from '../native/bindNativeMethods';
 
 const handleBitmovinNativeOfflineEvent = (
   data: BitmovinNativeOfflineEventData,
@@ -48,23 +47,28 @@ const handleBitmovinNativeOfflineEvent = (
  *
  * @platform Android, iOS
  */
-export class OfflineContentManager extends NativeOffline {
+export class OfflineContentManager {
+  private readonly native!: InternalOffline;
   private readonly listeners = new Set<OfflineContentManagerListener>();
   private subscription?: EventSubscription;
 
   constructor(readonly config: OfflineContentConfig) {
     const alias = legacyOfflineRegistry.get(config.nativeId);
-    if (alias) return alias as OfflineContentManager;
+    if (alias) return alias;
     const serializer = new NativeConfigSerializer();
     const converted = serializer.serialize({
       identifier: config.identifier,
       sourceConfig: config.sourceConfig,
     });
     const events = new NativeOfflineEvents();
-    super(converted, events, serializer.dispatcher.callback);
+    this.native = new InternalOffline(
+      this,
+      converted,
+      events,
+      serializer.dispatcher.callback
+    );
     serializer.dispatcher.retain(this);
     this.nativeId = legacyOfflineRegistry.register(config.nativeId, this);
-    bindNativeMethods(this, NativeOffline.prototype);
     this.observeEvents(events);
   }
 
@@ -101,21 +105,13 @@ export class OfflineContentManager extends NativeOffline {
    * Adds a listener to the receive data from the native `OfflineContentManagerListener` callbacks
    * Returns a function that removes this listener from the `OfflineContentManager` that registered it.
    */
-  addListener(listener: OfflineContentManagerListener): () => void;
-  /** @internal Expo's inherited event-emitter signature; Offline SDK events use the separate events owner. */
-  addListener(eventName: never, listener: never): EventSubscription;
-  addListener(
-    listenerOrEvent: OfflineContentManagerListener | string,
-    listener?: never
-  ): (() => void) | EventSubscription {
-    if (typeof listenerOrEvent === 'string')
-      return super.addListener(listenerOrEvent as never, listener as never);
+  addListener = (listener: OfflineContentManagerListener): (() => void) => {
     const listeners = this.listeners;
-    listeners.add(listenerOrEvent);
+    listeners.add(listener);
     return () => {
-      listeners.delete(listenerOrEvent);
+      listeners.delete(listener);
     };
-  }
+  };
 
   /**
    * Destroys the native `OfflineManager` and releases all of its allocated resources.
@@ -126,19 +122,19 @@ export class OfflineContentManager extends NativeOffline {
     this.subscription = undefined;
     this.listeners.clear();
     legacyOfflineRegistry.remove(this.nativeId, this);
-    await super.destroy();
+    await this.native.destroy();
   };
 
   /**
    * Gets the current state of the `OfflineContentManager`
    */
-  declare state: () => Promise<OfflineState>;
+  state = (): Promise<OfflineState> => this.native.state();
 
   /**
    * Loads the current `OfflineContentOptions`.
    * When the options are loaded the data will be passed to the `OfflineContentManagerListener.onOptionsAvailable`.
    */
-  declare getOptions: () => Promise<void>;
+  getOptions = (): Promise<void> => this.native.getOptions();
 
   /**
    * Enqueues downloads according to the `OfflineDownloadRequest`.
@@ -146,39 +142,40 @@ export class OfflineContentManager extends NativeOffline {
    * A resolved promise does not indicate that the download has finished.
    * Observe `OfflineContentManagerListener` for download completion and errors.
    */
-  declare download: (request: OfflineDownloadRequest) => Promise<void>;
+  download = (request: OfflineDownloadRequest): Promise<void> =>
+    this.native.download(request);
 
   /**
    * Resumes all suspended actions.
    */
-  declare resume: () => Promise<void>;
+  resume = (): Promise<void> => this.native.resume();
 
   /**
    * Suspends all active actions.
    */
-  declare suspend: () => Promise<void>;
+  suspend = (): Promise<void> => this.native.suspend();
 
   /**
    * Cancels and deletes the active download.
    */
-  declare cancelDownload: () => Promise<void>;
+  cancelDownload = (): Promise<void> => this.native.cancelDownload();
 
   /**
    * Resolves how many bytes of storage are used by the offline content.
    */
-  declare usedStorage: () => Promise<number>;
+  usedStorage = (): Promise<number> => this.native.usedStorage();
 
   /**
    * Deletes everything related to the related content ID.
    */
-  declare deleteAll: () => Promise<void>;
+  deleteAll = (): Promise<void> => this.native.deleteAll();
 
   /**
    * Downloads the offline license.
    * When finished successfully, data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    */
-  declare downloadLicense: () => Promise<void>;
+  downloadLicense = (): Promise<void> => this.native.downloadLicense();
 
   /**
    * Releases the currently held offline license.
@@ -187,12 +184,29 @@ export class OfflineContentManager extends NativeOffline {
    *
    * @platform Android
    */
-  declare releaseLicense: () => Promise<void>;
+  releaseLicense = (): Promise<void> => this.native.releaseLicense();
 
   /**
    * Renews the already downloaded DRM license.
    * When finished successfully data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    */
-  declare renewOfflineLicense: () => Promise<void>;
+  renewOfflineLicense = (): Promise<void> => this.native.renewOfflineLicense();
+}
+
+/** @internal */
+class InternalOffline extends NativeOffline {
+  constructor(
+    readonly offline: OfflineContentManager,
+    ...args: ConstructorParameters<typeof NativeOffline>
+  ) {
+    super(...args);
+  }
+}
+
+/** @internal */
+export function getNativeOffline(
+  offline: OfflineContentManager
+): NativeOffline {
+  return offline['native'];
 }
