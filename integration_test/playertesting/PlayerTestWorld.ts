@@ -245,27 +245,38 @@ export default class PlayerTestWorld {
       actualExpectation = PlainEvent(expectationConvertible as EventType);
     }
     let resolve: (event: T) => void = () => {};
-    let reject: (error: Error) => void = () => {};
-    const future = new Promise<T>((res, rej) => {
+    const future = new Promise<T>((res) => {
       resolve = res;
-      reject = rej;
     });
     const removeListener = this.addEventListener((event) => {
       if (actualExpectation.maybeFulfillExpectation(event)) {
         resolve(event as T);
       }
     });
-    const timeoutHandle = setTimeout(() => {
-      if (!actualExpectation.isFulfilled) {
-        removeListener();
-        reject(new Error(`Expectation was not met: ${actualExpectation}`));
-      }
-    }, timeoutSeconds * 1000);
-    // The expectation can time out while the trigger is still running.
-    void future.catch(() => {});
+    let operationFinished = false;
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+    const deadline = new Promise<never>((_, reject) => {
+      timeoutHandle = setTimeout(() => {
+        reject(
+          new Error(
+            operationFinished
+              ? `Expectation was not met: ${actualExpectation}`
+              : `Player operation did not complete: ${actualExpectation}`
+          )
+        );
+      }, timeoutSeconds * 1000);
+    });
     try {
-      await afterListenerAttached();
-      return await future;
+      const operation = Promise.resolve()
+        .then(afterListenerAttached)
+        .then(() => {
+          operationFinished = true;
+        });
+      const [, result] = await Promise.race([
+        Promise.all([operation, future]),
+        deadline,
+      ]);
+      return result;
     } finally {
       clearTimeout(timeoutHandle);
       removeListener();
@@ -290,10 +301,8 @@ export default class PlayerTestWorld {
     let fulfilledExpectations = 0;
     const receivedEvents: Event[] = [];
     let resolve: (event: Event[]) => void = () => {};
-    let reject: (error: Error) => void = () => {};
-    const future = new Promise<Event[]>((res, rej) => {
+    const future = new Promise<Event[]>((res) => {
       resolve = res;
-      reject = rej;
     });
     const removeListener = this.addEventListener((event) => {
       if (actualExpectation.isNextExpectationMet(event)) {
@@ -306,17 +315,30 @@ export default class PlayerTestWorld {
         }
       }
     });
-    const timeoutHandle = setTimeout(() => {
-      if (fulfilledExpectations < actualExpectation.expectedFulfillmentCount) {
-        removeListener();
-        reject(new Error(`Expectation was not met: ${actualExpectation}`));
-      }
-    }, timeoutSeconds * 1000);
-    // The expectation can time out while the trigger is still running.
-    void future.catch(() => {});
+    let operationFinished = false;
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+    const deadline = new Promise<never>((_, reject) => {
+      timeoutHandle = setTimeout(() => {
+        reject(
+          new Error(
+            operationFinished
+              ? `Expectation was not met: ${actualExpectation}`
+              : `Player operation did not complete: ${actualExpectation}`
+          )
+        );
+      }, timeoutSeconds * 1000);
+    });
     try {
-      await afterListenerAttached();
-      return await future;
+      const operation = Promise.resolve()
+        .then(afterListenerAttached)
+        .then(() => {
+          operationFinished = true;
+        });
+      const [, result] = await Promise.race([
+        Promise.all([operation, future]),
+        deadline,
+      ]);
+      return result;
     } finally {
       clearTimeout(timeoutHandle);
       removeListener();
