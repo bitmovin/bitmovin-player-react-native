@@ -89,6 +89,43 @@
 - Configuration wrappers and API helpers no longer need separate initialization, destruction, or binding IDs. Runtime helpers remain available through `player.buffer`, `player.analytics`, `player.mediaControls`, and `source.drm`; their constructors are internal
 - Repeated destruction and calls after destruction now follow native SDK behavior instead of wrapper no-ops or placeholder values
 
+## [1.31.0] - 2026-11-12
+
+### Added
+
+- iOS: Support for VMAP ad tags with the Bitmovin Advertising Module (`AdSourceType.BITMOVIN`), included in native iOS SDK `3.131.0`. VMAP no longer requires Google IMA on iOS, matching Android
+- Android: `onPlaybackSpeedChanged` event to indicate playback speed changes. The event is already available in iOS
+- `onPlayerInactive` event prop on `PlayerView` to indicate when the active playback session ends and the player becomes inactive
+- Experimental playlist support via `Player.loadPlaylist`, `Player.playlist` and the `onPlaylistTransition`, `onSourceAdded` and `onSourceRemoved` events. On iOS, playlists support HLS, progressive and `movpkg` sources
+- `EventSource.nativeId` to map sources in event payloads to their `Source` instances
+- `Player.on`/`Player.off` and `Source.on`/`Source.off` to receive player and source events independently of a `PlayerView`
+
+### Fixed
+
+- Android: **Breaking change:** `PlayerActive` and `PlayerInactive` events being named `onActive` and `onInactive` instead of `onPlayerActive` and `onPlayerInactive`, as on iOS. Apps comparing `Event.name`, e.g. in `onEvent`, must use the new names.
+- Android: `Source.loadingState()` returning the state name instead of a `LoadingState` value
+- Android: `onPlayerActive` not being emitted
+- Android: `com.google.android.gms.permission.AD_ID` being added to apps with Google IMA disabled, which makes Google Play require an advertising ID declaration. Apps with Google IMA disabled that rely on the advertising ID, e.g. through an analytics SDK, may need to add `com.google.android.gms:play-services-ads-identifier` to their own dependencies
+- iOS: Data race in `NetworkConfig` HTTP request and response preprocessing now that the native SDK invokes the callbacks on a background thread
+- Android: A player being unable to load any source after loading a source attached to another player
+- iOS: Crash when loading a source attached to another player via `Player.loadSource()`
+- A source destroyed while it was initializing, e.g. by `Source.destroy()` right after `Player.loadSource()`, being created natively afterwards and keeping its DRM config
+
+### Changed
+
+- Update Bitmovin's native Android SDK version to [`3.174.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31740)
+- iOS: Bitmovin Advertising Module ads no longer start with the subtitle track marked as default in the ad manifest. The ad subtitle now follows the subtitle selected for the main content, and stays off if the main content subtitles are off. This comes with native iOS SDK `3.131.0`
+- Update Bitmovin's native iOS SDK version to [`3.131.0`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31310)
+- **Breaking change:** `SourceUnloadedEvent.source` is now optional. Android does not provide it for events received via `Player.on` or the `PlayerView` event props, as the native event does not carry the source. It is provided for events received via `Source.on`.
+- `PlayerView` event props are delivered through the player's event subscriptions on all platforms. The order of fullscreen and picture-in-picture events relative to player events can differ slightly. On Android, events emitted right after loading (e.g. `onPlayerActive`) are no longer lost, and two `PlayerView`s showing the same player now both receive the events. On iOS, `onEvent` now only receives the events of the documented `PlayerView` props, instead of every event of the native player.
+- **Breaking change:** Replace the `Player.source` property with `Player.getSource()`, which returns the currently active source of the native player
+- `Player.destroy()` destroys every source the player was the last to load or add to its playlist, including ones it no longer plays, instead of only the source loaded last. Sources loaded into another player since, or removed via `PlaylistApi.remove` or `PlaylistApi.removeAt`, are not destroyed
+
+### Known Issues
+
+- Sources that left a player through `Player.unload()` or a later load stay allocated until the player is destroyed. Sources removed via `PlaylistApi.remove` or `PlaylistApi.removeAt` must be destroyed via `Source.destroy()` once they are no longer needed
+- `Source.on` listeners do not receive the final `sourceUnloaded` of a source that `Player.destroy()` destroys, as the source is destroyed before the native player unloads it. `Player.on` listeners and the `PlayerView` `onSourceUnloaded` prop receive it for the active source
+
 ## [1.30.0] - 2026-10-29
 
 ### Changed
