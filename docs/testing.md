@@ -10,9 +10,10 @@ native test target is available.
 
 JS unit tests run in Node without a simulator or emulator. They can run real
 TypeScript code while replacing the Expo boundary with a controlled mock. Use
-them for callback invocation, synchronous throws and rejected promises,
-fallback selection, callback selection, and handling completion failures.
-Assertions about original configuration objects and functions submitted to a mock prove JS submission only. Native invocation, DTO conversion, fallback and cancellation require native checks.
+them for aliases, Source ownership, event subscriptions, view attachment and
+JavaScript handler adapters. Assertions about original configuration objects and
+functions submitted to a mock prove JS submission only. Native invocation, DTO
+conversion, fallback and cancellation require native checks.
 
 An integration test checks cooperating components across a chosen boundary.
 A test using real JS modules and a mocked bridge may cover their JS integration,
@@ -28,16 +29,16 @@ also includes delivery across Expo or SDK behavior in the app.
 
 ## Decision examples
 
-| Behavior to verify                                                            | Choose                          | Evidence to assert                                                                                             |
-| ----------------------------------------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| A preprocessing callback resolves to a transformed request or response        | JS unit                         | Correct callback arguments and transformed payload submitted to the bridge mock                                |
-| A callback throws synchronously or returns a rejected promise                 | JS unit                         | JS selects the intended fallback and handles the failure                                                       |
-| A callback belongs to a configured object and receives a completion value     | JS unit                         | Matching callbacks receive the correct arguments and complete their own invocation                             |
-| The native completion call throws                                             | JS unit                         | JS handles the completion failure without retrying; submission counts alone do not prove native completion     |
-| Missing fields, null values, or encoded bodies reach a native decoder         | Focused native test and/or Cavy | Real conversion accepts or rejects the payload as specified; Cavy for the actual Expo boundary                 |
-| A per-call completion receives a duplicate, late, or decoded result           | Focused native test and/or Cavy | Native completion, cleanup, and error behavior; Cavy if SDK resumption is part of the claim                    |
-| The Player emits events after loading, playing, unloading, or failing         | Cavy system                     | Actual platform SDK events and observable player state                                                         |
-| A transformed manifest, segment, or license request must still allow playback | Both                            | Unit tests cover JS transformation/fallback branches; Cavy proves the native round trip and resulting playback |
+| Behavior to verify                                                            | Choose                          | Evidence to assert                                                                             |
+| ----------------------------------------------------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Original config functions reach a native constructor                          | JS unit                         | The original objects and function references submitted to the boundary double                  |
+| A native-invoked callback throws or returns a rejected Promise                | Focused native test and/or Cavy | The native adapter selects the original SDK value and the SDK operation completes              |
+| A callback receives its original receiver and current configured function     | Focused native test and/or Cavy | The actual native call preserves this and follows the current callback property                |
+| A native callback result cannot be converted                                  | Focused native test and/or Cavy | Native fallback, cleanup and completion are checked at the adapter boundary                    |
+| Missing fields, null values, or encoded bodies reach a native decoder         | Focused native test and/or Cavy | Real conversion accepts or rejects the payload as specified; Cavy for the actual Expo boundary |
+| A per-call completion receives a duplicate, late, or decoded result           | Focused native test and/or Cavy | Native completion, cleanup, and error behavior; Cavy if SDK resumption is part of the claim    |
+| The Player emits events after loading, playing, unloading, or failing         | Cavy system                     | Actual platform SDK events and observable player state                                         |
+| A transformed manifest, segment, or license request must still allow playback | Focused native test and/or Cavy | The actual native round trip preserves converted values and allows the SDK to resume playback  |
 
 For completion-error cases, state whether the fixture models failure before or after
 completion, and track attempts separately from modeled completions. A thrown call
@@ -45,8 +46,9 @@ alone does not reveal real native state. Native recovery guarantees need evidenc
 at the native boundary.
 
 Use both layers when a change combines JS branching with a native contract.
-Keep the detailed callback/error matrix in unit tests, then add focused system
-cases for the changed boundary and observable result on each affected platform.
+Keep JavaScript branching in unit tests. Check native callback errors,
+fallbacks and completion rules with focused native tests, then use system cases
+for the changed boundary and observable result on each affected platform.
 A unit pass alone cannot close a native regression. A system happy path alone
 does not cover every callback failure branch.
 

@@ -82,7 +82,6 @@
 - Catch missing Source or OfflineContentManager configuration and missing `SourceConfig.type` during TypeScript checking. These inputs were already invalid at runtime; valid configurations are unchanged
 - Android: `Source.loadingState()` now returns a `LoadingState` value instead of a state name
 - Android: Deliver `PlayerView.onPlayerActive` when a playback session becomes active
-- Report callback-result conversion errors in JavaScript while completing affected HTTP preprocessing with the original request or response
 
 ### Deprecated
 
@@ -90,6 +89,7 @@
 
 ### Internal
 
+- Pass original configuration functions to native code without callback tokens or a JavaScript dispatcher
 - Use Expo SharedObjects for native ownership and callbacks, with weak TypeScript registries only for legacy ID-based construction
 - Configuration wrappers and API helpers no longer need separate initialization, destruction, or binding IDs. Runtime helpers remain available through `player.buffer`, `player.analytics`, `player.mediaControls`, and `source.drm`; their constructors are internal
 - Repeated destruction and calls after destruction now follow native SDK behavior instead of wrapper no-ops or placeholder values
