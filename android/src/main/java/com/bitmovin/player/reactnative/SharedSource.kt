@@ -6,15 +6,15 @@ import com.bitmovin.player.reactnative.converter.toAnalyticsSourceMetadata
 import com.bitmovin.player.reactnative.converter.toSourceConfig
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.exception.CodedException
-import expo.modules.kotlin.jni.JavaScriptFunction
-import expo.modules.kotlin.jni.JavaScriptValue
+import expo.modules.kotlin.jni.JavaScriptObject
+import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.sharedobjects.SharedObject
 
 /** Owns the source wrapper, without unloading a source retained by an SDK player. */
 class SharedSource private constructor(
     appContext: AppContext,
     factory: () -> Source,
-    private val callbacks: CallbackScope? = null,
+    private val callbacks: JavaScriptCallbacks? = null,
 ) : SharedObject(appContext) {
     constructor(appContext: AppContext, source: Source) : this(appContext, { source }) {
         // SDK-created offline sources must already emit events when the JS query resolves.
@@ -35,13 +35,14 @@ class SharedSource private constructor(
     companion object {
         fun create(
             appContext: AppContext,
-            config: Map<String, Any>?,
+            config: JavaScriptObject?,
             analyticsSourceMetadata: Map<String, Any>?,
-            callback: JavaScriptFunction<JavaScriptValue>?,
+            module: Module,
         ): SharedSource {
-            val callbacks = CallbackScope(appContext, callback)
+            val callbacks = JavaScriptCallbacks(appContext, module)
+            val nativeConfig = callbacks.snapshot(config)
             return SharedSource(appContext, {
-                val sourceConfig = config?.toSourceConfig(callbacks) ?: throw CodedException(
+                val sourceConfig = nativeConfig?.toSourceConfig() ?: throw CodedException(
                     "ERR_INVALID_ARGUMENT",
                     "Invalid source configuration",
                     null,

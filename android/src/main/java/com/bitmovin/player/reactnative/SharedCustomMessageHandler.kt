@@ -3,27 +3,29 @@ package com.bitmovin.player.reactnative
 import android.webkit.JavascriptInterface
 import com.bitmovin.player.ui.CustomMessageHandler
 import expo.modules.kotlin.AppContext
-import expo.modules.kotlin.jni.JavaScriptFunction
-import expo.modules.kotlin.jni.JavaScriptValue
+import expo.modules.kotlin.jni.JavaScriptObject
+import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.sharedobjects.SharedObject
 
 class SharedCustomMessageHandler(
     appContext: AppContext,
-    config: Map<String, String>,
-    callback: JavaScriptFunction<JavaScriptValue>?,
+    config: JavaScriptObject,
+    module: Module,
 ) : SharedObject(appContext) {
-    private val synchronousMessage = requireNotNull(config["synchronousMessage"])
-    private val asynchronousMessage = requireNotNull(config["asynchronousMessage"])
-    private val callbacks = CallbackScope(appContext, callback)
+    private val callbacks = JavaScriptCallbacks(appContext, module)
+    private val options = callbacks.snapshot(config)!!
+    private val synchronousMessage = options["onReceivedSynchronousMessage"] as? JavaScriptCallback
+    private val asynchronousMessage = options["onReceivedAsynchronousMessage"] as? JavaScriptCallback
     val customMessageHandler = CustomMessageHandler(
         object : Any() {
             @JavascriptInterface
             fun sendSynchronous(name: String, data: String?): String? =
-                callbacks.call(synchronousMessage, listOf(name, data)) as? String
+                synchronousMessage?.blockingCall(listOf(name, data), undefinedIndex = 1) as? String
 
             @JavascriptInterface
-            fun sendAsynchronous(name: String, data: String?) =
-                callbacks.notify(asynchronousMessage, listOf(name, data))
+            fun sendAsynchronous(name: String, data: String?) {
+                asynchronousMessage?.emit(listOf(name, data), undefinedIndex = 1)
+            }
         },
     )
     fun destroy() = callbacks.close()

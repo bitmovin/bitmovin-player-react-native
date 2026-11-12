@@ -89,7 +89,7 @@ import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.StyleConfig
 import com.bitmovin.player.api.ui.SurfaceType
 import com.bitmovin.player.api.ui.UiConfig
-import com.bitmovin.player.reactnative.CallbackScope
+import com.bitmovin.player.reactnative.JavaScriptCallback
 import com.bitmovin.player.reactnative.PictureInPictureAction
 import com.bitmovin.player.reactnative.PictureInPictureConfig
 import com.bitmovin.player.reactnative.UserInterfaceType
@@ -114,6 +114,7 @@ import com.bitmovin.player.reactnative.extensions.withMap
 import com.bitmovin.player.reactnative.extensions.withString
 import com.bitmovin.player.reactnative.extensions.withStringArray
 import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
+import kotlinx.coroutines.future.future
 import java.util.UUID
 
 /**
@@ -126,9 +127,9 @@ private inline fun MutableMap<String, Any>.putIfNotNull(key: String, value: Any?
     value?.let { put(key, it) }
 }
 
-fun Map<String, Any?>?.toDecoderConfig(callbacks: CallbackScope): DecoderConfig? {
+fun Map<String, Any?>?.toDecoderConfig(): DecoderConfig? {
     if (this == null) return null
-    val token = getMap("decoderPriorityProvider")?.getString("overrideDecodersPriority")
+    val callback = getMap("decoderPriorityProvider")?.get("overrideDecodersPriority") as? JavaScriptCallback
     return DecoderConfig(
         decoderPriorityProvider = object : DecoderPriorityProvider {
             override fun overrideDecodersPriority(
@@ -136,8 +137,8 @@ fun Map<String, Any?>?.toDecoderConfig(callbacks: CallbackScope): DecoderConfig?
                 preferredDecoders: List<MediaCodecInfo>,
             ): List<MediaCodecInfo> {
                 @Suppress("UNCHECKED_CAST")
-                val result = token?.let {
-                    callbacks.call(it, listOf(context.toJson(), preferredDecoders.map { it.toJson() }))
+                val result = callback?.let {
+                    it.blockingCall(listOf(context.toJson(), preferredDecoders.map { it.toJson() }))
                 } as? List<Map<String, Any?>>
                 return result?.toMediaCodecInfoList() ?: preferredDecoders
             }
@@ -145,18 +146,18 @@ fun Map<String, Any?>?.toDecoderConfig(callbacks: CallbackScope): DecoderConfig?
     )
 }
 
-fun Map<String, Any?>.toPlayerConfig(callbacks: CallbackScope): PlayerConfig = PlayerConfig(
+fun Map<String, Any?>.toPlayerConfig(): PlayerConfig = PlayerConfig(
     key = getString("licenseKey"),
 ).apply {
-    withMap("playbackConfig") { playbackConfig = it.toPlaybackConfig(callbacks) }
+    withMap("playbackConfig") { playbackConfig = it.toPlaybackConfig() }
     withMap("styleConfig") { styleConfig = it.toStyleConfig() }
     withMap("tweaksConfig") { tweaksConfig = it.toTweaksConfig() }
-    withMap("advertisingConfig") { advertisingConfig = it.toAdvertisingConfig(callbacks) }
+    withMap("advertisingConfig") { advertisingConfig = it.toAdvertisingConfig() }
     withMap("adaptationConfig") { adaptationConfig = it.toAdaptationConfig() }
     withMap("remoteControlConfig") { remoteControlConfig = it.toRemoteControlConfig() }
     withMap("bufferConfig") { bufferConfig = it.toBufferConfig() }
     withMap("liveConfig") { liveConfig = it.toLiveConfig() }
-    withMap("networkConfig") { networkConfig = it.toNetworkConfig(callbacks) }
+    withMap("networkConfig") { networkConfig = it.toNetworkConfig() }
 }
 
 fun Map<String, Any?>.toBufferMediaTypeConfig(): BufferMediaTypeConfig = BufferMediaTypeConfig().apply {
@@ -200,9 +201,9 @@ private fun Map<String, Any?>.toAdaptationConfig(): AdaptationConfig = Adaptatio
     withInt("initialBandwidthEstimateOverride") { initialBandwidthEstimateOverride = it.toLong(); }
 }
 
-fun Map<String, Any?>.toPlaybackConfig(callbacks: CallbackScope): PlaybackConfig = PlaybackConfig(
+fun Map<String, Any?>.toPlaybackConfig(): PlaybackConfig = PlaybackConfig(
     // The SDK exposes decoderConfig as a val; it must be supplied to the constructor.
-    decoderConfig = withMap("decoderConfig") { it.toDecoderConfig(callbacks) } ?: DecoderConfig(),
+    decoderConfig = withMap("decoderConfig") { it.toDecoderConfig() } ?: DecoderConfig(),
 ).apply {
     withBoolean("isAutoplayEnabled") { isAutoplayEnabled = it }
     withBoolean("isMuted") { isMuted = it }
@@ -261,24 +262,24 @@ fun Map<String, Any?>.toTweaksConfig(): TweaksConfig =
         }
     }.build()
 
-fun Map<String, Any?>.toAdvertisingConfig(callbacks: CallbackScope): AdvertisingConfig {
+fun Map<String, Any?>.toAdvertisingConfig(): AdvertisingConfig {
     val config = AdvertisingConfig(
         withArray("schedule") { it.toMapList().mapNotNull { item -> item?.toAdItem() } } ?: emptyList(),
     )
     // These SDK properties are vals. Copy only the configured callbacks, preserving SDK defaults.
     val configured = config.copy(
-        shouldLoadAdItem = withFunction("shouldLoadAdItem") { token ->
+        shouldLoadAdItem = withFunction("shouldLoadAdItem") { callback ->
             ShouldLoadAdItemCallback {
-                callbacks.call(token, listOf(it.toJson())) as? Boolean ?: true
+                callback.blockingCall(listOf(it.toJson())) as? Boolean ?: true
             }
         } ?: config.shouldLoadAdItem,
-        shouldPlayAdBreak = withFunction("shouldPlayAdBreak") { token ->
+        shouldPlayAdBreak = withFunction("shouldPlayAdBreak") { callback ->
             ShouldPlayAdBreakCallback {
-                callbacks.call(token, listOf(it.toJson())) as? Boolean ?: true
+                callback.blockingCall(listOf(it.toJson())) as? Boolean ?: true
             }
         } ?: config.shouldPlayAdBreak,
     )
-    return configureIma(configured, callbacks)
+    return configureIma(configured)
 }
 
 fun Map<String, Any?>.toAdItem(): AdItem? {
@@ -304,11 +305,11 @@ private fun String.toAdSourceType(): AdSourceType? = when (this) {
     else -> null
 }
 
-fun Map<String, Any?>.toSourceConfig(callbacks: CallbackScope): SourceConfig? {
+fun Map<String, Any?>.toSourceConfig(): SourceConfig? {
     val url = getString("url") ?: return null
     val type = getString("type")?.toSourceType() ?: return null
     return SourceConfig(url, type).apply {
-        withMap("drmConfig") { drmConfig = it.toWidevineConfig(callbacks) }
+        withMap("drmConfig") { drmConfig = it.toWidevineConfig() }
         withString("title") { title = it }
         withString("description") { description = it }
         withString("poster") { posterSource = it }
@@ -615,7 +616,7 @@ fun PlayerEvent.toJson(): Map<String, Any> {
     return baseMap.filterNotNullValues()
 }
 
-fun Map<String, Any?>.toWidevineConfig(callbacks: CallbackScope): WidevineConfig? =
+fun Map<String, Any?>.toWidevineConfig(): WidevineConfig? =
     withMap("widevine") { config ->
         WidevineConfig(config.getString("licenseUrl")).apply {
             config.withString("preferredSecurityLevel") { preferredSecurityLevel = it }
@@ -623,21 +624,21 @@ fun Map<String, Any?>.toWidevineConfig(callbacks: CallbackScope): WidevineConfig
             config.withMap("httpHeaders") {
                 httpHeaders = it.mapValues { entry -> entry.value as String }.toMutableMap()
             }
-            config.withFunction("prepareMessage") { token ->
+            config.withFunction("prepareMessage") { callback ->
                 prepareMessageCallback = PrepareMessageCallback {
-                    callbacks.prepare(token, it)
+                    callback.prepare(it)
                 }
             }
-            config.withFunction("prepareLicense") { token ->
+            config.withFunction("prepareLicense") { callback ->
                 prepareLicenseCallback = PrepareLicenseCallback {
-                    callbacks.prepare(token, it)
+                    callback.prepare(it)
                 }
             }
         }
     }
 
-private fun CallbackScope.prepare(token: String, data: ByteArray): ByteArray {
-    val result = call(token, listOf(Base64.encodeToString(data, Base64.NO_WRAP)))
+private fun JavaScriptCallback.prepare(data: ByteArray): ByteArray {
+    val result = blockingCall(listOf(Base64.encodeToString(data, Base64.NO_WRAP)))
     return Base64.decode(result as? String ?: "", Base64.NO_WRAP)
 }
 
@@ -939,32 +940,24 @@ fun Map<String, Any?>.toHttpResponse(): HttpResponse? {
     )
 }
 
-fun Map<String, Any?>.toNetworkConfig(callbacks: CallbackScope): NetworkConfig =
+fun Map<String, Any?>.toNetworkConfig(): NetworkConfig =
     NetworkConfig().apply {
-        withFunction("preprocessHttpRequest") { token ->
+        withFunction("preprocessHttpRequest") { callback ->
             preprocessHttpRequestCallback = PreprocessHttpRequestCallback { type, request ->
-                callbacks.future(
-                    token,
-                    listOf(type.toJson(), request.toJson()),
-                    request,
-                    fallbackArgument = 1,
-                ) {
+                callback.scope.future {
                     @Suppress("UNCHECKED_CAST")
-                    (it as Map<String, Any?>).toHttpRequest()
-                }
+                    (callback.asyncCall(listOf(type.toJson(), request.toJson())) as? Map<String, Any?>)
+                        ?.toHttpRequest() ?: request
+                }.exceptionally { request }
             }
         }
-        withFunction("preprocessHttpResponse") { token ->
+        withFunction("preprocessHttpResponse") { callback ->
             preprocessHttpResponseCallback = PreprocessHttpResponseCallback { type, response ->
-                callbacks.future(
-                    token,
-                    listOf(type.toJson(), response.toJson()),
-                    response,
-                    fallbackArgument = 1,
-                ) {
+                callback.scope.future {
                     @Suppress("UNCHECKED_CAST")
-                    (it as Map<String, Any?>).toHttpResponse()
-                }
+                    (callback.asyncCall(listOf(type.toJson(), response.toJson())) as? Map<String, Any?>)
+                        ?.toHttpResponse() ?: response
+                }.exceptionally { response }
             }
         }
     }

@@ -1,24 +1,24 @@
 package com.bitmovin.player.reactnative
 
-import expo.modules.kotlin.jni.JavaScriptFunction
-import expo.modules.kotlin.jni.JavaScriptValue
+import expo.modules.kotlin.jni.JavaScriptObject
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
 class FullscreenHandlerModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("FullscreenHandlerModule")
-        Class("SharedFullscreenHandler", SharedFullscreenHandler::class) {
-            Constructor { callback: JavaScriptFunction<JavaScriptValue>? ->
+        Class(SharedFullscreenHandler::class) {
+            Constructor { config: JavaScriptObject ->
                 SharedFullscreenHandler(
                     appContext,
-                    callback,
+                    config,
+                    this@FullscreenHandlerModule,
                 )
             }
             AsyncFunction("setIsFullscreenActive") { owner: SharedFullscreenHandler, enabled: Boolean ->
                 owner.isFullscreen = enabled
             }
-            AsyncFunction("destroy") { owner: SharedFullscreenHandler -> owner.destroy() }
+            AsyncFunction("destroy", SharedFullscreenHandler::destroy)
         }
     }
 }

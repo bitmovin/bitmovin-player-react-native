@@ -17,8 +17,7 @@ import com.bitmovin.player.reactnative.converter.toTimelineReferencePoint
 import com.bitmovin.player.reactnative.offline.SharedOfflineContentManager
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.functions.Queues
-import expo.modules.kotlin.jni.JavaScriptFunction
-import expo.modules.kotlin.jni.JavaScriptValue
+import expo.modules.kotlin.jni.JavaScriptObject
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
@@ -28,10 +27,9 @@ class PlayerModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("PlayerModule")
         Constant("isGoogleImaEnabled") { IS_GOOGLE_IMA_ENABLED }
-        Class("SharedPlayer", SharedPlayer::class) {
-            Constructor { config: Map<String, Any>?, analytics: Map<String, Any>?,
-                callback: JavaScriptFunction<JavaScriptValue>?, ->
-                SharedPlayer.create(appContext, config, analytics, callback, mediaSessionPlaybackManager)
+        Class(SharedPlayer::class) {
+            Constructor { config: JavaScriptObject?, analytics: Map<String, Any>? ->
+                SharedPlayer.create(appContext, config, analytics, this@PlayerModule, mediaSessionPlaybackManager)
             }
             AsyncFunction("loadPlaylist") { shared: SharedPlayer, sources: List<SharedSource>,
                 options: Map<String, Any>?, ->
@@ -207,7 +205,7 @@ class PlayerModule : Module() {
                 shared.player.load(sharedSource.source)
             }.runOnQueue(Queues.MAIN)
         }
-        Class("SharedBufferApi", SharedBufferApi::class) {
+        Class(SharedBufferApi::class) {
             Constructor { owner: SharedPlayer -> SharedBufferApi(owner) }
             AsyncFunction("getLevel") { shared: SharedBufferApi, type: String ->
                 val buffer = shared.player.buffer
@@ -221,7 +219,7 @@ class PlayerModule : Module() {
                 shared.player.buffer.setTargetLevel(type.toBufferTypeOrThrow(), value)
             }.runOnQueue(Queues.MAIN)
         }
-        Class("SharedAnalyticsApi", SharedAnalyticsApi::class) {
+        Class(SharedAnalyticsApi::class) {
             Constructor { owner: SharedPlayer -> SharedAnalyticsApi(owner) }
             AsyncFunction("sendCustomDataEvent") { shared: SharedAnalyticsApi, json: Map<String, Any?> ->
                 checkNotNull(shared.player.analytics) { "Analytics is disabled" }
@@ -231,7 +229,7 @@ class PlayerModule : Module() {
                 checkNotNull(shared.player.analytics) { "Analytics is disabled" }.userId
             }.runOnQueue(Queues.MAIN)
         }
-        Class("SharedPlaylistApi", SharedPlaylistApi::class) {
+        Class(SharedPlaylistApi::class) {
             Constructor { owner: SharedPlayer -> SharedPlaylistApi(owner) }
             AsyncFunction("getSources") { shared: SharedPlaylistApi, known: List<SharedSource> ->
                 shared.player.playlist.sources.map { source ->

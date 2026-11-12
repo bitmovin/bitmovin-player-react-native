@@ -10,8 +10,8 @@ import com.bitmovin.player.reactnative.converter.toMediaControlConfig
 import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.extensions.getMap
 import expo.modules.kotlin.AppContext
-import expo.modules.kotlin.jni.JavaScriptFunction
-import expo.modules.kotlin.jni.JavaScriptValue
+import expo.modules.kotlin.jni.JavaScriptObject
+import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.sharedobjects.SharedObject
 import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.EmptyCoroutineContext
@@ -20,7 +20,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 class SharedPlayer private constructor(
     appContext: AppContext,
     factory: () -> Player,
-    private val callbacks: CallbackScope,
+    private val callbacks: JavaScriptCallbacks,
     val mediaSessionPlaybackManager: MediaSessionPlaybackManager,
 ) : SharedObject(appContext) {
     private var isDestroyed = false
@@ -53,14 +53,15 @@ class SharedPlayer private constructor(
     companion object {
         fun create(
             appContext: AppContext,
-            config: Map<String, Any>?,
+            config: JavaScriptObject?,
             analytics: Map<String, Any>?,
-            callback: JavaScriptFunction<JavaScriptValue>?,
+            module: Module,
             manager: MediaSessionPlaybackManager,
         ): SharedPlayer {
-            val callbacks = CallbackScope(appContext, callback)
+            val callbacks = JavaScriptCallbacks(appContext, module)
+            val nativeConfig = callbacks.snapshot(config, captureAdvertising = true)
             fun createSdkPlayer(): Player {
-                val playerConfig = config?.toPlayerConfig(callbacks) ?: PlayerConfig()
+                val playerConfig = nativeConfig?.toPlayerConfig() ?: PlayerConfig()
                 val context = checkNotNull(appContext.reactContext?.applicationContext) {
                     "Application context is not available"
                 }
@@ -73,7 +74,7 @@ class SharedPlayer private constructor(
                     )
                 } ?: Player.create(context, playerConfig)
                 try {
-                    if (config?.getMap("mediaControlConfig")?.toMediaControlConfig()?.isEnabled != false) {
+                    if (nativeConfig?.getMap("mediaControlConfig")?.toMediaControlConfig()?.isEnabled != false) {
                         manager.setupMediaSessionPlayback(player)
                     }
                 } catch (error: Throwable) {

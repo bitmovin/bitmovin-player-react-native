@@ -1,5 +1,7 @@
 package com.bitmovin.player.reactnative.extensions
 
+import com.bitmovin.player.reactnative.JavaScriptCallback
+
 fun Map<String, Any?>.getBooleanOrNull(key: String): Boolean? = get(key) as? Boolean
 fun Map<String, Any?>.getIntOrNull(key: String): Int? = (get(key) as? Number)?.toInt()
 fun Map<String, Any?>.getInt(key: String): Int = (get(key) as? Number)?.toInt() ?: 0
@@ -40,9 +42,9 @@ inline fun <T> Map<String, Any?>.withBoolean(
     return if (value != null) block(value) else null
 }
 
-/** Function fields contain tokens for the owner's JS callback array. */
-inline fun <T> Map<String, Any?>.withFunction(key: String, block: (String) -> T): T? =
-    withString(key, block)
+/** Function fields retain a weak binding to the actual original JS function. */
+internal inline fun <T> Map<String, Any?>.withFunction(key: String, block: (JavaScriptCallback) -> T): T? =
+    (get(key) as? JavaScriptCallback)?.let(block)
 
 inline fun <T> Map<String, Any?>.withString(
     key: String,
