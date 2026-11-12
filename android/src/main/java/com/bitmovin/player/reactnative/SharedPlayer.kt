@@ -59,7 +59,7 @@ class SharedPlayer private constructor(
             manager: MediaSessionPlaybackManager,
         ): SharedPlayer {
             val callbacks = CallbackScope(appContext, callback)
-            return SharedPlayer(appContext, {
+            fun createSdkPlayer(): Player {
                 val playerConfig = config?.toPlayerConfig(callbacks) ?: PlayerConfig()
                 val context = checkNotNull(appContext.reactContext?.applicationContext) {
                     "Application context is not available"
@@ -80,8 +80,9 @@ class SharedPlayer private constructor(
                     player.destroy()
                     throw error
                 }
-                player
-            }, callbacks, manager)
+                return player
+            }
+            return SharedPlayer(appContext, ::createSdkPlayer, callbacks, manager)
         }
     }
 }
