@@ -172,7 +172,7 @@ internal class JavaScriptCallback(
     suspend fun asyncCall(args: List<Any?>): Any? = callbacks.call(this, args, false, null, true)
 
     fun emit(args: List<Any?>, undefinedIndex: Int? = null) {
-        scope.launch { runCatching { callbacks.call(this@JavaScriptCallback, args, false, undefinedIndex, true) } }
+        scope.launch { runCatching { callbacks.call(this@JavaScriptCallback, args, false, undefinedIndex, false) } }
     }
 
     // Read only on the JS runtime thread. Captured advertising callbacks intentionally remain unbound.
