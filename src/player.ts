@@ -167,10 +167,10 @@ export class Player {
    * @experimental
    */
   loadPlaylist = async (config: PlaylistConfig): Promise<void> => {
-    await this.native.loadPlaylist({
-      ...config,
-      sources: config.sources.map(getNativeSource),
-    });
+    await this.native.loadPlaylist(
+      config.sources.map(getNativeSource),
+      config.options
+    );
     this.sources = new Set(config.sources);
     this.offline = undefined;
   };

@@ -21,8 +21,6 @@ import expo.modules.kotlin.jni.JavaScriptFunction
 import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import expo.modules.kotlin.records.Record
-import expo.modules.kotlin.records.Field
 
 class PlayerModule : Module() {
     private val mediaSessionPlaybackManager by lazy { MediaSessionPlaybackManager(appContext) }
@@ -35,9 +33,7 @@ class PlayerModule : Module() {
                 callback: JavaScriptFunction<JavaScriptValue>?, ->
                 SharedPlayer.create(appContext, config, analytics, callback, mediaSessionPlaybackManager)
             }
-            AsyncFunction("loadPlaylist") { shared: SharedPlayer, config: SharedPlaylistConfig ->
-                val sources = config.sources
-                val options = config.options
+            AsyncFunction("loadPlaylist") { shared: SharedPlayer, sources: List<SharedSource>, options: Map<String, Any>? ->
                 val nativeSources = sources.map { it.source }
                 ensureSourcesAvailable(shared.player, nativeSources)
                 shared.player.load(
@@ -278,9 +274,4 @@ private fun ensureSourcesAvailable(player: Player, sources: List<Source>) {
     if (sources.any { source -> source.isAttachedToPlayer && sessionSources.none { it === source } }) {
         throw CodedException("ERR_SOURCE_ALREADY_ATTACHED", "Source is already attached to another player", null)
     }
-}
-
-class SharedPlaylistConfig : Record {
-    @Field val sources: List<SharedSource> = emptyList()
-    @Field val options: Map<String, Any>? = null
 }

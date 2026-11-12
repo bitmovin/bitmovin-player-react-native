@@ -30,10 +30,10 @@ export type NativePlayer = SharedObject<PlayerEvents> &
     | 'setMaxSelectableBitrate'
   > & {
     loadSource(source: NativeSource): Promise<void>;
-    loadPlaylist(config: {
-      sources: NativeSource[];
-      options?: PlaylistOptions;
-    }): Promise<void>;
+    loadPlaylist(
+      sources: NativeSource[],
+      options?: PlaylistOptions
+    ): Promise<void>;
     getSource(known: NativeSource[]): Promise<NativeSource | null | undefined>;
     loadOfflineContent(
       manager: NativeOffline,

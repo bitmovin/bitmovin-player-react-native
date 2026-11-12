@@ -86,7 +86,7 @@ function nativeClass(factory, methods, { synchronous = false } = {}) {
       if (name === 'loadSource' || name === 'loadOfflineContent')
         assert.ok(peers.has(args[0]), `${name} requires a raw Expo peer`);
       if (name === 'loadPlaylist')
-        for (const source of args[0].sources)
+        for (const source of args[0])
           assert.ok(
             peers.has(source),
             'loadPlaylist requires raw Source peers'
@@ -99,7 +99,10 @@ function nativeClass(factory, methods, { synchronous = false } = {}) {
           );
       for (const arg of args) {
         if (peers.has(arg)) await controlFor(arg);
-        if (arg?.sources) await Promise.all(arg.sources.map(controlFor));
+        if (Array.isArray(arg))
+          await Promise.all(
+            arg.filter((peer) => peers.has(peer)).map(controlFor)
+          );
       }
       return typeof target === 'function'
         ? target(control, args)
@@ -169,8 +172,8 @@ function installNativeClasses(modules) {
         ? modules.SourceModule.Source.fromControl(source)
         : source;
     },
-    loadPlaylist: (control, [config]) =>
-      control.loadPlaylist(config.sources, config.options),
+    loadPlaylist: (control, [sources, options]) =>
+      control.loadPlaylist(sources, options),
   });
   modules.PlayerModule ??= {};
   modules.PlayerModule.Player = nativeClass(

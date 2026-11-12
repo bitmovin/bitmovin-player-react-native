@@ -150,9 +150,7 @@ public class PlayerModule: Module {
             AsyncFunction("castStop") { (owner: SharedPlayer) in (try owner.player).castStop() }.runOnQueue(.main)
             AsyncFunction("skipAd") { (owner: SharedPlayer) in (try owner.player).skipAd() }.runOnQueue(.main)
 
-            AsyncFunction("loadPlaylist") { (owner: SharedPlayer, config: SharedPlaylistConfig) in
-                let sources = config.sources
-                let options = config.options
+            AsyncFunction("loadPlaylist") { (owner: SharedPlayer, sources: [SharedSource], options: [String: Any]?) in
                 try sources.forEach { try ensureSourceAvailable($0.source, player: (try owner.player)) }
                 let config = try playlistConfig(sources: sources, options: options)
                 (try owner.player).load(playlistConfig: config)
@@ -273,9 +271,4 @@ private func ensurePlaylistSourceType(_ source: Source) throws {
             description: "iOS playlists support only HLS, progressive and movpkg sources"
         )
     }
-}
-
-private struct SharedPlaylistConfig: Record {
-    @Field var sources: [SharedSource] = []
-    @Field var options: [String: Any]?
 }
