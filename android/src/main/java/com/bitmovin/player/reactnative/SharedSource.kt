@@ -41,17 +41,26 @@ class SharedSource private constructor(
         ): SharedSource {
             val callbacks = CallbackScope(appContext, callback)
             return SharedSource(appContext, {
-                val sourceConfig = config?.toSourceConfig(callbacks) ?: throw CodedException("ERR_INVALID_ARGUMENT", "Invalid source configuration", null)
+                val sourceConfig = config?.toSourceConfig(callbacks) ?: throw CodedException(
+                    "ERR_INVALID_ARGUMENT",
+                    "Invalid source configuration",
+                    null,
+                )
                 val source = analyticsSourceMetadata?.toAnalyticsSourceMetadata()?.let {
                     Source.create(sourceConfig, it)
                 } ?: Source.create(sourceConfig)
                 source
-            }, callbacks)
+            }, callbacks,)
         }
 
         private fun snapshot(source: Source): Map<String, Any?> = with(source.config) {
-            mapOf("url" to url, "type" to type.name.lowercase(), "title" to title,
-                "description" to description, "metadata" to metadata)
+            mapOf(
+                "url" to url,
+                "type" to type.name.lowercase(),
+                "title" to title,
+                "description" to description,
+                "metadata" to metadata,
+            )
         }
     }
 }
