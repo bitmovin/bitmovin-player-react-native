@@ -205,6 +205,45 @@ test('Player creation failures reach callers', async (t) => {
   await assert.rejects(player.getVolume(), (error) => error === failure);
 });
 
+test('replacement aliases receive only their own destruction event', async (t) => {
+  const { Player } = fixture(t);
+  const original = new Player({ nativeId: 'replacement-events' });
+  const oldNative = await controlFor(original);
+  let completeDestroy;
+  let invoked;
+  const destroying = new Promise((resolve) => {
+    invoked = resolve;
+  });
+  oldNative.destroy = () => {
+    invoked();
+    return new Promise((resolve) => {
+      completeDestroy = resolve;
+    });
+  };
+  let oldEvents = 0;
+  let newEvents = 0;
+  const oldSubscription = await original.on('destroy', () => oldEvents++);
+  const destroyed = original.destroy();
+  const replacement = new Player({ nativeId: original.nativeId });
+  const newSubscription = await replacement.on('destroy', () => newEvents++);
+  try {
+    await destroying;
+    oldNative.emit('destroy', { name: 'onDestroy' });
+    assert.equal(oldEvents, 1);
+    assert.equal(newEvents, 0);
+    completeDestroy();
+    await destroyed;
+    (await controlFor(replacement)).emit('destroy', { name: 'onDestroy' });
+    assert.equal(newEvents, 1);
+  } finally {
+    completeDestroy?.();
+    oldSubscription.remove();
+    newSubscription.remove();
+    await destroyed;
+    await replacement.destroy();
+  }
+});
+
 test('advertising callbacks return decisions and update IMA settings', async (t) => {
   const { Player, invoke } = fixture(t);
   const player = new Player({
