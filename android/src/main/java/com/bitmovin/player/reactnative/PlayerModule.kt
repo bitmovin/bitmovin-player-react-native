@@ -122,12 +122,12 @@ class PlayerModule : Module() {
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("isAirPlayActive") { _: SharedPlayer ->
-                // AirPlay is iOS-only, return null on Android
+                // AirPlay is iOS-only, return false on Android
                 false
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("isAirPlayAvailable") { _: SharedPlayer ->
-                // AirPlay is iOS-only, return null on Android
+                // AirPlay is iOS-only, return false on Android
                 false
             }.runOnQueue(Queues.MAIN)
 
@@ -153,27 +153,27 @@ class PlayerModule : Module() {
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getAudioTrack") { shared: SharedPlayer ->
-                shared.player.source?.selectedAudioTrack?.toJson()
+                shared.player.audio?.toJson()
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getAvailableAudioTracks") { shared: SharedPlayer ->
-                shared.player.source?.availableAudioTracks?.map { it.toJson() } ?: emptyList()
+                shared.player.availableAudio.map { it.toJson() }
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("setAudioTrack") { shared: SharedPlayer, trackIdentifier: String ->
-                shared.player.source?.setAudioTrack(trackIdentifier)
+                shared.player.setAudio(trackIdentifier)
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getSubtitleTrack") { shared: SharedPlayer ->
-                shared.player.source?.selectedSubtitleTrack?.toJson()
+                shared.player.subtitle?.toJson()
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getAvailableSubtitles") { shared: SharedPlayer ->
-                shared.player.source?.availableSubtitleTracks?.map { it.toJson() } ?: emptyList()
+                shared.player.availableSubtitles.map { it.toJson() }
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("setSubtitleTrack") { shared: SharedPlayer, trackIdentifier: String? ->
-                shared.player.source?.setSubtitleTrack(trackIdentifier)
+                shared.player.setSubtitle(trackIdentifier)
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getVideoQuality") { shared: SharedPlayer ->
@@ -185,7 +185,7 @@ class PlayerModule : Module() {
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("setVideoQuality") { shared: SharedPlayer, qualityId: String ->
-                shared.player.source?.setVideoQuality(qualityId)
+                shared.player.setVideoQuality(qualityId)
             }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("getThumbnail") { shared: SharedPlayer, time: Double ->
