@@ -94,7 +94,7 @@ test('offline aliases share the native manager', async (t) => {
   const alias = new OfflineContentManager(config);
   assert.equal(await alias.state(), 'Downloaded');
   assert.equal(owners.length, 1);
-  assert.equal(Object.hasOwn(owners[0].config, 'nativeId'), false);
+  assert.equal(owners[0].config, manager.config);
   assert.equal(config.nativeId, 'public-label');
   assert.equal(manager, alias);
   assert.equal(await controlFor(manager), await controlFor(alias));
