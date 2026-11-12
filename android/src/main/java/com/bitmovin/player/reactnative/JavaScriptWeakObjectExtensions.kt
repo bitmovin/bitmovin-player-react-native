@@ -72,45 +72,40 @@ internal suspend fun <T> JavaScriptWeakObject.callSuspending(
 ): T? = suspendCancellableCoroutine { continuation ->
     val waiting = AtomicReference(continuation)
     continuation.invokeOnCancellation { waiting.set(null) }
-    fun fail(error: Exception) {
+    fun complete(value: T? = null, error: Exception? = null) {
         val pending = waiting.getAndSet(null) ?: return
-        if (error is CancellationException) pending.cancel(error) else pending.resume(null)
-    }
-    fun resolve(value: JavaScriptValue) {
-        if (waiting.get() == null) return
-        try {
-            val result = convert(value)
-            waiting.getAndSet(null)?.resume(result)
-        } catch (error: Exception) {
-            fail(error)
-        }
+        if (error is CancellationException) pending.cancel(error) else pending.resume(value)
     }
     try {
         appContext.runtime.schedule {
             if (waiting.get() == null) return@schedule
             try {
-                val reply = invokeOnJs(appContext, arguments)
-                if (reply == null) {
-                    waiting.getAndSet(null)?.resume(null)
-                } else if (reply.isObject() && reply.getObject().getProperty("then").isFunction()) {
-                    // Expo installs this framework module for every AppContext. Its public Object factory
-                    // creates anonymous host functions without another registered module or callback table.
-                    val factory = checkNotNull(appContext.registry.getModule<NativeModulesProxyModule>())
-                    val handlers = factory.Object {
-                        Function("resolve") { value: JavaScriptValue -> resolve(value) }
-                        Function("reject") { _: JavaScriptValue -> waiting.getAndSet(null)?.resume(null) }
+                val function: JavaScriptObject? = lock()
+                if (function == null) return@schedule complete()
+                // Expo installs this framework module for every AppContext. Its Object factory creates
+                // anonymous completion functions without another module or global callback table.
+                val factory = checkNotNull(appContext.registry.getModule<NativeModulesProxyModule>())
+                val handlers = factory.Object {
+                    Function("resolve") { value: JavaScriptValue ->
+                        if (waiting.get() != null) {
+                            try {
+                                complete(convert(value))
+                            } catch (error: Exception) {
+                                complete(error = error)
+                            }
+                        }
                     }
-                    appContext.runtime.eval("(function(sink) { this.then(sink.resolve, sink.reject); })")
-                        .getFunction<Unit>()(handlers, thisValue = reply.getObject(), appContext = appContext)
-                } else {
-                    resolve(reply)
+                    Function("reject") { _: JavaScriptValue -> complete() }
                 }
+                appContext.runtime.eval(
+                    "(function(args, sink) { Promise.resolve(this(...args)).then(sink.resolve, sink.reject); })",
+                ).getFunction<Unit>()(arguments.toList(), handlers, thisValue = function, appContext = appContext)
             } catch (error: Exception) {
-                fail(error)
+                complete(error = error)
             }
         }
     } catch (error: Exception) {
-        fail(error)
+        complete(error = error)
     }
 }
 
