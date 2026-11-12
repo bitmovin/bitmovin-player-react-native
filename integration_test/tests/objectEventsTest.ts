@@ -40,6 +40,44 @@ async function receiving(
 export default (spec: TestScope) => {
   spec.describe('native object events', () => {
     spec.it(
+      'keeps a replacement compatibility ID alive during old destruction',
+      async () => {
+        const config = {
+          nativeId: `replacement-${Date.now()}`,
+          licenseKey: PlayerTestWorld.defaultLicenseKey,
+        };
+        const original = new Player(config);
+        let replacement: Player | undefined;
+        try {
+          await original.getDuration();
+          await receiving(
+            (listener) => original.on('destroy', listener),
+            () => {
+              const destroyed = original.destroy();
+              replacement = new Player(config);
+              return destroyed;
+            }
+          );
+          const next = replacement;
+          if (!next)
+            throw new Error('The replacement Player was not constructed');
+          expect(next).toNotBe(original);
+          await receiving(
+            (listener) => next.on('ready', listener),
+            () => next.loadSource(new Source(Sources.artOfMotionHls))
+          );
+          expect(next.isDestroyed).toBe(false);
+        } finally {
+          try {
+            await original.destroy();
+          } finally {
+            await replacement?.destroy();
+          }
+        }
+      }
+    );
+
+    spec.it(
       'includes the owning Source metadata in its unload event',
       async () => {
         await startPlayerTest({}, async () => {
