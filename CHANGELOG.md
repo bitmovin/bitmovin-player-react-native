@@ -13,7 +13,6 @@
 
 #### Breaking changes
 
-- Android: Return the SDK Player's subtitle options directly, including its Off entry. `getSubtitleTrack()` returns that entry (`identifier: 'bitmovin-off'`) when subtitles are disabled during an active session, instead of `null`. Select text tracks by identifier or language rather than array position
 - Remove `Player.initialize()`, `Source.initialize()`, `OfflineContentManager.initialize()` and their `isInitialized` flags. Constructors create the native SharedObject immediately; the first SDK operation or PlayerView attachment creates SDK resources automatically. SDK creation failures reject that operation
 - Guard the optional `SourceUnloadedEvent.source` field. Android Player subscriptions and PlayerView events do not identify the unloaded Source; Source subscriptions include its snapshot. iOS provides it on all subscription paths
 - Pass `NetworkConfig` and `DrmConfig` objects directly; the configuration-only `Network` and `Drm` wrapper classes have been removed

@@ -549,6 +549,24 @@ test('can load and clear content through compatibility aliases', async (t) => {
   await alias.destroy();
 });
 
+test('subtitle queries hide only the SDK Off placeholder', async (t) => {
+  const { Player } = fixture(t);
+  const player = new Player();
+  const native = await controlFor(player);
+  const off = { identifier: 'bitmovin-off', label: 'off', url: '' };
+  const caption = { identifier: 'cc1', label: 'Captions (CC1)', url: '' };
+  let selected = off;
+  native.getAvailableSubtitles = async () => [off, caption];
+  native.getSubtitleTrack = async () => selected;
+  assert.deepEqual(await player.getAvailableSubtitles(), [caption]);
+  assert.equal(await player.getSubtitleTrack(), null);
+  selected = caption;
+  assert.equal(await player.getSubtitleTrack(), caption);
+  selected = null;
+  assert.equal(await player.getSubtitleTrack(), null);
+  await player.destroy();
+});
+
 test('detached native methods remain usable as UI callbacks', async (t) => {
   const { Player } = fixture(t);
   const player = new Player();

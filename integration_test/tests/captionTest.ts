@@ -1,5 +1,4 @@
 import { TestScope } from 'cavy';
-import { Platform } from 'react-native';
 import {
   callPlayer,
   callPlayerAndExpectEvent,
@@ -57,6 +56,10 @@ export default (spec: TestScope) => {
             subtitleTracks.length,
             'Should have at least 2 subtitle tracks'
           ).toBeGreaterThan(1);
+          expect(
+            subtitleTracks.some((track) => track.identifier === 'bitmovin-off'),
+            'Subtitle choices should not include the SDK Off placeholder'
+          ).toBe(false);
 
           const subtitleTrack = subtitleTracks.find(
             (track) => track.language === 'en'
@@ -270,17 +273,10 @@ export default (spec: TestScope) => {
           const disabledSubtitle = await callPlayer((player) =>
             player.getSubtitleTrack()
           );
-          if (Platform.OS === 'android') {
-            expect(
-              disabledSubtitle?.identifier,
-              'Android should select the SDK Off entry after passing undefined'
-            ).toBe('bitmovin-off');
-          } else {
-            expect(
-              disabledSubtitle,
-              'Subtitles should be disabled after passing undefined'
-            ).toBeNull();
-          }
+          expect(
+            disabledSubtitle,
+            'Subtitles should be disabled after passing undefined'
+          ).toBeNull();
         });
       }
     );
