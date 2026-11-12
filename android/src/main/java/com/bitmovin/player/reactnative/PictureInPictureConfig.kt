@@ -1,7 +1,8 @@
 package com.bitmovin.player.reactnative
 
 /**
- * Configuration wrapper for Picture-in-Picture functionality.
+ * React Native view and Android system Picture-in-Picture flags.
+ * These are separate from the SDK PlayerViewConfig.
  */
 data class PictureInPictureConfig(
     val isEnabled: Boolean = false,

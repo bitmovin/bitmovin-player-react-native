@@ -1,8 +1,5 @@
 {
-  "platforms": [
-    "apple",
-    "android"
-  ],
+  "platforms": ["apple", "android"],
   "apple": {
     "modules": [
       "NativeCallbacksModule",
@@ -14,11 +11,9 @@
       "CustomMessageHandlerModule",
       "FullscreenHandlerModule",
       "OfflineModule",
-      "RNPlayerViewManager"
+      "PlayerViewModule"
     ],
-    "appDelegateSubscribers": [
-      "AppLifecycleDelegate"
-    ]
+    "appDelegateSubscribers": ["AppLifecycleDelegate"]
   },
   "android": {
     "modules": [
@@ -30,7 +25,7 @@
       "com.bitmovin.player.reactnative.CustomMessageHandlerModule",
       "com.bitmovin.player.reactnative.FullscreenHandlerModule",
       "com.bitmovin.player.reactnative.OfflineModule",
-      "com.bitmovin.player.reactnative.RNPlayerViewManager"
+      "com.bitmovin.player.reactnative.PlayerViewModule"
     ]
   }
 }

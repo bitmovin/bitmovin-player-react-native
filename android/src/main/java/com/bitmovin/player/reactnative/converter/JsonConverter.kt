@@ -92,7 +92,6 @@ import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.CallbackScope
 import com.bitmovin.player.reactnative.PictureInPictureAction
 import com.bitmovin.player.reactnative.PictureInPictureConfig
-import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.UserInterfaceType
 import com.bitmovin.player.reactnative.extensions.get
 import com.bitmovin.player.reactnative.extensions.getArray
@@ -910,11 +909,6 @@ fun String.toUserInterfaceType(): UserInterfaceType? = when (this) {
     "Bitmovin" -> UserInterfaceType.Bitmovin
     else -> null
 }
-
-fun Map<String, Any?>.toRNPlayerViewConfigWrapper() = RNPlayerViewConfigWrapper(
-    playerViewConfig = toPlayerViewConfig(),
-    pictureInPictureConfig = getMap("pictureInPictureConfig")?.toPictureInPictureConfig(),
-)
 
 fun Map<String, Any?>.toLiveConfig(): LiveConfig = LiveConfig().apply {
     withDouble("minTimeshiftBufferDepth") { minTimeShiftBufferDepth = it }

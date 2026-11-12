@@ -7,12 +7,12 @@ import expo.modules.kotlin.modules.ModuleDefinition
 import java.util.Collections
 import java.util.WeakHashMap
 
-class RNPlayerViewManager : Module() {
+class PlayerViewModule : Module() {
     // Weak Set
     private val autoPictureInPictureViews = Collections.newSetFromMap(WeakHashMap<RNPlayerView, Boolean>())
 
     override fun definition() = ModuleDefinition {
-        Name("RNPlayerViewManager")
+        Name("PlayerViewModule")
 
         OnDestroy {
             autoPictureInPictureViews.clear()

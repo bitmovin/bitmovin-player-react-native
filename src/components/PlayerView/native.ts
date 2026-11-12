@@ -51,6 +51,5 @@ export interface NativePlayerViewRef {
 /**
  * Native host component bridging Bitmovin's `PlayerView`.
  */
-export const NativePlayerView = requireNativeViewManager<NativePlayerViewProps>(
-  'RNPlayerViewManager'
-);
+export const NativePlayerView =
+  requireNativeViewManager<NativePlayerViewProps>('PlayerViewModule');

@@ -1,8 +1,8 @@
 import ExpoModulesCore
 
-public class RNPlayerViewManager: Module {
+public class PlayerViewModule: Module {
     public func definition() -> ModuleDefinition {
-        Name("RNPlayerViewManager")
+        Name("PlayerViewModule")
 
         View(RNPlayerView.self) {
             Prop("scalingMode") { (view: RNPlayerView, scalingMode: String?) in

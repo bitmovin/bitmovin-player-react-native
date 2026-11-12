@@ -19,7 +19,8 @@ import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.converter.toJson
-import com.bitmovin.player.reactnative.converter.toRNPlayerViewConfigWrapper
+import com.bitmovin.player.reactnative.converter.toPictureInPictureConfig
+import com.bitmovin.player.reactnative.converter.toPlayerViewConfig
 import com.bitmovin.player.reactnative.converter.toUserInterfaceType
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getMap
@@ -267,9 +268,11 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     fun attachConfiguredPlayer() {
         val shared = sharedPlayer ?: return
         val config = playerInfo ?: return
+        val viewConfig = config.getMap("playerViewConfig")
         attachPlayer(
             shared,
-            config.getMap("playerViewConfig")?.toRNPlayerViewConfigWrapper(),
+            viewConfig?.toPlayerViewConfig(),
+            viewConfig?.getMap("pictureInPictureConfig")?.toPictureInPictureConfig(),
             config.getBooleanOrNull("enableBackgroundPlayback") ?: false,
             config.getBooleanOrNull("isPictureInPictureEnabledOnPlayer") ?: false,
             config.getString("userInterfaceTypeName"),
@@ -278,7 +281,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
     private fun attachPlayer(
         shared: SharedPlayer,
-        playerViewConfigWrapper: RNPlayerViewConfigWrapper?,
+        configuredPlayerViewConfig: PlayerViewConfig?,
+        pictureInPictureConfig: PictureInPictureConfig?,
         enableBackgroundPlayback: Boolean,
         isPictureInPictureEnabledOnPlayer: Boolean,
         userInterfaceTypeName: String?,
@@ -295,7 +299,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         } else {
             createAndAttachPlayerView(
                 player,
-                playerViewConfigWrapper,
+                configuredPlayerViewConfig,
+                pictureInPictureConfig,
                 enableBackgroundPlayback,
                 isPictureInPictureEnabledOnPlayer,
                 userInterfaceTypeName,
@@ -307,22 +312,23 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
     private fun createAndAttachPlayerView(
         player: Player,
-        playerViewConfigWrapper: RNPlayerViewConfigWrapper?,
+        configuredPlayerViewConfig: PlayerViewConfig?,
+        pictureInPictureConfig: PictureInPictureConfig?,
         enableBackgroundPlayback: Boolean,
         isPictureInPictureEnabledOnPlayer: Boolean,
         userInterfaceTypeName: String?,
     ) {
         this.enableBackgroundPlayback = enableBackgroundPlayback
         val userInterfaceType = userInterfaceTypeName?.toUserInterfaceType() ?: UserInterfaceType.Bitmovin
-        val configuredPlayerViewConfig = playerViewConfigWrapper?.playerViewConfig ?: PlayerViewConfig()
+        val viewConfig = configuredPlayerViewConfig ?: PlayerViewConfig()
 
         val currentActivity = checkNotNull(appContext.currentActivity) {
             "Cannot create a PlayerView, because no activity is attached."
         }
         val playerViewConfig: PlayerViewConfig = if (userInterfaceType != UserInterfaceType.Bitmovin) {
-            configuredPlayerViewConfig.copy(uiConfig = UiConfig.Disabled)
+            viewConfig.copy(uiConfig = UiConfig.Disabled)
         } else {
-            configuredPlayerViewConfig
+            viewConfig
         }
 
         val newPlayerView = PlayerView(currentActivity, player, playerViewConfig)
@@ -332,13 +338,13 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             LayoutParams.MATCH_PARENT,
         )
 
-        this.pictureInPictureConfig = playerViewConfigWrapper?.pictureInPictureConfig ?: PictureInPictureConfig()
-        val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer || pictureInPictureConfig.isEnabled
+        this.pictureInPictureConfig = pictureInPictureConfig ?: PictureInPictureConfig()
+        val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer || this.pictureInPictureConfig.isEnabled
         pictureInPictureHandler = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPictureInPictureEnabled) {
             RNPictureInPictureHandler(
                 activity = currentActivity,
                 player = player,
-                pictureInPictureConfig = pictureInPictureConfig,
+                pictureInPictureConfig = this.pictureInPictureConfig,
                 onPictureInPictureExited = {
                     // It is safe to call this function with `newConfig = null`
                     playerView?.onPictureInPictureModeChanged(
