@@ -1,36 +1,24 @@
+/* eslint-disable @typescript-eslint/no-redeclare -- Native constructor values intentionally share their instance interface names. */
 import type { NativeModule } from 'expo-modules-core';
+import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
+import type { FullscreenHandlerBridge } from './fullscreenHandlerBridge';
+import type { NativeCallback } from '../native/nativeCallbacks';
 
-export type FullscreenHandlerModuleEvents = {
-  onEnterFullscreen: ({
-    nativeId,
-    id,
-  }: {
-    nativeId: string;
-    id: number;
-  }) => void;
-  onExitFullscreen: ({
-    nativeId,
-    id,
-  }: {
-    nativeId: string;
-    id: number;
-  }) => void;
-};
+/** @internal */
+export type NativeFullscreen = SharedObject &
+  Pick<FullscreenHandlerBridge, 'destroy'> & {
+    setIsFullscreenActive(active: boolean): Promise<void>;
+  };
 
-declare class FullscreenHandlerModule extends NativeModule<FullscreenHandlerModuleEvents> {
-  registerHandler(nativeId: string): Promise<void>;
-  destroy(nativeId: string): Promise<void>;
-  notifyFullscreenChanged(
-    id: number,
-    isFullscreenEnabled: boolean
-  ): Promise<void>;
-  setIsFullscreenActive(
-    nativeId: string,
-    isFullscreenActive: boolean
-  ): Promise<void>;
+declare class FullscreenHandlerModule extends NativeModule {
+  readonly FullscreenHandler: new (
+    callback: NativeCallback
+  ) => NativeFullscreen;
 }
-
-export default requireNativeModule<FullscreenHandlerModule>(
+const nativeModule = requireNativeModule<FullscreenHandlerModule>(
   'FullscreenHandlerModule'
 );
+/** @internal */
+export const NativeFullscreen = nativeModule.FullscreenHandler;
+export default nativeModule;

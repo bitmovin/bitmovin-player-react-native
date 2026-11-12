@@ -1,4 +1,5 @@
-import type { CustomMessageSender } from './customMessageSender';
+import { NativeCustomMessage } from './customMessageHandlerModule';
+import { NativeConfigSerializer } from '../native/nativeConfigSerializer';
 
 export interface CustomMessageHandlerProps {
   /**
@@ -18,72 +19,58 @@ export interface CustomMessageHandlerProps {
 }
 
 /**
- * Android and iOS only.
- * For Android it requires Player SDK version 3.39.0 or higher.
- *
- * Provides a two-way communication channel between the Player UI and the integration.
+ * Provides two-way communication between the Player UI and the integration.
+ * @platform Android, iOS
  */
 export class CustomMessageHandler {
-  private readonly onReceivedSynchronousMessage: (
-    message: string,
-    data: string | undefined
-  ) => string | undefined;
-  private readonly onReceivedAsynchronousMessage: (
-    message: string,
-    data: string | undefined
-  ) => void;
-
-  /** @internal */
-  customMessageSender?: CustomMessageSender;
-
-  /**
-   * Android and iOS only.
-   *
-   * Creates a new `CustomMessageHandler` instance to handle two-way communication between the integation and the Player UI.
-   *
-   * @param options - Configuration options for the `CustomMessageHandler` instance.
-   */
-  constructor({
-    onReceivedSynchronousMessage,
-    onReceivedAsynchronousMessage,
-  }: CustomMessageHandlerProps) {
-    this.onReceivedSynchronousMessage = onReceivedSynchronousMessage;
-    this.onReceivedAsynchronousMessage = onReceivedAsynchronousMessage;
+  private readonly native: InternalCustomMessage;
+  constructor(private readonly options: CustomMessageHandlerProps) {
+    const serializer = new NativeConfigSerializer();
+    const config = serializer.serialize({
+      synchronousMessage: (message: string, data: string | null) =>
+        options.onReceivedSynchronousMessage(message, data ?? undefined),
+      asynchronousMessage: (message: string, data: string | null) =>
+        options.onReceivedAsynchronousMessage(message, data ?? undefined),
+    });
+    this.native = new InternalCustomMessage(
+      this,
+      config,
+      serializer.dispatcher.callback
+    );
+    serializer.dispatcher.retain(this);
   }
+  /** Releases the configured message callbacks. */
+  destroy = (): Promise<void> => this.native.destroy();
 
-  /**
-   * Gets called when a synchronous message was received from the Bitmovin Web UI.
-   *
-   * @param message Identifier of the message.
-   * @param data Optional data of the message as string (can be a serialized object).
-   * @returns Optional return value as string which will be propagates back to the JS counterpart.
-   */
+  /** Handles a synchronous message delivered by the Player UI. */
   receivedSynchronousMessage(
     message: string,
     data: string | undefined
   ): string | undefined {
-    return this.onReceivedSynchronousMessage(message, data);
+    return this.options.onReceivedSynchronousMessage(message, data);
   }
-
-  /**
-   * Gets called when an asynchronous message was received from the Bitmovin Web UI.
-   *
-   * @param message Identifier of the message.
-   * @param data Optional data of the message as string (can be a serialized object).
-   */
+  /** Handles an asynchronous message delivered by the Player UI. */
   receivedAsynchronousMessage(message: string, data: string | undefined): void {
-    this.onReceivedAsynchronousMessage(message, data);
+    this.options.onReceivedAsynchronousMessage(message, data);
   }
+  /** Sends a message to the Player UI. Resolution acknowledges native submission. */
+  sendMessage = (message: string, data?: string): Promise<void> =>
+    this.native.sendMessage(message, data);
+}
 
-  /**
-   * Android and iOS only.
-   *
-   * Sends a message to the Player UI.
-   *
-   * @param message - Identifier for the callback which should be called.
-   * @param data - Payload for the callback.
-   */
-  sendMessage(message: string, data: string | undefined): void {
-    this.customMessageSender?.sendMessage(message, data);
+/** @internal */
+class InternalCustomMessage extends NativeCustomMessage {
+  constructor(
+    readonly handler: CustomMessageHandler,
+    ...args: ConstructorParameters<typeof NativeCustomMessage>
+  ) {
+    super(...args);
   }
+}
+
+/** @internal */
+export function getNativeCustomMessage(
+  handler: CustomMessageHandler
+): NativeCustomMessage {
+  return handler['native'];
 }

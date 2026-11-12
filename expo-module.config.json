@@ -16,7 +16,8 @@
       "FullscreenHandlerModule",
       "PlayerAnalyticsModule",
       "OfflineModule",
-      "RNPlayerViewManager"
+      "RNPlayerViewManager",
+      "NativeCallbacksModule"
     ],
     "appDelegateSubscribers": ["AppLifecycleDelegate"]
   },
@@ -35,7 +36,8 @@
       "com.bitmovin.player.reactnative.PlayerAnalyticsModule",
       "com.bitmovin.player.reactnative.OfflineModule",
       "com.bitmovin.player.reactnative.DecoderConfigModule",
-      "com.bitmovin.player.reactnative.RNPlayerViewManager"
+      "com.bitmovin.player.reactnative.RNPlayerViewManager",
+      "com.bitmovin.player.reactnative.NativeCallbacksModule"
     ]
   }
 }

@@ -1,0 +1,126 @@
+package com.bitmovin.player.reactnative
+
+import expo.modules.kotlin.AppContext
+import expo.modules.kotlin.jni.JavaScriptFunction
+import expo.modules.kotlin.jni.JavaScriptValue
+import expo.modules.kotlin.sharedobjects.SharedObject
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
+
+/** Expo's generic Any converter does not accept null inside nested objects. */
+internal fun JavaScriptValue.toCallbackValue(): Any? = when {
+    isNull() || isUndefined() -> null
+    isBool() -> getBool()
+    isNumber() -> getDouble()
+    isString() -> getString()
+    isArray() -> getArray().map { it.toCallbackValue() }
+    isObject() -> getObject().let { value ->
+        value.getPropertyNames().associateWith { value.getProperty(it).toCallbackValue() }
+    }
+    else -> null
+}
+
+/** Owns callback lifetime, wakes blocked SDK calls and cancels in-flight completions on close. */
+class CallbackScope(private val context: AppContext, callback: JavaScriptFunction<JavaScriptValue>?) {
+    private val timeoutMs = 250L
+    private val lock = ReentrantLock()
+    private val changed = lock.newCondition()
+    private var callback: JavaScriptFunction<JavaScriptValue>? = callback
+    private val pending = mutableSetOf<CallbackResult>()
+
+    fun close() {
+        val cancelled = lock.withLock {
+            callback = null
+            changed.signalAll()
+            pending.toList().also { pending.clear() }
+        }
+        // SDK completions may reenter the scope, so never invoke them under its lock.
+        cancelled.forEach { it.resolve(null) }
+    }
+
+    internal fun <T : SharedObject> createSharedObject(factory: () -> T): T =
+        runCatching(factory).onFailure { close() }.getOrThrow()
+
+    private fun schedule(
+        operation: String,
+        args: List<Any?>,
+        result: CallbackResult? = null,
+        mutating: Boolean = false,
+        fallbackArgument: Int? = null,
+        completion: ((Any?) -> Unit)? = null,
+    ) {
+        try {
+            context.runtime.schedule {
+                val function = lock.withLock { callback }
+                try {
+                    if (function?.isValid() == true) {
+                        val value = function(operation, args, result, mutating, fallbackArgument, appContext = context)
+                        completion?.invoke(value.toCallbackValue())
+                    } else {
+                        result?.resolve(null)
+                        completion?.invoke(null)
+                    }
+                } catch (_: Throwable) {
+                    result?.resolve(null)
+                    completion?.invoke(null)
+                }
+            }
+        } catch (_: Throwable) {
+            result?.resolve(null)
+            completion?.invoke(null)
+        }
+    }
+
+    fun notify(operation: String, args: List<Any?>) = schedule(operation, args)
+
+    fun call(operation: String, args: List<Any?>, mutating: Boolean = false): Any? {
+        var completed = false
+        var value: Any? = null
+        schedule(operation, args, mutating = mutating) { response ->
+            lock.withLock {
+                value = response
+                completed = true
+                changed.signalAll()
+            }
+        }
+        lock.withLock {
+            var remaining = TimeUnit.MILLISECONDS.toNanos(timeoutMs)
+            while (!completed && callback != null && remaining > 0) remaining = changed.awaitNanos(remaining)
+            return if (callback == null) null else value
+        }
+    }
+
+    fun <T> future(
+        operation: String,
+        args: List<Any?>,
+        fallback: T,
+        fallbackArgument: Int? = null,
+        convert: (Any) -> T,
+    ): CompletableFuture<T> {
+        val future = CompletableFuture<T>()
+        lateinit var result: CallbackResult
+        result = CallbackResult(context) { value ->
+            val response = lock.withLock {
+                pending.remove(result)
+                if (callback == null) null else value
+            }
+            try {
+                future.complete(if (response == null) fallback else convert(response))
+            } catch (error: Exception) {
+                future.complete(fallback)
+                throw error
+            }
+        }
+        val active = lock.withLock {
+            if (callback == null) false else pending.add(result)
+        }
+        if (active) {
+            schedule(operation, args, result, fallbackArgument = fallbackArgument)
+        } else {
+            result.resolve(null)
+        }
+        return future
+    }
+}

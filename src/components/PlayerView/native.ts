@@ -4,11 +4,12 @@ import type { NativePlayerViewEvents } from './nativeEvents';
 import type { ScalingMode } from '../../styleConfig';
 import type { PlayerViewConfig } from './playerViewConfig';
 import type { RefObject } from 'react';
+import type { NativeFullscreen } from '../../ui/fullscreenHandlerModule';
+import type { NativeCustomMessage } from '../../ui/customMessageHandlerModule';
+import type { PictureInPictureAction } from './pictureInPictureAction';
 
 export interface NativePlayerViewConfig {
   playerViewConfig?: PlayerViewConfig;
-  playerId: string;
-  customMessageHandlerBridgeId?: string;
   enableBackgroundPlayback?: boolean;
   isPictureInPictureEnabledOnPlayer?: boolean;
   userInterfaceTypeName?: string;
@@ -19,16 +20,30 @@ export interface NativePlayerViewConfig {
  * Mostly maps the event props defined in native code.
  */
 export interface NativePlayerViewProps extends NativePlayerViewEvents {
-  ref?: RefObject<any>;
+  ref?: RefObject<NativePlayerViewRef | null>;
+  onBmpViewAttached?: (
+    event: NativeSyntheticEvent<Record<string, never>>
+  ) => void;
   onBmpPlayerViewReady?: (
-    event: NativeSyntheticEvent<{ playerId: string }>
+    event: NativeSyntheticEvent<Record<string, never>>
   ) => void;
   isFullscreenRequested?: boolean;
   scalingMode?: ScalingMode;
   isPictureInPictureRequested?: boolean;
   style?: ViewStyle;
-  config: NativePlayerViewConfig;
-  fullscreenBridgeId?: string;
+}
+
+export interface NativePlayerViewRef {
+  attachBindings(
+    player: string,
+    fullscreenHandler: NativeFullscreen | undefined,
+    customMessageHandler: NativeCustomMessage | undefined,
+    config: NativePlayerViewConfig
+  ): Promise<void>;
+  updatePictureInPictureActions(
+    actions: PictureInPictureAction[]
+  ): Promise<void>;
+  setIsPictureInPictureEnabled(enabled: boolean): Promise<void>;
 }
 
 /**

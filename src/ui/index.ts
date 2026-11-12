@@ -1,2 +1,3 @@
 export * from './fullscreenHandler';
-export * from './customMessageHandler';
+export { CustomMessageHandler } from './customMessageHandler';
+export type { CustomMessageHandlerProps } from './customMessageHandler';
