@@ -204,9 +204,15 @@ test('readiness waits for native attachment and is announced once', async () => 
   let notifications = 0;
   const viewRef = { current: null };
   const player = playerWith();
+  const eventRegistrations = [];
+  player.on = async (...args) => {
+    eventRegistrations.push(args);
+    return mockEventSubscription();
+  };
   const props = {
     player,
     viewRef,
+    onReady: () => {},
     onPlayerViewReady: () => {
       assert.ok(viewRef.current, 'the public ref is available in the callback');
       notifications++;
@@ -220,6 +226,12 @@ test('readiness waits for native attachment and is announced once', async () => 
     'layout/ref availability does not prove platform attachment'
   );
   await flush();
+  assert.ok(eventRegistrations.length > 0);
+  assert.ok(
+    eventRegistrations.every(
+      ([event, listener]) => event === 'ready' && listener === props.onReady
+    )
+  );
   assert.ok(
     committedView,
     'the native host mounts without a JS initialization stage'

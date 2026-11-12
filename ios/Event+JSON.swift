@@ -714,13 +714,13 @@ extension FullscreenDisabledEvent: DefaultJsonConvertibleEvent {}
 
 extension SourceAddedEvent: JsonConvertible {
     func toJSON() -> [AnyHashable: Any] {
-        toEventJSON { ["source": source.toJSON(), "index": index] }
+        toEventJSON { ["name": "onSourceAdded", "source": source.toJSON(), "index": index] }
     }
 }
 
 extension SourceRemovedEvent: JsonConvertible {
     func toJSON() -> [AnyHashable: Any] {
-        toEventJSON { ["source": source.toJSON(), "index": index] }
+        toEventJSON { ["name": "onSourceRemoved", "source": source.toJSON(), "index": index] }
     }
 }
 

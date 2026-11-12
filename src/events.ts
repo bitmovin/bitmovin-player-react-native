@@ -874,7 +874,7 @@ export interface SubtitleCueLayout {
 /**
  * Native cue region metadata, when provided by the platform.
  *
- * @platform iOS, tvOS
+ * @platform iOS/tvOS
  */
 export interface SubtitleCueRegion {
   /**
@@ -894,7 +894,7 @@ export interface SubtitleCueRegion {
  *
  * Separate from `layout`, which describes cue-box geometry in the shared JS shape.
  *
- * @platform iOS, tvOS
+ * @platform iOS/tvOS
  */
 export interface Cea608CuePosition {
   /**
@@ -957,13 +957,13 @@ export interface CueEnterEvent extends Event {
    * Forwarded only when the native SDK provides it. Built-in iOS/tvOS WebVTT parsing does
    * not populate this field currently.
    *
-   * @platform iOS, tvOS
+   * @platform iOS/tvOS
    */
   region?: SubtitleCueRegion;
   /**
    * CEA-608 grid position for closed captions.
    *
-   * @platform iOS, tvOS
+   * @platform iOS/tvOS
    */
   cea608Position?: Cea608CuePosition;
 }
@@ -1006,13 +1006,13 @@ export interface CueExitEvent extends Event {
    * Forwarded only when the native SDK provides it. Built-in iOS/tvOS WebVTT parsing does
    * not currently populate this field.
    *
-   * @platform iOS, tvOS
+   * @platform iOS/tvOS
    */
   region?: SubtitleCueRegion;
   /**
    * CEA-608 grid position for closed captions.
    *
-   * @platform iOS, tvOS
+   * @platform iOS/tvOS
    */
   cea608Position?: Cea608CuePosition;
 }
@@ -1075,7 +1075,7 @@ export type MetadataEvent = MetadataParsedEvent;
 /**
  * Represents the FairPlay content key request associated with a license acquisition.
  *
- * @platform iOS, tvOS
+ * @platform iOS/tvOS
  */
 export interface FairplayContentKeyRequest {
   /**
@@ -1087,7 +1087,7 @@ export interface FairplayContentKeyRequest {
 /**
  * Emitted when a FairPlay license has been acquired successfully.
  *
- * @platform iOS, tvOS
+ * @platform iOS/tvOS
  */
 export interface FairplayLicenseAcquiredEvent extends Event {
   /**
@@ -1096,102 +1096,8 @@ export interface FairplayLicenseAcquiredEvent extends Event {
   contentKeyRequest: FairplayContentKeyRequest;
 }
 
-/** Events emitted by a Source, and forwarded by its attached Player. */
-export type SourceEvents = {
-  downloadFinished: (event: DownloadFinishedEvent) => void;
-  videoDownloadQualityChanged: (
-    event: VideoDownloadQualityChangedEvent
-  ) => void;
-  metadataParsed: (event: MetadataParsedEvent) => void;
-  sourceError: (event: SourceErrorEvent) => void;
-  sourceLoad: (event: SourceLoadEvent) => void;
-  sourceLoaded: (event: SourceLoadedEvent) => void;
-  sourceUnloaded: (event: SourceUnloadedEvent) => void;
-  sourceWarning: (event: SourceWarningEvent) => void;
-  audioAdded: (event: AudioAddedEvent) => void;
-  audioChanged: (event: AudioChangedEvent) => void;
-  audioRemoved: (event: AudioRemovedEvent) => void;
-  subtitleAdded: (event: SubtitleAddedEvent) => void;
-  subtitleChanged: (event: SubtitleChangedEvent) => void;
-  subtitleRemoved: (event: SubtitleRemovedEvent) => void;
-  fairplayLicenseAcquired: (event: FairplayLicenseAcquiredEvent) => void;
-  event: (event: Event) => void;
-};
-
-/** Events emitted by a Player, including its sources. View UI events belong to PlayerView. */
-export type PlayerEvents = SourceEvents & {
-  /** @platform Android
-   * @experimental
-   */
-  sourceAdded: (event: SourceAddedEvent) => void;
-  /** @platform Android
-   * @experimental
-   */
-  sourceRemoved: (event: SourceRemovedEvent) => void;
-  /** @platform iOS/tvOS
-   * @experimental
-   */
-  sourceAddedEvent: (event: SourceAddedEvent) => void;
-  /** @platform iOS/tvOS
-   * @experimental
-   */
-  sourceRemovedEvent: (event: SourceRemovedEvent) => void;
-  /** @experimental */
-  playlistTransition: (event: PlaylistTransitionEvent) => void;
-  adBreakFinished: (event: AdBreakFinishedEvent) => void;
-  adBreakStarted: (event: AdBreakStartedEvent) => void;
-  adClicked: (event: AdClickedEvent) => void;
-  adError: (event: AdErrorEvent) => void;
-  adFinished: (event: AdFinishedEvent) => void;
-  adManifestLoad: (event: AdManifestLoadEvent) => void;
-  adManifestLoaded: (event: AdManifestLoadedEvent) => void;
-  adQuartile: (event: AdQuartileEvent) => void;
-  adScheduled: (event: AdScheduledEvent) => void;
-  adSkipped: (event: AdSkippedEvent) => void;
-  adStarted: (event: AdStartedEvent) => void;
-  castAvailable: (event: CastAvailableEvent) => void;
-  castPaused: (event: CastPausedEvent) => void;
-  castPlaybackFinished: (event: CastPlaybackFinishedEvent) => void;
-  castPlaying: (event: CastPlayingEvent) => void;
-  castStarted: (event: CastStartedEvent) => void;
-  castStart: (event: CastStartEvent) => void;
-  castStopped: (event: CastStoppedEvent) => void;
-  castTimeUpdated: (event: CastTimeUpdatedEvent) => void;
-  castWaitingForDevice: (event: CastWaitingForDeviceEvent) => void;
-  cueEnter: (event: CueEnterEvent) => void;
-  cueExit: (event: CueExitEvent) => void;
-  destroy: (event: DestroyEvent) => void;
-  metadata: (event: MetadataEvent) => void;
-  muted: (event: MutedEvent) => void;
-  nonLinearAdStarted: (event: NonLinearAdStartedEvent) => void;
-  nonLinearAdSkipped: (event: NonLinearAdSkippedEvent) => void;
-  nonLinearAdFinished: (event: NonLinearAdFinishedEvent) => void;
-  paused: (event: PausedEvent) => void;
-  play: (event: PlayEvent) => void;
-  playbackFinished: (event: PlaybackFinishedEvent) => void;
-  playbackSpeedChanged: (event: PlaybackSpeedChangedEvent) => void;
-  playerActive: (event: PlayerActiveEvent) => void;
-  playerInactive: (event: PlayerInactiveEvent) => void;
-  playerError: (event: PlayerErrorEvent) => void;
-  playerWarning: (event: PlayerWarningEvent) => void;
-  playing: (event: PlayingEvent) => void;
-  ready: (event: ReadyEvent) => void;
-  seek: (event: SeekEvent) => void;
-  seeked: (event: SeekedEvent) => void;
-  timeShift: (event: TimeShiftEvent) => void;
-  timeShifted: (event: TimeShiftedEvent) => void;
-  stallStarted: (event: StallStartedEvent) => void;
-  stallEnded: (event: StallEndedEvent) => void;
-  timeChanged: (event: TimeChangedEvent) => void;
-  videoPlaybackQualityChanged: (
-    event: VideoPlaybackQualityChangedEvent
-  ) => void;
-  unmuted: (event: UnmutedEvent) => void;
-};
-
 /**
  * Emitted when a source is added to the native playlist.
- * The native name is `onSourceAddedEvent` on iOS/tvOS and `onSourceAdded` on Android.
  * @experimental
  */
 export interface SourceAddedEvent extends Event {
@@ -1201,7 +1107,6 @@ export interface SourceAddedEvent extends Event {
 
 /**
  * Emitted when a source is removed from the native playlist.
- * The native name is `onSourceRemovedEvent` on iOS/tvOS and `onSourceRemoved` on Android.
  * @experimental
  */
 export interface SourceRemovedEvent extends Event {

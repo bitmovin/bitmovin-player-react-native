@@ -1,6 +1,6 @@
 import type { NativeCallbacks } from './native/nativeCallbacks';
 import type { EventSubscription } from 'expo-modules-core';
-import type { PlayerEvents } from './events';
+import type { PlayerEventMap, EventCallbacks } from './native/eventMap';
 import { Platform } from 'react-native';
 import PlayerModule, { SharedPlayer } from './modules/playerModule';
 import { legacyPlayerRegistry } from './nativeInstanceRegistry';
@@ -181,15 +181,15 @@ export class Player {
    * Await registration before triggering events. Call `remove()` on the resolved
    * subscription or use off(event, listener) to stop listening.
    */
-  on = async <Name extends keyof PlayerEvents>(
+  on = async <Name extends keyof PlayerEventMap>(
     event: Name,
-    listener: PlayerEvents[Name]
+    listener: EventCallbacks<PlayerEventMap>[Name]
   ): Promise<EventSubscription> => this.native.addListener(event, listener);
 
   /** Stops a listener previously registered with on for this event. */
-  off = <Name extends keyof PlayerEvents>(
+  off = <Name extends keyof PlayerEventMap>(
     event: Name,
-    listener: PlayerEvents[Name]
+    listener: EventCallbacks<PlayerEventMap>[Name]
   ): void => this.native.removeListener(event, listener);
 
   /** @internal Keeps callback peers available while this SDK playback session owns their sources. */

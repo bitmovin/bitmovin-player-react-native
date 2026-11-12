@@ -34,6 +34,7 @@ export interface NativePlayerViewProps extends NativePlayerViewEvents {
   style?: ViewStyle;
 }
 
+/** Expo view-ref methods target the mounted React Native host, not a SharedObject. */
 export interface NativePlayerViewRef {
   attachBindings(
     player: SharedPlayer,

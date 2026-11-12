@@ -19,7 +19,8 @@ internal final class SharedObjectEvents: NSObject, PlayerListener, SourceListene
         guard let owner else { return }
         let payload = event.eventPayload()
         guard !payload.isEmpty else { return }
-        let name = event.name.hasPrefix("on") ? String(event.name.dropFirst(2)) : event.name
+        let eventName = payload["name"] as? String ?? event.name
+        let name = eventName.hasPrefix("on") ? String(eventName.dropFirst(2)) : eventName
         owner.emit(event: name.prefix(1).lowercased() + name.dropFirst(), payload: payload)
         owner.emit(event: "event", payload: payload)
     }

@@ -5,10 +5,10 @@ import { requireNativeModule } from 'expo-modules-core';
 import type { NativeCallback } from '../native/nativeCallbacks';
 import type { NativeMethods } from '../native/nativeMethods';
 import type { Source, SourceConfig } from '../source';
-import type { SourceEvents } from '../events';
-export type SourceModuleEvents = SourceEvents;
+import type { SourceEventMap, EventCallbacks } from '../native/eventMap';
+export type SourceModuleEvents = EventCallbacks<SourceEventMap>;
 /** @internal */
-export type SharedSource = SharedObject<SourceEvents> &
+export type SharedSource = SharedObject<EventCallbacks<SourceEventMap>> &
   Omit<NativeMethods<Source>, 'on' | 'off'> & {
     readonly configSnapshot?: SourceConfig;
     readonly source?: Source;

@@ -1,6 +1,6 @@
 import type { NativeCallbacks } from './native/nativeCallbacks';
 import type { EventSubscription } from 'expo-modules-core';
-import type { SourceEvents } from './events';
+import type { SourceEventMap, EventCallbacks } from './native/eventMap';
 import type { CmcdConfig } from './cmcdConfig';
 import type { DrmConfig } from './drm';
 import { SourceDrmApi } from './drm/sourceDrmApi';
@@ -203,15 +203,15 @@ export class Source {
    * Await registration before triggering events. Call `remove()` on the resolved
    * subscription or use off(event, listener) to stop listening.
    */
-  on = async <Name extends keyof SourceEvents>(
+  on = async <Name extends keyof SourceEventMap>(
     event: Name,
-    listener: SourceEvents[Name]
+    listener: EventCallbacks<SourceEventMap>[Name]
   ): Promise<EventSubscription> => this.native.addListener(event, listener);
 
   /** Stops a listener previously registered with on for this event. */
-  off = <Name extends keyof SourceEvents>(
+  off = <Name extends keyof SourceEventMap>(
     event: Name,
-    listener: SourceEvents[Name]
+    listener: EventCallbacks<SourceEventMap>[Name]
   ): void => this.native.removeListener(event, listener);
 
   /**

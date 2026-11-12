@@ -5,7 +5,7 @@ import { requireNativeModule } from 'expo-modules-core';
 import type { NativeCallback } from '../native/nativeCallbacks';
 import type { NativeMethods } from '../native/nativeMethods';
 import type { Player } from '../player';
-import type { PlayerEvents } from '../events';
+import type { PlayerEventMap, EventCallbacks } from '../native/eventMap';
 import type { SharedSource } from './sourceModule';
 import type { SharedOfflineContentManager } from '../offline/offlineModule';
 import type { OfflineSourceOptions } from '../offline';
@@ -14,9 +14,9 @@ import type { AnalyticsApi } from '../analytics/analyticsApi';
 import type { MediaControlsApi } from '../mediaControlsApi';
 import type { PlaylistApi, PlaylistOptions, SeekTarget } from '../playlist';
 
-export type PlayerModuleEvents = PlayerEvents;
+export type PlayerModuleEvents = EventCallbacks<PlayerEventMap>;
 /** @internal */
-export type SharedPlayer = SharedObject<PlayerEvents> &
+export type SharedPlayer = SharedObject<EventCallbacks<PlayerEventMap>> &
   Omit<
     NativeMethods<Player>,
     | 'on'

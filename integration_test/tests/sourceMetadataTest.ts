@@ -1,6 +1,5 @@
 import { Source, SourceAddedEvent } from 'bitmovin-player-react-native';
 import { TestScope } from 'cavy';
-import { Platform } from 'react-native';
 import {
   callPlayerAndExpectEvent,
   callPlayerAndExpectEvents,
@@ -12,8 +11,7 @@ import {
 import { expect } from './helper/Expect';
 import { Sources } from './helper/Sources';
 
-const sourceAdded =
-  Platform.OS === 'ios' ? EventType.SourceAddedEvent : EventType.SourceAdded;
+const sourceAdded = EventType.SourceAdded;
 
 export default (spec: TestScope) => {
   spec.describe('Source metadata', () => {

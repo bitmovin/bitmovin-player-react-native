@@ -11,7 +11,11 @@ import type {
   PictureInPictureExitedEvent,
 } from '../../events';
 
-/** Events owned by the native view rather than its player. */
+/**
+ * View events arrive through React Native's nativeEvent wrapper. PlayerView
+ * unwraps it before invoking public callbacks; SharedObject events arrive as
+ * direct payloads through Player.on and Source.on.
+ */
 export interface NativePlayerViewEvents {
   onBmpPictureInPictureAvailabilityChanged?: (
     event: NativeSyntheticEvent<PictureInPictureAvailabilityChangedEvent>

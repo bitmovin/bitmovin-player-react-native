@@ -24,12 +24,8 @@ import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
 import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 
-const sourceAdded =
-  Platform.OS === 'ios' ? EventType.SourceAddedEvent : EventType.SourceAdded;
-const sourceRemoved =
-  Platform.OS === 'ios'
-    ? EventType.SourceRemovedEvent
-    : EventType.SourceRemoved;
+const sourceAdded = EventType.SourceAdded;
+const sourceRemoved = EventType.SourceRemoved;
 
 // Assert SDK state and events. Source queries return independent JS handles.
 export default (spec: TestScope) => {
@@ -47,9 +43,8 @@ export default (spec: TestScope) => {
         metadata: { item: 'second' },
       });
       const added: number[] = [];
-      const addedSubscription = await player.on(
-        Platform.OS === 'ios' ? 'sourceAddedEvent' : 'sourceAdded',
-        (event) => added.push(event.index)
+      const addedSubscription = await player.on('sourceAdded', (event) =>
+        added.push(event.index)
       );
       const receiving = async (
         subscribe: (listener: () => void) => Promise<{ remove(): void }>,
@@ -89,11 +84,7 @@ export default (spec: TestScope) => {
           item: 'second',
         });
         await receiving(
-          (listener) =>
-            player.on(
-              Platform.OS === 'ios' ? 'sourceRemovedEvent' : 'sourceRemoved',
-              listener
-            ),
+          (listener) => player.on('sourceRemoved', listener),
           () => player.playlist.remove(first)
         );
         expect(
