@@ -44,7 +44,8 @@ class RNPlayerViewManager : Module() {
             }
 
             AsyncFunction("attachBindings") { view: RNPlayerView, owner: SharedPlayer,
-                fullscreen: SharedFullscreenHandler?, messages: SharedCustomMessageHandler?, config: Map<String, Any>?, ->
+                fullscreen: SharedFullscreenHandler?, messages: SharedCustomMessageHandler?,
+                config: Map<String, Any>?, ->
                 view.attachBindings(owner, fullscreen, messages, config)
                 updateAutoPictureInPictureRegistration(view)
             }

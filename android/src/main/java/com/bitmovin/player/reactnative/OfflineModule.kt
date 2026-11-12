@@ -25,7 +25,11 @@ class OfflineModule : Module() {
                 ?: throw CodedException("ERR_INVALID_ARGUMENT", "Invalid source configuration", null)
             val context = checkNotNull(appContext.reactContext) { "ReactApplicationContext is not available" }
             com.bitmovin.player.api.offline.OfflineContentManager.getOfflineContentManager(
-                sourceConfig, appContext.cacheDirectory.path, identifier, listener, context,
+                sourceConfig,
+                appContext.cacheDirectory.path,
+                identifier,
+                listener,
+                context,
             )
         }
     }
@@ -40,7 +44,9 @@ class OfflineModule : Module() {
             Property("events") { owner: SharedOfflineContentManager -> owner.events }
 
             Constructor { config: Map<String, Any?>?, events: SharedOfflineEvents,
-                callback: JavaScriptFunction<JavaScriptValue>?, -> create(config, events, callback) }
+                callback: JavaScriptFunction<JavaScriptValue>?, ->
+                create(config, events, callback)
+            }
 
             AsyncFunction("state") { owner: SharedOfflineContentManager -> owner.state.name }.runOnQueue(Queues.MAIN)
             AsyncFunction("getOptions", SharedOfflineContentManager::getOptions).runOnQueue(Queues.MAIN)
@@ -56,7 +62,9 @@ class OfflineModule : Module() {
             AsyncFunction("deleteAll", SharedOfflineContentManager::deleteAll).runOnQueue(Queues.MAIN)
             AsyncFunction("downloadLicense", SharedOfflineContentManager::downloadLicense).runOnQueue(Queues.MAIN)
             AsyncFunction("releaseLicense", SharedOfflineContentManager::releaseLicense).runOnQueue(Queues.MAIN)
-            AsyncFunction("renewOfflineLicense", SharedOfflineContentManager::renewOfflineLicense).runOnQueue(Queues.MAIN)
+            AsyncFunction("renewOfflineLicense", SharedOfflineContentManager::renewOfflineLicense).runOnQueue(
+                Queues.MAIN,
+            )
             AsyncFunction("destroy", SharedOfflineContentManager::release).runOnQueue(Queues.MAIN)
         }
     }

@@ -10,11 +10,11 @@ import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.reactnative.CallbackScope
 import com.bitmovin.player.reactnative.SharedOfflineEvents
-import kotlinx.coroutines.Dispatchers
-import kotlin.coroutines.EmptyCoroutineContext
 import com.bitmovin.player.reactnative.converter.toJson
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.sharedobjects.SharedObject
+import kotlinx.coroutines.Dispatchers
+import kotlin.coroutines.EmptyCoroutineContext
 
 class SharedOfflineContentManager(
     appContext: AppContext,

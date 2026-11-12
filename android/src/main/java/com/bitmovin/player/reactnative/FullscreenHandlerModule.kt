@@ -9,7 +9,12 @@ class FullscreenHandlerModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("FullscreenHandlerModule")
         Class("SharedFullscreenHandler", SharedFullscreenHandler::class) {
-            Constructor { callback: JavaScriptFunction<JavaScriptValue>? -> SharedFullscreenHandler(appContext, callback) }
+            Constructor { callback: JavaScriptFunction<JavaScriptValue>? ->
+                SharedFullscreenHandler(
+                    appContext,
+                    callback,
+                )
+            }
             AsyncFunction("setIsFullscreenActive") { owner: SharedFullscreenHandler, enabled: Boolean ->
                 owner.isFullscreen = enabled
             }

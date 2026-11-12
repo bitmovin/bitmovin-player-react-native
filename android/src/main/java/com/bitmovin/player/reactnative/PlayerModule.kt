@@ -15,8 +15,8 @@ import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toReplayMode
 import com.bitmovin.player.reactnative.converter.toTimelineReferencePoint
 import com.bitmovin.player.reactnative.offline.SharedOfflineContentManager
-import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.exception.CodedException
+import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.jni.JavaScriptFunction
 import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.modules.Module
@@ -33,7 +33,8 @@ class PlayerModule : Module() {
                 callback: JavaScriptFunction<JavaScriptValue>?, ->
                 SharedPlayer.create(appContext, config, analytics, callback, mediaSessionPlaybackManager)
             }
-            AsyncFunction("loadPlaylist") { shared: SharedPlayer, sources: List<SharedSource>, options: Map<String, Any>? ->
+            AsyncFunction("loadPlaylist") { shared: SharedPlayer, sources: List<SharedSource>,
+                options: Map<String, Any>?, ->
                 val nativeSources = sources.map { it.source }
                 ensureSourcesAvailable(shared.player, nativeSources)
                 shared.player.load(
