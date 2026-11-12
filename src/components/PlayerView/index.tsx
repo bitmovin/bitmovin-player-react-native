@@ -236,14 +236,12 @@ export function PlayerView({
           props.onDownloadFinished?.(event)
         ),
       props.onVideoDownloadQualityChanged &&
-        player.on(
-          'videoDownloadQualityChanged',
-          props.onVideoDownloadQualityChanged
+        player.on('videoDownloadQualityChanged', (event) =>
+          props.onVideoDownloadQualityChanged?.(event)
         ),
       props.onVideoPlaybackQualityChanged &&
-        player.on(
-          'videoPlaybackQualityChanged',
-          props.onVideoPlaybackQualityChanged
+        player.on('videoPlaybackQualityChanged', (event) =>
+          props.onVideoPlaybackQualityChanged?.(event)
         ),
       props.onEvent && player.on('event', (event) => props.onEvent?.(event)),
       props.onMetadata &&
