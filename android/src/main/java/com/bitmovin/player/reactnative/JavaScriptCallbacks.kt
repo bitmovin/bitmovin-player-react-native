@@ -11,6 +11,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -74,6 +75,23 @@ internal class JavaScriptCallbacks(private val context: AppContext, private val 
     }
 
     fun close() = scope.cancel()
+
+    fun blockingCall(
+        callback: JavaScriptCallback,
+        args: List<Any?>,
+        mutating: Boolean,
+        undefinedIndex: Int?,
+    ): Any? {
+        if (context.reactContext?.isOnJSQueueThread == true) {
+            if (!scope.isActive) return null
+            val holder = callback.holder(context) ?: return null
+            return invoke(args, mutating, undefinedIndex, false, thisValue = holder, appContext = context)
+                .toCallbackValue()
+        }
+        return runBlocking {
+            withTimeoutOrNull(250) { call(callback, args, mutating, undefinedIndex, false) }
+        }
+    }
 
     suspend fun call(
         callback: JavaScriptCallback,
@@ -147,17 +165,7 @@ internal class JavaScriptCallback(
     val scope get() = callbacks.scope
 
     fun blockingCall(args: List<Any?>, mutating: Boolean = false, undefinedIndex: Int? = null): Any? = runCatching {
-        runBlocking {
-            withTimeoutOrNull(250) {
-                callbacks.call(
-                    this@JavaScriptCallback,
-                    args,
-                    mutating,
-                    undefinedIndex,
-                    false,
-                )
-            }
-        }
+        callbacks.blockingCall(this, args, mutating, undefinedIndex)
     }.getOrNull()
 
     suspend fun asyncCall(args: List<Any?>): Any? = callbacks.call(this, args, false, null, true)
