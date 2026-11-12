@@ -67,7 +67,11 @@ import type {
   VideoPlaybackQualityChangedEvent,
 } from '../events';
 
-/** Payloads emitted by a Source and forwarded by its attached Player. @internal */
+/**
+ * Payloads emitted by a Source and forwarded by its attached Player.
+ * @internal
+ * @inline
+ */
 export interface SourceEventMap {
   downloadFinished: DownloadFinishedEvent;
   videoDownloadQualityChanged: VideoDownloadQualityChangedEvent;
@@ -87,7 +91,11 @@ export interface SourceEventMap {
   event: Event;
 }
 
-/** Player payloads, including Source events. View UI events belong to PlayerView. @internal */
+/**
+ * Player payloads, including Source events. View UI events belong to PlayerView.
+ * @internal
+ * @inline
+ */
 export interface PlayerEventMap extends SourceEventMap {
   /** @experimental */
   sourceAdded: SourceAddedEvent;
@@ -144,7 +152,11 @@ export interface PlayerEventMap extends SourceEventMap {
   unmuted: UnmutedEvent;
 }
 
-/** Expo SharedObject event types describe callbacks rather than payloads. @internal */
+/**
+ * Expo SharedObject event types describe callbacks rather than payloads.
+ * @internal
+ * @inline
+ */
 export type EventCallbacks<Events> = {
   [Name in keyof Events]: (event: Events[Name]) => void;
 };
