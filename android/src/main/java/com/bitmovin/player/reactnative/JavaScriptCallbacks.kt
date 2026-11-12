@@ -125,7 +125,7 @@ internal class JavaScriptCallbacks(private val context: AppContext, private val 
                             ) {
                                 val handlers = module.Object {
                                     Function("resolve") { result: JavaScriptValue ->
-                                        waiting.getAndSet(null)?.resume(result.toCallbackValue())
+                                        waiting.getAndSet(null)?.resumeWith(runCatching { result.toCallbackValue() })
                                     }
                                     Function("reject") { reason: String ->
                                         waiting.getAndSet(null)?.resumeWithException(IllegalStateException(reason))
@@ -140,7 +140,8 @@ internal class JavaScriptCallbacks(private val context: AppContext, private val 
                                     appContext = context,
                                 )
                             } else {
-                                waiting.getAndSet(null)?.resume(reply.toCallbackValue())
+                                val value = reply.toCallbackValue()
+                                waiting.getAndSet(null)?.resume(value)
                             }
                         } catch (error: Throwable) {
                             waiting.getAndSet(null)?.resumeWithException(error)
