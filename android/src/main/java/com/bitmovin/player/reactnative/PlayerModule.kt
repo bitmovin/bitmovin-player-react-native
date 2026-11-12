@@ -33,7 +33,6 @@ class PlayerModule : Module() {
                     appContext,
                     config?.getObject(),
                     analytics,
-                    this@PlayerModule,
                     mediaSessionPlaybackManager,
                 )
             }

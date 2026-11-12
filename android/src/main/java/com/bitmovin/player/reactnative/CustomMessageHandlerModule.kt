@@ -9,7 +9,7 @@ class CustomMessageHandlerModule : Module() {
         Name("CustomMessageHandlerModule")
         Class(SharedCustomMessageHandler::class) {
             Constructor { config: JavaScriptValue ->
-                SharedCustomMessageHandler(appContext, config.getObject(), this@CustomMessageHandlerModule)
+                SharedCustomMessageHandler(appContext, config.getObject())
             }
             AsyncFunction("sendMessage") { owner: SharedCustomMessageHandler, message: String, data: String? ->
                 owner.customMessageHandler.sendMessage(message, data)

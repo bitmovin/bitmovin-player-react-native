@@ -8,7 +8,6 @@ import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryAction
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
 import com.bitmovin.player.api.source.SourceConfig
-import com.bitmovin.player.reactnative.JavaScriptCallbacks
 import com.bitmovin.player.reactnative.SharedOfflineEvents
 import com.bitmovin.player.reactnative.converter.toJson
 import expo.modules.kotlin.AppContext
@@ -20,7 +19,6 @@ class SharedOfflineContentManager internal constructor(
     appContext: AppContext,
     private val identifier: String,
     val events: SharedOfflineEvents,
-    private val callbacks: JavaScriptCallbacks,
     factory: (OfflineContentManagerListener) -> OfflineContentManager,
 ) : SharedObject(appContext), OfflineContentManagerListener {
     private var contentOptions: OfflineContentOptions? = null
@@ -104,14 +102,12 @@ class SharedOfflineContentManager internal constructor(
     }
 
     fun release() {
-        callbacks.close()
         if (isReleased) return
         isReleased = true
         if (managerDelegate.isInitialized()) offlineContentManager.release()
     }
 
     override fun sharedObjectDidRelease() {
-        callbacks.close()
         Dispatchers.Main.dispatch(EmptyCoroutineContext) { release() }
     }
 

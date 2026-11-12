@@ -11,7 +11,7 @@ class SourceModule : Module() {
         Name("SourceModule")
         Class(SharedSource::class) {
             Constructor { config: JavaScriptValue?, analytics: Map<String, Any>? ->
-                SharedSource.create(appContext, config?.getObject(), analytics, this@SourceModule)
+                SharedSource.create(appContext, config?.getObject(), analytics)
             }
             Property("configSnapshot") { owner: SharedSource -> owner.configSnapshot }
             AsyncFunction("isAttachedToPlayer") { shared: SharedSource ->

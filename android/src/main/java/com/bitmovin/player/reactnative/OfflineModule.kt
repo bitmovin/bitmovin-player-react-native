@@ -16,12 +16,11 @@ class OfflineModule : Module() {
         config: JavaScriptObject?,
         events: SharedOfflineEvents,
     ): SharedOfflineContentManager {
-        val callbacks = JavaScriptCallbacks(appContext, this)
-        val nativeConfig = callbacks.snapshot(config)
+        val nativeConfig = config?.toNativeConfig()
         val identifier = nativeConfig?.get("identifier") as? String
-        return SharedOfflineContentManager(appContext, identifier ?: "", events, callbacks) { listener ->
+        return SharedOfflineContentManager(appContext, identifier ?: "", events) { listener ->
             if (identifier == null) throw CodedException("ERR_INVALID_ARGUMENT", "Invalid offline identifier", null)
-            val sourceConfig = nativeConfig?.getMap("sourceConfig")?.toSourceConfig()
+            val sourceConfig = nativeConfig?.getMap("sourceConfig")?.toSourceConfig(appContext)
                 ?: throw CodedException("ERR_INVALID_ARGUMENT", "Invalid source configuration", null)
             val context = checkNotNull(appContext.reactContext) { "ReactApplicationContext is not available" }
             com.bitmovin.player.api.offline.OfflineContentManager.getOfflineContentManager(

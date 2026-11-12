@@ -11,16 +11,20 @@ import com.bitmovin.player.reactnative.converter.toPlayerConfig
 import com.bitmovin.player.reactnative.extensions.getMap
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.jni.JavaScriptObject
-import expo.modules.kotlin.modules.Module
+import expo.modules.kotlin.jni.JavaScriptWeakObject
 import expo.modules.kotlin.sharedobjects.SharedObject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlin.coroutines.EmptyCoroutineContext
 
 /** Owns one configured SDK player. Views retain this object, never the reverse. */
 class SharedPlayer private constructor(
     appContext: AppContext,
     factory: () -> Player,
-    private val callbacks: JavaScriptCallbacks,
+    private val networkScope: CoroutineScope?,
     val mediaSessionPlaybackManager: MediaSessionPlaybackManager,
 ) : SharedObject(appContext) {
     private var isDestroyed = false
@@ -32,7 +36,7 @@ class SharedPlayer private constructor(
     val player: Player by playerDelegate
 
     fun destroy() {
-        callbacks.close()
+        networkScope?.cancel()
         if (isDestroyed) return
         isDestroyed = true
         if (!playerDelegate.isInitialized()) return
@@ -44,7 +48,7 @@ class SharedPlayer private constructor(
     }
 
     override fun sharedObjectDidRelease() {
-        callbacks.close()
+        networkScope?.cancel()
         Dispatchers.Main.dispatch(EmptyCoroutineContext) {
             if (!isDestroyed) destroy()
         }
@@ -55,13 +59,20 @@ class SharedPlayer private constructor(
             appContext: AppContext,
             config: JavaScriptObject?,
             analytics: Map<String, Any>?,
-            module: Module,
             manager: MediaSessionPlaybackManager,
         ): SharedPlayer {
-            val callbacks = JavaScriptCallbacks(appContext, module)
-            val nativeConfig = callbacks.snapshot(config, captureAdvertising = true)
+            val nativeConfig = config?.toNativeConfig()
+            val networkScope = nativeConfig?.getMap("networkConfig")?.takeIf {
+                it["preprocessHttpRequest"] is JavaScriptWeakObject ||
+                    it["preprocessHttpResponse"] is JavaScriptWeakObject
+            }?.let {
+                CoroutineScope(
+                    appContext.backgroundCoroutineScope.coroutineContext +
+                        SupervisorJob(appContext.backgroundCoroutineScope.coroutineContext[Job]),
+                )
+            }
             fun createSdkPlayer(): Player {
-                val playerConfig = nativeConfig?.toPlayerConfig() ?: PlayerConfig()
+                val playerConfig = nativeConfig?.toPlayerConfig(appContext, networkScope) ?: PlayerConfig()
                 val context = checkNotNull(appContext.reactContext?.applicationContext) {
                     "Application context is not available"
                 }
@@ -83,7 +94,7 @@ class SharedPlayer private constructor(
                 }
                 return player
             }
-            return SharedPlayer(appContext, ::createSdkPlayer, callbacks, manager)
+            return SharedPlayer(appContext, ::createSdkPlayer, networkScope, manager)
         }
     }
 }

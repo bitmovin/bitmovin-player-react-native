@@ -12,7 +12,6 @@ class FullscreenHandlerModule : Module() {
                 SharedFullscreenHandler(
                     appContext,
                     config.getObject(),
-                    this@FullscreenHandlerModule,
                 )
             }
             AsyncFunction("setIsFullscreenActive") { owner: SharedFullscreenHandler, enabled: Boolean ->
