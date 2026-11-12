@@ -8,12 +8,9 @@ import type { CustomDataConfig } from './config';
  */
 export class AnalyticsApi {
   private readonly native: SharedAnalyticsApi;
-  // Retain the configured Player while this runtime helper is reachable.
-  declare private readonly player: Player;
 
   /** @internal */
   constructor(player: Player) {
-    this.player = player;
     this.native = new SharedAnalyticsApi(player.native);
   }
 

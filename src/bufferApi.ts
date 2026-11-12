@@ -71,12 +71,9 @@ export interface BufferLevels {
  */
 export class BufferApi {
   private readonly native: SharedBufferApi;
-  // Retain the configured Player while this runtime helper is reachable.
-  declare private readonly player: Player;
 
   /** @internal */
   constructor(player: Player) {
-    this.player = player;
     this.native = new SharedBufferApi(player.native);
   }
 

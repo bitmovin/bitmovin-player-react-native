@@ -11,12 +11,9 @@ import { Platform } from 'react-native';
  */
 export class MediaControlsApi {
   private readonly native?: SharedMediaControlsApi;
-  // Retain the configured Player while this runtime helper is reachable.
-  declare private readonly player: Player;
 
   /** @internal */
   constructor(player: Player) {
-    this.player = player;
     if (Platform.OS === 'ios')
       this.native = new SharedMediaControlsApi(player.native);
   }
