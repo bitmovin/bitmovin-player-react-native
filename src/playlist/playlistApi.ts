@@ -30,6 +30,11 @@ export class PlaylistApi {
   private readonly knownSources: Map<string, Source>;
   private readonly takeOwnership: (sources: Source[]) => void;
 
+  /**
+   * Created by {@link Player}, which shares its source bookkeeping with it.
+   *
+   * @internal
+   */
   constructor(
     playerId: string,
     knownSources: Map<string, Source>,
