@@ -64,6 +64,44 @@ internal extension JavaScriptRef where T == JavaScriptWeakObject {
         return try await runtime.execute { try convert(value) }
     }
 
+    /// Uses Expo's argument conversion before mapping a typed callback result on JS.
+    func callBlocking<Input: AnyArgument, R>(
+        _ context: AppContext,
+        arguments: [Any],
+        convert: @escaping @JavaScriptActor (Input) throws -> R?
+    ) -> R? {
+        callBlocking(context, arguments: arguments) { (value: JavaScriptValue) in
+            try (Input.getDynamicType().cast(jsValue: value, appContext: context) as? Input).flatMap(convert)
+        }
+    }
+
+    @discardableResult
+    func callAsync<Input: AnyArgument, R>(
+        _ context: AppContext,
+        arguments: [Any],
+        convert: @escaping @JavaScriptActor (Input) throws -> R?,
+        completion: @escaping (R?) -> Void
+    ) -> CallbackCompletion<R> {
+        callAsync(
+            context,
+            arguments: arguments,
+            convert: { (value: JavaScriptValue) in
+                try (Input.getDynamicType().cast(jsValue: value, appContext: context) as? Input).flatMap(convert)
+            },
+            completion: completion
+        )
+    }
+
+    func callAsync<Input: AnyArgument, R: Sendable>(
+        _ context: AppContext,
+        arguments: [Any],
+        convert: @escaping @JavaScriptActor (Input) throws -> R?
+    ) async throws -> R? {
+        try await callAsync(context, arguments: arguments) { (value: JavaScriptValue) in
+            try (Input.getDynamicType().cast(jsValue: value, appContext: context) as? Input).flatMap(convert)
+        }
+    }
+
     /// Notifications ignore their return value, consuming a rejected Promise without awaiting it.
     func notify(_ context: AppContext, arguments: [Any]) {
         guard let runtime = try? context.runtime else { return }

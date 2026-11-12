@@ -16,7 +16,7 @@ extension RCTConvert {
                 track(callback.callAsync(
                     context,
                     arguments: [Self.toJson(httpRequestType: type), Self.toJson(httpRequest: request)],
-                    convert: { ($0.getAny() as? [String: Any]).flatMap(Self.httpRequest) },
+                    convert: { (value: [String: Any]) in Self.httpRequest(value) },
                     completion: { completion($0 ?? request) }
                 ))
             }
@@ -27,7 +27,7 @@ extension RCTConvert {
                 track(callback.callAsync(
                     context,
                     arguments: [Self.toJson(httpRequestType: type), Self.toJson(httpResponse: response)],
-                    convert: { ($0.getAny() as? [String: Any]).flatMap(Self.httpResponse) },
+                    convert: { (value: [String: Any]) in Self.httpResponse(value) },
                     completion: { completion($0 ?? response) }
                 ))
             }
