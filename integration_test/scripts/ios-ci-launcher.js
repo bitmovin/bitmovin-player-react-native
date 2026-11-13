@@ -19,17 +19,26 @@ const BUNDLE_ID = 'com.bitmovin.player.reactnative.integrationtests';
 
 async function stopChild(child) {
   if (!child || child.exitCode !== null || child.signalCode !== null) return;
-  await new Promise((resolve) => {
-    const timer = setTimeout(() => {
-      child.kill('SIGKILL');
-      resolve();
-    }, 2000);
-    child.once('close', () => {
-      clearTimeout(timer);
-      resolve();
+  let force;
+  let deadline;
+  try {
+    await new Promise((resolve, reject) => {
+      child.once('close', resolve);
+      child.once('error', reject);
+      force = setTimeout(() => child.kill('SIGKILL'), 2000);
+      deadline = setTimeout(
+        () =>
+          reject(
+            new Error('Owned simulator command did not exit after SIGKILL')
+          ),
+        3000
+      );
+      child.kill('SIGTERM');
     });
-    child.kill('SIGTERM');
-  });
+  } finally {
+    clearTimeout(force);
+    clearTimeout(deadline);
+  }
 }
 
 function collectCrashes(home, udid, artifactsDir, startedAt) {
@@ -94,6 +103,7 @@ async function runIosApp(config, dependencies = {}) {
   let rejectRun;
   let cancellation;
   const cleanupErrors = [];
+  const cleanupCommands = [];
   const cancel = (reason) => {
     cancellation = new Error(reason);
     controller.abort();
@@ -125,6 +135,7 @@ async function runIosApp(config, dependencies = {}) {
       commandLog,
       `$ xcrun simctl ${args.join(' ')}\n${result.stdout || ''}${result.stderr || ''}\nResult: ${JSON.stringify(diagnostics)}\n`
     );
+    if (!required) cleanupCommands.push({ operation: args[0], ...diagnostics });
     if (required && (result.error || result.status !== 0)) {
       throw new Error(
         `simctl ${args[0]} failed after ${diagnostics.elapsedMs}ms (timeout ${timeout}ms, code ${diagnostics.code}, signal ${diagnostics.signal}, killed ${diagnostics.killed}): ${result.error?.message || result.stderr || result.status}`
@@ -237,7 +248,10 @@ async function runIosApp(config, dependencies = {}) {
     signals.removeListener('SIGINT', onInterrupt);
     // Preserve failures from boot/install/launch even if diagnostics are absent.
     if (udid) await command(['terminate', udid, BUNDLE_ID], 10000, false);
-    await Promise.all([stopChild(app), stopChild(logs)]);
+    const stopped = await Promise.allSettled([stopChild(app), stopChild(logs)]);
+    for (const result of stopped)
+      if (result.status === 'rejected')
+        cleanupErrors.push(result.reason.message);
     if (appFd !== undefined) fs.closeSync(appFd);
     if (logFd !== undefined) fs.closeSync(logFd);
     if (udid) {
@@ -257,6 +271,7 @@ async function runIosApp(config, dependencies = {}) {
       JSON.stringify({
         success: cleanupErrors.length === 0,
         errors: cleanupErrors,
+        commands: cleanupCommands,
       })
     );
   }

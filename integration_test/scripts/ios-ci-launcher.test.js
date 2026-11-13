@@ -481,7 +481,12 @@ test('records successful disposal after coordinator cancellation', async (t) => 
       'utf8'
     )
   );
-  assert.deepEqual(cleanup, { success: true, errors: [] });
+  assert.equal(cleanup.success, true);
+  assert.deepEqual(cleanup.errors, []);
+  assert.deepEqual(
+    cleanup.commands.map(({ operation }) => operation),
+    ['terminate', 'shutdown', 'delete']
+  );
 });
 
 test('an already-shutdown device after boot failure does not count as a cleanup failure', async (t) => {
@@ -507,5 +512,69 @@ test('an already-shutdown device after boot failure does not count as a cleanup 
       'utf8'
     )
   );
-  assert.deepEqual(cleanup, { success: true, errors: [] });
+  assert.equal(cleanup.success, true);
+  assert.deepEqual(cleanup.errors, []);
+});
+
+test('retains a termination timeout in the receipt after successful simulator disposal', async (t) => {
+  const f = fixture(t, { hold: true });
+  const run = f.dependencies.run;
+  f.dependencies.run = (command, args, options) => {
+    if (args[1] === 'terminate') {
+      return {
+        status: 1,
+        error: Object.assign(new Error('termination timed out'), {
+          killed: true,
+          signal: 'SIGKILL',
+        }),
+      };
+    }
+    return run(command, args, options);
+  };
+  await assert.rejects(
+    implementation().runIosApp(f.config, f.dependencies),
+    /SIGTERM/
+  );
+  const cleanup = JSON.parse(
+    fs.readFileSync(
+      path.join(f.config.artifactsDir, 'ios-cleanup.json'),
+      'utf8'
+    )
+  );
+  assert.equal(cleanup.success, true, 'shutdown and deletion disposed the app');
+  assert.deepEqual(cleanup.errors, []);
+  assert.deepEqual(
+    cleanup.commands.map(({ operation, status }) => [operation, status]),
+    [
+      ['terminate', 1],
+      ['shutdown', 0],
+      ['delete', 0],
+    ]
+  );
+  assert.equal(cleanup.commands[0].signal, 'SIGKILL');
+  assert.equal(cleanup.commands[0].killed, true);
+});
+
+test('does not verify cleanup when its owned console process cannot be stopped', async (t) => {
+  const f = fixture(t, { hold: true });
+  const spawn = f.dependencies.spawn;
+  f.dependencies.spawn = (command, args) => {
+    const child = spawn(command, args);
+    if (args[1] === 'launch')
+      child.kill = () => child.emit('error', new Error('console stop denied'));
+    return child;
+  };
+  await assert.rejects(
+    implementation().runIosApp(f.config, f.dependencies),
+    /SIGTERM/
+  );
+  const cleanup = JSON.parse(
+    fs.readFileSync(
+      path.join(f.config.artifactsDir, 'ios-cleanup.json'),
+      'utf8'
+    )
+  );
+  assert.equal(cleanup.success, false);
+  assert.match(cleanup.errors.join('; '), /console stop denied/);
+  assert.ok(f.calls.some(({ args }) => args[1] === 'delete'));
 });
