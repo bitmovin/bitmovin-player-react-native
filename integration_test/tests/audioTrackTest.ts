@@ -13,8 +13,8 @@ export default (spec: TestScope) => {
   spec.describe('loading a source with audio tracks', () => {
     spec.it('emits AudioAdded event', async () => {
       await startPlayerTest({}, async () => {
-        await callPlayerAndExpectEvent((player) => {
-          return player.load(Sources.artOfMotionHls);
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.load(Sources.artOfMotionHls);
         }, EventType.AudioAdded);
       });
     });
@@ -22,8 +22,8 @@ export default (spec: TestScope) => {
       spec.describe('when Platform is Android', () => {
         spec.it('AudioTrack contains qualities information', async () => {
           await startPlayerTest({}, async () => {
-            await callPlayerAndExpectEvent((player) => {
-              return player.load(Sources.artOfMotionHls);
+            await callPlayerAndExpectEvent(async (player) => {
+              await player.load(Sources.artOfMotionHls);
             }, EventType.AudioAdded);
             await callPlayer(async (player) => {
               const audioTrack = await player.getAudioTrack();
@@ -47,8 +47,8 @@ export default (spec: TestScope) => {
           'AudioTrack does not contain qualities information',
           async () => {
             await startPlayerTest({}, async () => {
-              await callPlayerAndExpectEvent((player) => {
-                return player.load(Sources.artOfMotionHls);
+              await callPlayerAndExpectEvent(async (player) => {
+                await player.load(Sources.artOfMotionHls);
               }, EventType.AudioAdded);
               await callPlayer(async (player) => {
                 const audioTrack = await player.getAudioTrack();
