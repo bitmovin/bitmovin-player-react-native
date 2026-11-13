@@ -3,6 +3,7 @@ import { Tester, TestHookStore } from 'cavy';
 import { createSpecs } from '../tests';
 import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 import TestablePlayer from './TestablePlayer';
+import ViewBoundaryHarness from './ViewBoundaryHarness';
 
 const testHookStore = new TestHookStore();
 const Specs = createSpecs();
@@ -26,7 +27,9 @@ function TestableApp(): JSX.Element {
       waitTime={3000}
       only={selectedTestTags?.length ? selectedTestTags : undefined}
     >
-      <TestablePlayer playerTestWorld={playerTestWorld} />
+      <ViewBoundaryHarness>
+        <TestablePlayer playerTestWorld={playerTestWorld} />
+      </ViewBoundaryHarness>
     </Tester>
   );
 }
