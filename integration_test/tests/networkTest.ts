@@ -59,6 +59,10 @@ export default (spec: TestScope) => {
     spec.it(
       'invokes preprocessHttpRequest and preprocessHttpResponse and still loads the source',
       async () => {
+        const requestedUrl = Sources.artOfMotionHls.url.replace(
+          /[^/]+$/,
+          'callback-return-required.m3u8'
+        );
         const requests: { type: HttpRequestType; request: HttpRequest }[] = [];
         const responses: { type: HttpRequestType; response: HttpResponse }[] =
           [];
@@ -69,7 +73,9 @@ export default (spec: TestScope) => {
             request: HttpRequest
           ) {
             this.push({ type, request });
-            return request;
+            return request.url === requestedUrl
+              ? { ...request, url: Sources.artOfMotionHls.url }
+              : request;
           }.bind(requests),
           preprocessHttpResponse: async (type, response) => {
             responses.push({ type, response });
@@ -78,9 +84,10 @@ export default (spec: TestScope) => {
         };
 
         await startPlayerTest({ networkConfig }, async () => {
-          // The manifest has to pass through both callbacks before the player can become ready.
+          // The missing filename loads only if the SDK applies the returned request URL.
           await callPlayerAndExpectEvent(
-            (player) => player.load(Sources.artOfMotionHls),
+            (player) =>
+              player.load({ ...Sources.artOfMotionHls, url: requestedUrl }),
             EventType.Ready
           );
 
@@ -105,7 +112,7 @@ export default (spec: TestScope) => {
             'preprocessHttpResponse saw the HLS master manifest'
           ).toBe(true);
           expect(requests[0]?.request.url, 'preprocessHttpRequest URL').toBe(
-            Sources.artOfMotionHls.url
+            requestedUrl
           );
         });
       }
