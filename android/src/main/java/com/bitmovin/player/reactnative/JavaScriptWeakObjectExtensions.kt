@@ -99,7 +99,7 @@ internal suspend fun <T> JavaScriptWeakObject.callSuspending(
                 }
                 appContext.runtime.eval(
                     "(function(args, sink) { Promise.resolve(this(...args)).then(sink.resolve, sink.reject); })",
-                ).getFunction<Unit>()(arguments.toList(), handlers, thisValue = function, appContext = appContext)
+                ).getFunction<Unit?>()(arguments.toList(), handlers, thisValue = function, appContext = appContext)
             } catch (error: Exception) {
                 complete(error = error)
             }
