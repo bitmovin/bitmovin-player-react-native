@@ -91,9 +91,6 @@ import com.bitmovin.player.api.ui.SurfaceType
 import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.PictureInPictureAction
 import com.bitmovin.player.reactnative.PictureInPictureConfig
-import com.bitmovin.player.reactnative.RNBufferLevels
-import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
-import com.bitmovin.player.reactnative.RNStyleConfigWrapper
 import com.bitmovin.player.reactnative.UserInterfaceType
 import com.bitmovin.player.reactnative.callBlocking
 import com.bitmovin.player.reactnative.callSuspending
@@ -930,18 +927,6 @@ fun String.toUserInterfaceType(): UserInterfaceType? = when (this) {
     else -> null
 }
 
-fun Map<String, Any?>.toRNPlayerViewConfigWrapper() = RNPlayerViewConfigWrapper(
-    playerViewConfig = toPlayerViewConfig(),
-    pictureInPictureConfig = getMap("pictureInPictureConfig")?.toPictureInPictureConfig(),
-)
-
-fun Map<String, Any?>.toRNStyleConfigWrapperFromPlayerConfig(): RNStyleConfigWrapper? {
-    return RNStyleConfigWrapper(
-        styleConfig = toStyleConfig(),
-        userInterfaceType = toUserInterfaceTypeFromPlayerConfig() ?: return null,
-    )
-}
-
 fun Map<String, Any?>.toLiveConfig(): LiveConfig = LiveConfig().apply {
     withDouble("minTimeshiftBufferDepth") { minTimeShiftBufferDepth = it }
 }
@@ -1035,11 +1020,6 @@ fun BufferLevel.toJson(): Map<String, Any> = mapOf(
     "targetLevel" to targetLevel,
     "media" to media.toJson(),
     "type" to type.toJson(),
-)
-
-fun RNBufferLevels.toJson(): Map<String, Any> = mapOf(
-    "audio" to audio.toJson(),
-    "video" to video.toJson(),
 )
 
 // Extension function to convert string to BufferType
