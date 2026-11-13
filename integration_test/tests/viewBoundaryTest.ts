@@ -3,6 +3,7 @@ import { TestScope } from 'cavy';
 import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 import { showBoundaryView } from '../src/ViewBoundaryHarness';
 import { Sources } from './helper/Sources';
+import { receiveEvent } from '../playertesting/receiveEvent';
 
 function check(value: unknown, message: string): asserts value {
   if (!value) throw new Error(message);
@@ -12,24 +13,7 @@ async function event(
   name: 'ready' | 'playing',
   trigger: () => Promise<void>
 ): Promise<void> {
-  let timeout: ReturnType<typeof setTimeout> | undefined;
-  let done = () => {};
-  const received = new Promise<void>((resolve, reject) => {
-    done = resolve;
-    timeout = setTimeout(
-      () => reject(new Error(`No native ${name} event`)),
-      25000
-    );
-  });
-  void received.catch(() => {});
-  const subscription = await player.on(name, done);
-  try {
-    await trigger();
-    await received;
-  } finally {
-    clearTimeout(timeout);
-    subscription.remove();
-  }
+  await receiveEvent((listener) => player.on(name, listener), trigger, 25000);
 }
 export default (spec: TestScope) => {
   spec.describe('SharedObject view method boundary', () => {

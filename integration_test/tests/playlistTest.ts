@@ -23,6 +23,7 @@ import {
 import { Sources } from './helper/Sources';
 import { expect } from './helper/Expect';
 import PlayerTestWorld from '../playertesting/PlayerTestWorld';
+import { receiveEvent as receiving } from '../playertesting/receiveEvent';
 
 const sourceAdded = EventType.SourceAdded;
 const sourceRemoved = EventType.SourceRemoved;
@@ -46,30 +47,6 @@ export default (spec: TestScope) => {
       const addedSubscription = await player.on('sourceAdded', (event) =>
         added.push(event.index)
       );
-      const receiving = async (
-        subscribe: (listener: () => void) => Promise<{ remove(): void }>,
-        trigger: () => Promise<void>
-      ) => {
-        let timeout: ReturnType<typeof setTimeout> | undefined;
-        let subscription: { remove(): void } | undefined;
-        let notify!: () => void;
-        const received = new Promise<void>((resolve, reject) => {
-          timeout = setTimeout(
-            () => reject(new Error('Headless playlist event timed out')),
-            15000
-          );
-          notify = resolve;
-        });
-        void received.catch(() => {});
-        try {
-          subscription = await subscribe(notify);
-          await trigger();
-          await received;
-        } finally {
-          clearTimeout(timeout);
-          subscription?.remove();
-        }
-      };
       try {
         await receiving(
           (listener) => player.on('ready', listener),

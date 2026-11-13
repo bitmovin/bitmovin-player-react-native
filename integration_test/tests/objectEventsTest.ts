@@ -1,6 +1,7 @@
 import { Player, Source } from 'bitmovin-player-react-native';
-import type { Event, SourceUnloadedEvent } from 'bitmovin-player-react-native';
+import type { SourceUnloadedEvent } from 'bitmovin-player-react-native';
 import type { EventSubscription } from 'expo-modules-core';
+import { receiveEvent as receiving } from '../playertesting/receiveEvent';
 import { TestScope } from 'cavy';
 import {
   callPlayer,
@@ -11,31 +12,6 @@ import {
 import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 import { expect } from './helper/Expect';
 import { Sources } from './helper/Sources';
-
-// Register before the trigger, and always release the listener and deadline.
-async function receiving(
-  subscribe: (listener: (event: Event) => void) => Promise<EventSubscription>,
-  trigger: () => void | Promise<void>
-): Promise<Event> {
-  let subscription: EventSubscription | undefined;
-  let timeout: ReturnType<typeof setTimeout> | undefined;
-  let listener: (event: Event) => void = () => {};
-  const received = new Promise<Event>((resolve, reject) => {
-    timeout = setTimeout(
-      () => reject(new Error('Object event timed out')),
-      15000
-    );
-    listener = resolve;
-  });
-  try {
-    subscription = await subscribe(listener);
-    await trigger();
-    return await received;
-  } finally {
-    clearTimeout(timeout);
-    subscription?.remove();
-  }
-}
 
 export default (spec: TestScope) => {
   spec.describe('native object events', () => {
