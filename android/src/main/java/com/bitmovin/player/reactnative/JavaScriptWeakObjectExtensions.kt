@@ -53,7 +53,7 @@ internal fun <T> JavaScriptWeakObject.callBlocking(
     }
 }
 
-/** Converts a returned native value through Expo before applying the SDK-specific mapping on JS. */
+/** Maps Expo's detached JS types, including Double for numbers, without implicit numeric coercion. */
 @JvmName("callBlockingTyped")
 internal inline fun <reified Input : Any, Output> JavaScriptWeakObject.callBlocking(
     appContext: AppContext,
@@ -109,7 +109,7 @@ internal suspend fun <T> JavaScriptWeakObject.callSuspending(
     }
 }
 
-/** Converts a fulfilled Promise or immediate result through Expo, without changing cancellation behavior. */
+/** Maps fulfilled or immediate detached values through Expo; numbers remain Double, without numeric coercion. */
 @JvmName("callSuspendingTyped")
 internal suspend inline fun <reified Input : Any, Output> JavaScriptWeakObject.callSuspending(
     appContext: AppContext,
