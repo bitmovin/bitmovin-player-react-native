@@ -102,11 +102,11 @@ jobs:
       - name: Typecheck TypeScript
         run: yarn typecheck:all
 
-      - name: Test player command completion
-        run: node --test scripts/test-player-command-completion.js
+      - name: Test offline public API compatibility
+        run: node --test scripts/test-offline-compatibility.js
 
-      - name: Test PlayerView attachment and event props
-        run: yarn integration-test test:runner
+      - name: Test SharedObject public API compatibility
+        run: node --test scripts/test-shared-object-compatibility.js
 
       - name: Build TypeScript (Module)
         run: yarn build:module

@@ -36,7 +36,6 @@ class PlayerModule : Module() {
                     mediaSessionPlaybackManager,
                 )
             }
-
             AsyncFunction("loadPlaylist") { shared: SharedPlayer, sources: List<SharedSource>,
                 options: Map<String, Any>?, ->
                 val nativeSources = sources.map { it.source }
@@ -58,14 +57,159 @@ class PlayerModule : Module() {
                 }
             }.runOnQueue(Queues.MAIN)
 
+            AsyncFunction("play") { shared: SharedPlayer -> shared.player.play() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("pause") { shared: SharedPlayer -> shared.player.pause() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("mute") { shared: SharedPlayer -> shared.player.mute() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("unmute") { shared: SharedPlayer -> shared.player.unmute() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("seek") { shared: SharedPlayer, time: Double ->
+                shared.player.seek(time)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("timeShift") { shared: SharedPlayer, offset: Double ->
+                shared.player.timeShift(offset)
+            }.runOnQueue(Queues.MAIN)
+
             AsyncFunction("destroy", SharedPlayer::destroy).runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setVolume") { shared: SharedPlayer, volume: Double ->
+                shared.player.volume = volume.toInt()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getVolume") { shared: SharedPlayer ->
+                shared.player.volume.toDouble()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getCurrentTime") { shared: SharedPlayer, mode: String? ->
+                val player = shared.player
+                when (mode ?: "absolute") {
+                    "relative" -> player.currentTime + player.playbackTimeOffsetToRelativeTime
+                    "absolute" -> player.currentTime + player.playbackTimeOffsetToAbsoluteTime
+                    else -> player.currentTime
+                }
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isPlaying") { shared: SharedPlayer -> shared.player.isPlaying }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isPaused") { shared: SharedPlayer -> shared.player.isPaused }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getDuration") { shared: SharedPlayer -> shared.player.duration }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isMuted") { shared: SharedPlayer -> shared.player.isMuted }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("unload") { shared: SharedPlayer -> shared.player.unload() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getTimeShift") { shared: SharedPlayer -> shared.player.timeShift }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isLive") { shared: SharedPlayer -> shared.player.isLive }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getMaxTimeShift") { shared: SharedPlayer ->
+                shared.player.maxTimeShift
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getPlaybackSpeed") { shared: SharedPlayer ->
+                shared.player.playbackSpeed.toDouble()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setPlaybackSpeed") { shared: SharedPlayer, playbackSpeed: Double ->
+                shared.player.playbackSpeed = playbackSpeed.toFloat()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isAd") { shared: SharedPlayer -> shared.player.isAd }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setMaxSelectableBitrate") { shared: SharedPlayer, maxBitrate: Double ->
+                shared.player.setMaxSelectableVideoBitrate(maxBitrate.toInt())
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isAirPlayActive") { _: SharedPlayer ->
+                // AirPlay is iOS-only, return false on Android
+                false
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isAirPlayAvailable") { _: SharedPlayer ->
+                // AirPlay is iOS-only, return false on Android
+                false
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("showAirPlayTargetPicker") { _: SharedPlayer ->
+                // AirPlay is iOS-only, no-op on Android
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isCastAvailable") { shared: SharedPlayer ->
+                shared.player.isCastAvailable
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isCasting") { shared: SharedPlayer -> shared.player.isCasting }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("castVideo") { shared: SharedPlayer -> shared.player.castVideo() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("castStop") { shared: SharedPlayer -> shared.player.castStop() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("skipAd") { shared: SharedPlayer -> shared.player.skipAd() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("canPlayAtPlaybackSpeed") { _: SharedPlayer, _: Double ->
+                // This method is iOS-only, return false on Android
+                false
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getAudioTrack") { shared: SharedPlayer ->
+                shared.player.audio?.toJson()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getAvailableAudioTracks") { shared: SharedPlayer ->
+                shared.player.availableAudio.map { it.toJson() }
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setAudioTrack") { shared: SharedPlayer, trackIdentifier: String ->
+                shared.player.setAudio(trackIdentifier)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getSubtitleTrack") { shared: SharedPlayer ->
+                shared.player.subtitle?.takeUnless { it.id == "bitmovin-off" }?.toJson()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getAvailableSubtitles") { shared: SharedPlayer ->
+                shared.player.availableSubtitles.filterNot { it.id == "bitmovin-off" }.map { it.toJson() }
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setSubtitleTrack") { shared: SharedPlayer, trackIdentifier: String? ->
+                shared.player.setSubtitle(trackIdentifier)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getVideoQuality") { shared: SharedPlayer ->
+                shared.player.videoQuality?.toJson()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getAvailableVideoQualities") { shared: SharedPlayer ->
+                shared.player.availableVideoQualities.map { it.toJson() }
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setVideoQuality") { shared: SharedPlayer, qualityId: String ->
+                shared.player.setVideoQuality(qualityId)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getThumbnail") { shared: SharedPlayer, time: Double ->
+                shared.player.getThumbnail(time)?.toJson()
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("loadOfflineContent") { shared: SharedPlayer, offline: SharedOfflineContentManager,
+                options: Map<String, Any>?, ->
+                val config = offline.offlineContentManager.offlineSourceConfig ?: return@AsyncFunction false
+                shared.player.load(config)
+                true
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("scheduleAd") { shared: SharedPlayer, adItemJson: Map<String, Any> ->
+                adItemJson.toAdItem()?.let { shared.player.scheduleAd(it) }
+            }.runOnQueue(Queues.MAIN)
 
             AsyncFunction("loadSource") { shared: SharedPlayer, sharedSource: SharedSource ->
                 ensureSourcesAvailable(shared.player, listOf(sharedSource.source))
                 shared.player.load(sharedSource.source)
             }.runOnQueue(Queues.MAIN)
         }
-
         Class(SharedBufferApi::class) {
             Constructor { owner: SharedPlayer -> SharedBufferApi(owner) }
             AsyncFunction("getLevel") { shared: SharedBufferApi, type: String ->
@@ -80,7 +224,6 @@ class PlayerModule : Module() {
                 shared.player.buffer.setTargetLevel(type.toBufferTypeOrThrow(), value)
             }.runOnQueue(Queues.MAIN)
         }
-
         Class(SharedAnalyticsApi::class) {
             Constructor { owner: SharedPlayer -> SharedAnalyticsApi(owner) }
             AsyncFunction("sendCustomDataEvent") { shared: SharedAnalyticsApi, json: Map<String, Any?> ->
@@ -91,7 +234,6 @@ class PlayerModule : Module() {
                 checkNotNull(shared.player.analytics) { "Analytics is disabled" }.userId
             }.runOnQueue(Queues.MAIN)
         }
-
         Class(SharedPlaylistApi::class) {
             Constructor { owner: SharedPlayer -> SharedPlaylistApi(owner) }
             AsyncFunction("getSources") { shared: SharedPlaylistApi, known: List<SharedSource> ->
@@ -127,225 +269,6 @@ class PlayerModule : Module() {
                 )
             }.runOnQueue(Queues.MAIN)
         }
-
-        AsyncFunction("play") { owner: SharedPlayer ->
-            val player = owner.player
-            player?.play()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("pause") { owner: SharedPlayer ->
-            val player = owner.player
-            player?.pause()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("mute") { owner: SharedPlayer ->
-            val player = owner.player
-            player?.mute()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("unmute") { owner: SharedPlayer ->
-            val player = owner.player
-            player?.unmute()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("seek") { owner: SharedPlayer, time: Double ->
-            val player = owner.player
-            player?.seek(time)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("timeShift") { owner: SharedPlayer, offset: Double ->
-            val player = owner.player
-            player?.timeShift(offset)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("setVolume") { owner: SharedPlayer, volume: Double ->
-            val player = owner.player
-            player?.volume = volume.toInt()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getVolume") { owner: SharedPlayer ->
-            val player = owner.player
-            return@AsyncFunction player?.volume?.toDouble()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getCurrentTime") { owner: SharedPlayer, mode: String? ->
-            val player = owner.player
-            return@AsyncFunction when {
-                player == null -> null
-                mode == "relative" -> player.currentTime + player.playbackTimeOffsetToRelativeTime
-                mode == "absolute" -> player.currentTime + player.playbackTimeOffsetToAbsoluteTime
-                else -> player.currentTime
-            }
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("isPlaying") { owner: SharedPlayer ->
-            val player = owner.player
-            return@AsyncFunction player?.isPlaying
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("isPaused") { owner: SharedPlayer ->
-            val player = owner.player
-            return@AsyncFunction player?.isPaused
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getDuration") { owner: SharedPlayer ->
-            val player = owner.player
-            return@AsyncFunction player?.duration
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("isMuted") { owner: SharedPlayer ->
-            val player = owner.player
-            return@AsyncFunction player?.isMuted
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("unload") { owner: SharedPlayer ->
-            val player = owner.player
-            player?.unload()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getTimeShift") { owner: SharedPlayer ->
-            val player = owner.player
-            return@AsyncFunction player?.timeShift
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("isLive") { owner: SharedPlayer ->
-            val player = owner.player
-            return@AsyncFunction player?.isLive
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getMaxTimeShift") { owner: SharedPlayer ->
-            val player = owner.player
-            return@AsyncFunction player?.maxTimeShift
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getPlaybackSpeed") { owner: SharedPlayer ->
-            val player = owner.player
-            return@AsyncFunction player?.playbackSpeed?.toDouble()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("setPlaybackSpeed") { owner: SharedPlayer, playbackSpeed: Double ->
-            val player = owner.player
-            player?.playbackSpeed = playbackSpeed.toFloat()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("isAd") { owner: SharedPlayer ->
-            val player = owner.player
-            return@AsyncFunction player?.isAd
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("setMaxSelectableBitrate") { owner: SharedPlayer, maxBitrate: Double ->
-            val player = owner.player
-            player?.setMaxSelectableVideoBitrate(maxBitrate.toInt())
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("isAirPlayActive") { _: String ->
-            // AirPlay is iOS-only, return null on Android
-            false
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("isAirPlayAvailable") { _: String ->
-            // AirPlay is iOS-only, return null on Android
-            false
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("showAirPlayTargetPicker") { _: String ->
-            // AirPlay is iOS-only, no-op on Android
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("isCastAvailable") { owner: SharedPlayer ->
-            val player = owner.player
-            return@AsyncFunction player?.isCastAvailable
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("isCasting") { owner: SharedPlayer ->
-            val player = owner.player
-            return@AsyncFunction player?.isCasting
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("castVideo") { owner: SharedPlayer ->
-            val player = owner.player
-            player?.castVideo()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("castStop") { owner: SharedPlayer ->
-            val player = owner.player
-            player?.castStop()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("skipAd") { owner: SharedPlayer ->
-            val player = owner.player
-            player?.skipAd()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("canPlayAtPlaybackSpeed") { _: String, _: Double ->
-            // This method is iOS-only, return false on Android
-            false
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getAudioTrack") { owner: SharedPlayer ->
-            val player = owner.player
-            return@AsyncFunction player?.source?.selectedAudioTrack?.toJson()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getAvailableAudioTracks") { owner: SharedPlayer ->
-            val player = owner.player
-            return@AsyncFunction player?.source?.availableAudioTracks?.map { it.toJson() } ?: emptyList()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("setAudioTrack") { owner: SharedPlayer, trackIdentifier: String ->
-            val player = owner.player
-            player?.source?.setAudioTrack(trackIdentifier)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getSubtitleTrack") { owner: SharedPlayer ->
-            val player = owner.player
-            return@AsyncFunction player?.source?.selectedSubtitleTrack?.toJson()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getAvailableSubtitles") { owner: SharedPlayer ->
-            val player = owner.player
-            return@AsyncFunction player?.source?.availableSubtitleTracks?.map { it.toJson() } ?: emptyList()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("setSubtitleTrack") { owner: SharedPlayer, trackIdentifier: String? ->
-            val player = owner.player
-            player?.source?.setSubtitleTrack(trackIdentifier)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getVideoQuality") { owner: SharedPlayer ->
-            val player = owner.player
-            return@AsyncFunction player?.videoQuality?.toJson()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getAvailableVideoQualities") { owner: SharedPlayer ->
-            val player = owner.player
-            return@AsyncFunction player?.availableVideoQualities?.map { it.toJson() } ?: emptyList()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("setVideoQuality") { owner: SharedPlayer, qualityId: String ->
-            val player = owner.player
-            player?.source?.setVideoQuality(qualityId)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getThumbnail") { owner: SharedPlayer, time: Double ->
-            val player = owner.player
-            return@AsyncFunction player?.getThumbnail(time)?.toJson()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("loadOfflineContent") { shared: SharedPlayer, offline: SharedOfflineContentManager,
-            options: Map<String, Any>?, ->
-            val config = offline.offlineContentManager.offlineSourceConfig ?: return@AsyncFunction false
-            shared.player.load(config)
-            true
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("scheduleAd") { owner: SharedPlayer, adItemJson: Map<String, Any> ->
-            val player = owner.player
-            val adItem = adItemJson.toAdItem()
-            if (player != null && adItem != null) {
-                player.scheduleAd(adItem)
-            }
-        }.runOnQueue(Queues.MAIN)
     }
 }
 
