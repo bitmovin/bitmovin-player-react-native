@@ -41,7 +41,7 @@
 
 - Player commands such as `play()`, `load()`, and `destroy()`, and `Source.setMetadata()` now return `Promise<void>`, allowing callers to await the native call and catch failures. Playback readiness still uses events. Fire-and-forget calls remain supported; strict Promise linting may require an explicit `await` or `void`
 - Player, Source, and OfflineContentManager constructors create their native SharedObjects synchronously. SDK resources are created on the first native operation and reused after successful creation. `new Player()` remains valid and uses native SDK defaults
-- Android: Keep synchronous DRM, decoder-priority, and custom-message callbacks within 250 ms, matching iOS. Callbacks that miss the deadline use the SDK fallback
+- Preserve five-second waits for Android synchronous DRM and custom-message callbacks. Other synchronous callbacks, including iOS, keep their 250 ms bound. Reaching a deadline logs an error and retains the existing result fallback
 - iOS: Bitmovin Advertising Module ad subtitles now follow the subtitle selected for the main content and remain off when main-content subtitles are off, instead of using the ad manifest's default subtitle track
 - Offline download requests accepted by the native SDK are no longer rejected by extra bitrate or download-state checks
 - Android: Source creation and analytics failures now expose the original SDK error instead of a generic binding error
@@ -66,6 +66,8 @@
 - Android: Include the owning Source metadata in `Source.on('sourceUnloaded')` events
 - Android: Reject loading a Source attached to another Player before unloading the current session, leaving the Player usable for later loads
 - Android: Stop adding `com.google.android.gms.permission.AD_ID` when Google IMA is disabled. Apps that use the advertising ID, for example through analytics, may need to add `com.google.android.gms:play-services-ads-identifier` to their own dependencies
+
+- Android: Compile IMA callbacks from one common implementation and detect the optional SDK at runtime. The IMA feature flag controls adding its runtime dependency; an SDK supplied by the host app is also detected
 
 - iOS: Include configured Source metadata in playlist event payloads before the Source is prepared
 
