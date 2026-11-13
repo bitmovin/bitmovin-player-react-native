@@ -53,6 +53,7 @@
 - `Player.on` and `Source.on` for asynchronous subscriptions to native object events, including without a mounted `PlayerView`
 
 - iOS: Play VMAP ad tags with the Bitmovin Advertising Module (`AdSourceType.BITMOVIN`) without enabling Google IMA, matching Android
+- Use `PlayerView.onPlayerInactive` to detect when the active playback session ends
 - Android: Use `onPlaybackSpeedChanged` to observe playback speed changes, matching iOS
 
 ### Fixed
@@ -74,6 +75,7 @@
 
 - Keep PlayerView unmounted when Player creation fails without producing additional unhandled Promise rejections
 - iOS: Keep FairPlay license renewal available on Source handles returned by player and playlist queries
+- Deliver `PlayerView` playback and source callbacks through the attached Player's public event API
 
 - iOS: Invalid source, analytics, and offline configuration now throws from the constructor. Failed offline manager creation rejects the native operation
 - iOS: Avoid inconsistent HTTP preprocessing results when the native SDK processes requests and responses concurrently
@@ -81,6 +83,7 @@
 - iOS: Preserve metadata set before loading a Source and return it from `Source.metadata()`
 - Catch missing Source or OfflineContentManager configuration and missing `SourceConfig.type` during TypeScript checking. These inputs were already invalid at runtime; valid configurations are unchanged
 - Android: `Source.loadingState()` now returns a `LoadingState` value instead of a state name
+- Android: Deliver `PlayerView.onPlayerActive` when a playback session becomes active
 
 ### Deprecated
 

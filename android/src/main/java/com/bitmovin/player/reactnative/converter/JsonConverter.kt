@@ -39,7 +39,6 @@ import com.bitmovin.player.api.deficiency.DeficiencyData
 import com.bitmovin.player.api.drm.PrepareLicenseCallback
 import com.bitmovin.player.api.drm.PrepareMessageCallback
 import com.bitmovin.player.api.drm.WidevineConfig
-import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.data.CastPayload
@@ -464,12 +463,6 @@ fun SourceEvent.toJson(): Map<String, Any> {
         }
     }
     return baseMap.filterNotNullValues()
-}
-
-fun Event.toJson(): Map<String, Any> = when (this) {
-    is PlayerEvent -> toJson()
-    is SourceEvent -> toJson()
-    else -> throw IllegalArgumentException("Unsupported event: ${javaClass.name}")
 }
 
 @OptIn(ExperimentalBitmovinApi::class)
@@ -1180,6 +1173,7 @@ fun DateRangeMetadata.toJson(): Map<String, Any> {
 
     return mapOf(
         "metadataType" to "DATERANGE",
+        "platform" to "android",
         "id" to id,
         "relativeTimeRange" to relativeTimeRange,
         "endOnNext" to endOnNext,
@@ -1201,6 +1195,7 @@ fun EventMessage.toJson(): Map<String, Any> = mapOf(
 
 private fun Id3Frame.toJson(): Map<String, Any> = buildMap {
     put("metadataType", "ID3")
+    put("platform", "android")
     put("id", id)
 
     when (this@toJson) {
