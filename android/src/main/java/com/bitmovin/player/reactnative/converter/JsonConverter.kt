@@ -77,7 +77,6 @@ import com.bitmovin.player.api.network.PreprocessHttpRequestCallback
 import com.bitmovin.player.api.network.PreprocessHttpResponseCallback
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
-import com.bitmovin.player.api.playlist.PlaylistOptions
 import com.bitmovin.player.api.playlist.ReplayMode
 import com.bitmovin.player.api.source.LoadingState
 import com.bitmovin.player.api.source.Source
@@ -200,21 +199,13 @@ fun Map<String, Any?>.toSourceOptions(): SourceOptions = SourceOptions(
     startOffsetTimelineReference = getString("startOffsetTimelineReference")?.toTimelineReferencePoint(),
 )
 
-fun Map<String, Any?>.toPlaylistOptions(): PlaylistOptions {
-    val defaults = PlaylistOptions()
-    return PlaylistOptions(
-        preloadAllSources = getBooleanOrNull("preloadAllSources") ?: defaults.preloadAllSources,
-        replayMode = getString("replayMode")?.toReplayModeOrThrow() ?: defaults.replayMode,
-    )
-}
-
-private fun String.toReplayModeOrThrow(): ReplayMode = when (this) {
-    "playlist" -> ReplayMode.Playlist
+fun Any?.toReplayMode(): ReplayMode = when (this) {
+    null, "playlist" -> ReplayMode.Playlist
     "lastSource" -> ReplayMode.LastSource
-    else -> throw IllegalArgumentException("Unknown replay mode: $this")
+    else -> throw IllegalArgumentException("Unknown replay mode")
 }
 
-private fun String.toTimelineReferencePoint(): TimelineReferencePoint? = when (this) {
+fun String.toTimelineReferencePoint(): TimelineReferencePoint? = when (this) {
     "start" -> TimelineReferencePoint.Start
     "end" -> TimelineReferencePoint.End
     else -> null
@@ -501,22 +492,19 @@ fun PlayerEvent.toJson(): Map<String, Any> {
             baseMap["currentTime"] = time
         }
 
-        is PlayerEvent.Seek -> {
-            baseMap["from"] = from.toJson()
-            baseMap["to"] = to.toJson()
-        }
-
         is PlayerEvent.SourceAdded -> {
             baseMap["source"] = source.toJson()
             baseMap["index"] = index
         }
-
         is PlayerEvent.SourceRemoved -> {
             baseMap["source"] = source.toJson()
             baseMap["index"] = index
         }
-
         is PlayerEvent.PlaylistTransition -> {
+            baseMap["from"] = from.toJson()
+            baseMap["to"] = to.toJson()
+        }
+        is PlayerEvent.Seek -> {
             baseMap["from"] = from.toJson()
             baseMap["to"] = to.toJson()
         }
@@ -1326,10 +1314,3 @@ private fun Alignment.toLayoutTextAlignJson(): String = when (this) {
     Alignment.ALIGN_OPPOSITE -> "end"
     Alignment.ALIGN_CENTER -> "center"
 }
-
-fun Any?.toReplayMode(): ReplayMode = when (this) {
-    null, "playlist" -> ReplayMode.Playlist
-    "lastSource" -> ReplayMode.LastSource
-    else -> throw IllegalArgumentException("Unknown replay mode")
-}
-

@@ -9,7 +9,7 @@ import type { Player } from '../player';
 import type { PlayerConfig } from '../playerConfig';
 import type { PlayerEventMap, EventCallbacks } from '../native/eventMap';
 import type { SharedSource } from './sourceModule';
-import type { PlaylistOptions } from '../playlist';
+import type { PlaylistApi, PlaylistOptions, SeekTarget } from '../playlist';
 import type { OfflineSourceOptions } from '../offline';
 import type { BufferApi } from '../bufferApi';
 import type { AnalyticsApi } from '../analytics/analyticsApi';
@@ -35,6 +35,16 @@ export type SharedAnalyticsApi = SharedObject & NativeMethods<AnalyticsApi>;
 export type SharedMediaControlsApi = SharedObject &
   NativeMethods<MediaControlsApi>;
 
+/** @internal */
+export type SharedPlaylistApi = SharedObject &
+  Pick<PlaylistApi, 'removeAt'> & {
+    getSources(known: SharedSource[]): Promise<SharedSource[]>;
+    add(source: SharedSource, index?: number): Promise<void>;
+    remove(source: SharedSource): Promise<void>;
+    seek(source: SharedSource, time: number): Promise<void>;
+    seekTo(source: SharedSource, target: SeekTarget): Promise<void>;
+  };
+
 declare class PlayerModule extends NativeModule {
   readonly isGoogleImaEnabled: boolean;
   readonly SharedPlayer: new (
@@ -46,6 +56,7 @@ declare class PlayerModule extends NativeModule {
   readonly SharedMediaControlsApi: new (
     player: SharedPlayer
   ) => SharedMediaControlsApi;
+  readonly SharedPlaylistApi: new (player: SharedPlayer) => SharedPlaylistApi;
   canPlayAtPlaybackSpeed(
     player: SharedPlayer,
     ...args: Parameters<Player['canPlayAtPlaybackSpeed']>
@@ -225,4 +236,6 @@ export const SharedBufferApi = nativeModule.SharedBufferApi;
 export const SharedAnalyticsApi = nativeModule.SharedAnalyticsApi;
 /** @internal */
 export const SharedMediaControlsApi = nativeModule.SharedMediaControlsApi;
+/** @internal */
+export const SharedPlaylistApi = nativeModule.SharedPlaylistApi;
 export default nativeModule;

@@ -10,3 +10,4 @@ internal class SharedPlayerApi: SharedObject {
 internal final class SharedBufferApi: SharedPlayerApi {}
 internal final class SharedAnalyticsApi: SharedPlayerApi {}
 internal final class SharedMediaControlsApi: SharedPlayerApi {}
+internal final class SharedPlaylistApi: SharedPlayerApi {}

@@ -5,6 +5,7 @@ import com.bitmovin.player.api.analytics.AnalyticsApi.Companion.analytics
 import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.api.playlist.PlaylistConfig
 import com.bitmovin.player.api.playlist.PlaylistOptions
+import com.bitmovin.player.api.playlist.SeekTarget
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.IS_GOOGLE_IMA_ENABLED
 import com.bitmovin.player.reactnative.converter.toAdItem
@@ -12,6 +13,7 @@ import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
 import com.bitmovin.player.reactnative.converter.toBufferTypeOrThrow
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toReplayMode
+import com.bitmovin.player.reactnative.converter.toTimelineReferencePoint
 import com.bitmovin.player.reactnative.offline.SharedOfflineContentManager
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.functions.Queues
@@ -87,6 +89,42 @@ class PlayerModule : Module() {
             }.runOnQueue(Queues.MAIN)
             AsyncFunction("getUserId") { shared: SharedAnalyticsApi ->
                 checkNotNull(shared.player.analytics) { "Analytics is disabled" }.userId
+            }.runOnQueue(Queues.MAIN)
+        }
+
+        Class(SharedPlaylistApi::class) {
+            Constructor { owner: SharedPlayer -> SharedPlaylistApi(owner) }
+            AsyncFunction("getSources") { shared: SharedPlaylistApi, known: List<SharedSource> ->
+                shared.player.playlist.sources.map { source ->
+                    known.firstOrNull { it.source === source } ?: SharedSource(appContext, source)
+                }
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("add") { shared: SharedPlaylistApi, source: SharedSource, index: Int? ->
+                if (index == null) {
+                    shared.player.playlist.add(source.source)
+                } else {
+                    shared.player.playlist.add(source.source, index)
+                }
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("remove") { shared: SharedPlaylistApi, source: SharedSource ->
+                shared.player.playlist.remove(source.source)
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("removeAt") { shared: SharedPlaylistApi, index: Int ->
+                shared.player.playlist.remove(index)
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("seek") { shared: SharedPlaylistApi, source: SharedSource, time: Double ->
+                shared.player.playlist.seek(source.source, time)
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("seekTo") { shared: SharedPlaylistApi, source: SharedSource, target: Map<String, Any> ->
+                val reference = target["startOffsetTimelineReference"]?.let {
+                    requireNotNull((it as? String)?.toTimelineReferencePoint()) {
+                        "Unknown timeline reference point"
+                    }
+                }
+                shared.player.playlist.seek(
+                    source.source,
+                    SeekTarget((target["offset"] as Number).toDouble(), reference),
+                )
             }.runOnQueue(Queues.MAIN)
         }
 
