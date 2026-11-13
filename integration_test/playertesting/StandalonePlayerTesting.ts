@@ -38,7 +38,7 @@ export const playWhenReady = async (player: Player, load: () => void) => {
   const onReady = () => {
     isReady = true;
   };
-  player.on('ready', onReady);
+  await player.on('ready', onReady);
   load();
   const ready = await waitUntil(() => isReady);
   player.off('ready', onReady);

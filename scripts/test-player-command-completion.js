@@ -51,24 +51,20 @@ function fixture(t, methods = {}) {
     fs.writeFileSync(path.join(location, 'index.js'), source);
   }
   const native = { destroy: async () => {}, ...methods };
-  const module = {
-    ...native,
-    addListener: () => ({ remove() {} }),
-    on: async () => {},
-    off: async () => {},
+  require(
+    path.join(directory, 'node_modules/expo-modules-core')
+  ).nativeModules.PlayerModule = {
+    SharedPlayer: class {
+      destroy = () => native.destroy();
+    },
+    // Runtime methods still take the captured peer until the forwarding concern.
+    play: (_player, ...args) => native.play(...args),
+    seek: (_player, ...args) => native.seek(...args),
+    getCurrentTime: (_player, ...args) => native.getCurrentTime(...args),
     isGoogleImaEnabled: true,
   };
-  const modules = require(
-    path.join(directory, 'node_modules/expo-modules-core')
-  ).nativeModules;
-  modules.PlayerModule = module;
-  modules.SourceModule = {
-    addListener: () => ({ remove() {} }),
-    initializeWithConfig: async () => {},
-    destroy: async () => {},
-  };
   const { Player } = require(path.join(directory, 'player'));
-  return { Player, module, native, modules };
+  return { Player };
 }
 
 test('play waits for native command acceptance', async (t) => {
@@ -106,49 +102,43 @@ test('seek exposes the native command rejection', async (t) => {
   await player.destroy();
 });
 
-test('load waits for source initialization and exposes the native failure', async (t) => {
-  const failure = new Error('Load rejected');
-  let initializeSource;
-  let notifyInitialization;
-  const initialized = new Promise(
-    (resolve) => (notifyInitialization = resolve)
-  );
-  const calls = [];
-  const { Player, modules } = fixture(t, {
-    loadSource: async () => {
-      calls.push('load');
-      throw failure;
-    },
-  });
-  modules.SourceModule.initializeWithConfig = () => {
-    notifyInitialization();
-    return new Promise((resolve) => (initializeSource = resolve));
-  };
-  const player = new Player();
-  const loading = player.load({
-    url: 'https://example.com/video.m3u8',
-    type: 'hls',
-  });
-  await initialized;
-  assert.deepEqual(calls, []);
-  initializeSource();
-  await assert.rejects(loading, failure);
-  assert.deepEqual(calls, ['load']);
-  await player.destroy();
-});
-
-test('destroy exposes native completion after preserving synchronous bookkeeping', async (t) => {
-  let completeDestroy;
-  const pending = new Promise((resolve) => (completeDestroy = resolve));
+test('destroy waits for native command acceptance', async (t) => {
+  let accept;
+  const pending = new Promise((resolve) => (accept = resolve));
   const { Player } = fixture(t, { destroy: () => pending });
   const player = new Player();
   let completed = false;
   const destruction = player.destroy().then(() => (completed = true));
-  assert.equal(player.isDestroyed, true);
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(completed, false);
-  completeDestroy();
+  accept();
   await destruction;
   assert.equal(completed, true);
+});
+
+test('destroy exposes the original native rejection', async (t) => {
+  const failure = new Error('Native destroy rejected');
+  const { Player } = fixture(t, {
+    destroy: async () => {
+      throw failure;
+    },
+  });
+  const player = new Player();
+  await assert.rejects(player.destroy(), (error) => error === failure);
+});
+
+// The temporary static receiver must preserve the released public default.
+test('current time defaults to absolute and preserves an explicit mode', async (t) => {
+  const modes = [];
+  const { Player } = fixture(t, {
+    getCurrentTime: async (mode) => {
+      modes.push(mode);
+      return 0;
+    },
+  });
+  const player = new Player();
+  await player.getCurrentTime();
+  await player.getCurrentTime('relative');
+  assert.deepEqual(modes, ['absolute', 'relative']);
   await player.destroy();
 });

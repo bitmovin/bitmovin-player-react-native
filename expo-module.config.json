@@ -10,7 +10,6 @@
       "BufferModule",
       "PlaylistModule",
       "MediaControlsModule",
-      "NetworkModule",
       "CustomMessageHandlerModule",
       "DrmModule",
       "FullscreenHandlerModule",
@@ -28,13 +27,11 @@
       "com.bitmovin.player.reactnative.SourceModule",
       "com.bitmovin.player.reactnative.BufferModule",
       "com.bitmovin.player.reactnative.PlaylistModule",
-      "com.bitmovin.player.reactnative.NetworkModule",
       "com.bitmovin.player.reactnative.CustomMessageHandlerModule",
       "com.bitmovin.player.reactnative.DrmModule",
       "com.bitmovin.player.reactnative.FullscreenHandlerModule",
       "com.bitmovin.player.reactnative.PlayerAnalyticsModule",
       "com.bitmovin.player.reactnative.OfflineModule",
-      "com.bitmovin.player.reactnative.DecoderConfigModule",
       "com.bitmovin.player.reactnative.PlayerViewModule"
     ]
   }

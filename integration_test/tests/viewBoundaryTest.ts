@@ -13,17 +13,10 @@ async function event(
   name: 'ready' | 'playing',
   trigger: () => Promise<void>
 ): Promise<void> {
-  await receiveEvent(
-    async (listener) => {
-      player.on(name, listener);
-      return { remove: () => player.off(name, listener) };
-    },
-    trigger,
-    25000
-  );
+  await receiveEvent((listener) => player.on(name, listener), trigger, 25000);
 }
 export default (spec: TestScope) => {
-  spec.describe('native view method boundary', () => {
+  spec.describe('SharedObject view method boundary', () => {
     spec.it(
       'mounts immediately and replaces players without freezing public API objects',
       async () => {
@@ -49,7 +42,7 @@ export default (spec: TestScope) => {
           title: 'second boundary source',
         });
         try {
-          // No caller initialization or getter precedes the first mount.
+          // Deliberately no initialize(), isMuted(), or other hidden readiness call before mount.
           await showBoundaryView({ player: first });
           check(!Object.isFrozen(first), 'Fabric froze the public Player');
           check(
@@ -57,6 +50,10 @@ export default (spec: TestScope) => {
             'Fabric reached its owned Buffer API'
           );
           await event(first, 'ready', () => first.loadSource(firstSource));
+          check(
+            first.source === firstSource,
+            'Ordinary mutable Source field did not update'
+          );
           check(
             (await first.getSource()) === firstSource,
             'Source identity changed across view boundary'

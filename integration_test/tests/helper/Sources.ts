@@ -27,6 +27,18 @@ export const Sources = {
     type: SourceType.HLS,
   } as SourceConfig,
 
+  // The same public DRM fixture used by the BasicDrmPlayback example.
+  widevineDrm: {
+    url: 'https://cdn.bitmovin.com/content/internal/assets/art-of-motion_drm/mpds/11331.mpd',
+    type: SourceType.DASH,
+    drmConfig: {
+      widevine: {
+        licenseUrl: 'https://cwip-shaka-proxy.appspot.com/no_auth',
+        preferredSecurityLevel: 'L3',
+      },
+    },
+  } satisfies SourceConfig,
+
   get widevineDrmWithBrokenLicense(): SourceConfig {
     return {
       url: 'https://cdn.bitmovin.com/content/internal/assets/art-of-motion_drm/mpds/11331.mpd',

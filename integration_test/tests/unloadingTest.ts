@@ -18,24 +18,28 @@ export default (spec: TestScope) => {
   spec.describe('unloading the player', () => {
     spec.it('emits SourceUnloaded event', async () => {
       await startPlayerTest({}, async () => {
-        await callPlayerAndExpectEvent((player) => {
-          return player.load(Sources.artOfMotionHls);
-        }, EventType.Ready);
-        await callPlayerAndExpectEvent((player) => {
-          return player.unload();
-        }, EventType.SourceUnloaded);
+        await callPlayerAndExpectEvent(
+          (player) => player.load(Sources.artOfMotionHls),
+          EventType.Ready
+        );
+        await callPlayerAndExpectEvent(
+          (player) => player.unload(),
+          EventType.SourceUnloaded
+        );
       });
     });
 
     spec.it('validates SourceUnloaded event properties', async () => {
       await startPlayerTest({}, async () => {
-        await callPlayerAndExpectEvent((player) => {
-          return player.load(Sources.artOfMotionHls);
-        }, EventType.Ready);
+        await callPlayerAndExpectEvent(
+          (player) => player.load(Sources.artOfMotionHls),
+          EventType.Ready
+        );
 
-        const sourceUnloadedEvent = await callPlayerAndExpectEvent((player) => {
-          return player.unload();
-        }, EventType.SourceUnloaded);
+        const sourceUnloadedEvent = await callPlayerAndExpectEvent(
+          (player) => player.unload(),
+          EventType.SourceUnloaded
+        );
 
         expect(
           sourceUnloadedEvent.name,
@@ -65,13 +69,15 @@ export default (spec: TestScope) => {
       const expectedPausedAfterUnload =
         Platform.OS !== 'android' ? true : false;
       await startPlayerTest({}, async () => {
-        await callPlayerAndExpectEvent((player) => {
-          return player.load(Sources.artOfMotionHls);
-        }, EventType.Ready);
+        await callPlayerAndExpectEvent(
+          (player) => player.load(Sources.artOfMotionHls),
+          EventType.Ready
+        );
 
-        await callPlayerAndExpectEvent((player) => {
-          return player.unload();
-        }, EventType.SourceUnloaded);
+        await callPlayerAndExpectEvent(
+          (player) => player.unload(),
+          EventType.SourceUnloaded
+        );
 
         await callPlayer(async (player) => {
           const currentTime = await player.getCurrentTime();
@@ -98,17 +104,16 @@ export default (spec: TestScope) => {
       async () => {
         await startPlayerTest({}, async () => {
           await callPlayerAndExpectEvents(
-            (player) => {
-              return player.load(Sources.artOfMotionHls);
-            },
+            (player) => player.load(Sources.artOfMotionHls),
             EventBag(
               DedicatedPropEvent(EventType.PlayerActive),
               PlainEvent(EventType.Ready)
             )
           );
-          await callPlayerAndExpectEvent((player) => {
-            return player.unload();
-          }, DedicatedPropEvent(EventType.PlayerInactive));
+          await callPlayerAndExpectEvent(
+            (player) => player.unload(),
+            DedicatedPropEvent(EventType.PlayerInactive)
+          );
         });
       }
     );
@@ -119,17 +124,16 @@ export default (spec: TestScope) => {
         // Expectations match the event name, so other names time out.
         await startPlayerTest({}, async () => {
           await callPlayerAndExpectEvents(
-            (player) => {
-              return player.load(Sources.artOfMotionHls);
-            },
+            (player) => player.load(Sources.artOfMotionHls),
             EventBag(
               CatchAllEvent(EventType.PlayerActive),
               PlainEvent(EventType.Ready)
             )
           );
-          await callPlayerAndExpectEvent((player) => {
-            return player.unload();
-          }, CatchAllEvent(EventType.PlayerInactive));
+          await callPlayerAndExpectEvent(
+            (player) => player.unload(),
+            CatchAllEvent(EventType.PlayerInactive)
+          );
         });
       }
     );

@@ -8,8 +8,6 @@ import com.bitmovin.analytics.api.CustomData
 import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.analytics.api.RetryPolicy
 import com.bitmovin.analytics.api.SourceMetadata
-import com.bitmovin.player.reactnative.extensions.get
-import com.bitmovin.player.reactnative.extensions.set
 import com.bitmovin.player.api.BandwidthMeterType
 import com.bitmovin.player.api.DeviceDescription.DeviceName
 import com.bitmovin.player.api.ExperimentalBitmovinApi
@@ -26,13 +24,20 @@ import com.bitmovin.player.api.advertising.AdQuartile
 import com.bitmovin.player.api.advertising.AdSource
 import com.bitmovin.player.api.advertising.AdSourceType
 import com.bitmovin.player.api.advertising.AdvertisingConfig
+import com.bitmovin.player.api.advertising.ShouldLoadAdItemCallback
+import com.bitmovin.player.api.advertising.ShouldPlayAdBreakCallback
 import com.bitmovin.player.api.buffer.BufferConfig
 import com.bitmovin.player.api.buffer.BufferLevel
 import com.bitmovin.player.api.buffer.BufferMediaTypeConfig
 import com.bitmovin.player.api.buffer.BufferType
 import com.bitmovin.player.api.casting.RemoteControlConfig
+import com.bitmovin.player.api.decoder.DecoderConfig
+import com.bitmovin.player.api.decoder.DecoderPriorityProvider
 import com.bitmovin.player.api.decoder.DecoderPriorityProvider.DecoderContext
 import com.bitmovin.player.api.decoder.MediaCodecInfo
+import com.bitmovin.player.api.deficiency.DeficiencyData
+import com.bitmovin.player.api.drm.PrepareLicenseCallback
+import com.bitmovin.player.api.drm.PrepareMessageCallback
 import com.bitmovin.player.api.drm.WidevineConfig
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
@@ -65,11 +70,12 @@ import com.bitmovin.player.api.metadata.id3.PrivFrame
 import com.bitmovin.player.api.metadata.id3.TextInformationFrame
 import com.bitmovin.player.api.metadata.id3.UrlLinkFrame
 import com.bitmovin.player.api.metadata.scte.ScteMessage
-import com.bitmovin.player.api.deficiency.DeficiencyData
 import com.bitmovin.player.api.network.HttpRequest
 import com.bitmovin.player.api.network.HttpRequestType
 import com.bitmovin.player.api.network.HttpResponse
 import com.bitmovin.player.api.network.NetworkConfig
+import com.bitmovin.player.api.network.PreprocessHttpRequestCallback
+import com.bitmovin.player.api.network.PreprocessHttpResponseCallback
 import com.bitmovin.player.api.offline.options.OfflineContentOptions
 import com.bitmovin.player.api.offline.options.OfflineOptionEntry
 import com.bitmovin.player.api.playlist.PlaylistOptions
@@ -90,9 +96,10 @@ import com.bitmovin.player.reactnative.PictureInPictureConfig
 import com.bitmovin.player.reactnative.RNBufferLevels
 import com.bitmovin.player.reactnative.RNPlayerViewConfigWrapper
 import com.bitmovin.player.reactnative.RNStyleConfigWrapper
-import com.bitmovin.player.reactnative.SourceRegistry
 import com.bitmovin.player.reactnative.UserInterfaceType
-import com.bitmovin.player.reactnative.converter.toPictureInPictureActions
+import com.bitmovin.player.reactnative.callBlocking
+import com.bitmovin.player.reactnative.callSuspending
+import com.bitmovin.player.reactnative.extensions.get
 import com.bitmovin.player.reactnative.extensions.getArray
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getDoubleOrNull
@@ -100,18 +107,25 @@ import com.bitmovin.player.reactnative.extensions.getInt
 import com.bitmovin.player.reactnative.extensions.getMap
 import com.bitmovin.player.reactnative.extensions.getName
 import com.bitmovin.player.reactnative.extensions.getString
-import com.bitmovin.player.reactnative.extensions.getStringArray
+import com.bitmovin.player.reactnative.extensions.set
 import com.bitmovin.player.reactnative.extensions.toBase64DataUri
 import com.bitmovin.player.reactnative.extensions.toMap
 import com.bitmovin.player.reactnative.extensions.toMapList
 import com.bitmovin.player.reactnative.extensions.withArray
 import com.bitmovin.player.reactnative.extensions.withBoolean
+import com.bitmovin.player.reactnative.extensions.withCallback
 import com.bitmovin.player.reactnative.extensions.withDouble
 import com.bitmovin.player.reactnative.extensions.withInt
 import com.bitmovin.player.reactnative.extensions.withMap
 import com.bitmovin.player.reactnative.extensions.withString
 import com.bitmovin.player.reactnative.extensions.withStringArray
+import com.bitmovin.player.reactnative.toNativeValue
+import expo.modules.kotlin.AppContext
+import expo.modules.kotlin.jni.JavaScriptWeakObject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.future.future
 import java.util.UUID
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Filters out null values from a map to ensure compatibility with Expo modules
@@ -123,16 +137,43 @@ private inline fun MutableMap<String, Any>.putIfNotNull(key: String, value: Any?
     value?.let { put(key, it) }
 }
 
-fun Map<String, Any?>.toPlayerConfig(): PlayerConfig = PlayerConfig(key = getString("licenseKey")).apply {
-    withMap("playbackConfig") { playbackConfig = it.toPlaybackConfig() }
+fun Map<String, Any?>?.toDecoderConfig(appContext: AppContext): DecoderConfig? {
+    if (this == null) return null
+    val callback = getMap("decoderPriorityProvider")?.get("overrideDecodersPriority") as? JavaScriptWeakObject
+    return DecoderConfig(
+        decoderPriorityProvider = object : DecoderPriorityProvider {
+            override fun overrideDecodersPriority(
+                context: DecoderPriorityProvider.DecoderContext,
+                preferredDecoders: List<MediaCodecInfo>,
+            ): List<MediaCodecInfo> {
+                return callback?.callBlocking(
+                    appContext,
+                    context.toJson(),
+                    preferredDecoders.map { it.toJson() },
+                ) {
+                    @Suppress("UNCHECKED_CAST")
+                    (it.toNativeValue() as? List<Map<String, Any?>>)?.toMediaCodecInfoList()
+                } ?: preferredDecoders
+            }
+        },
+    )
+}
+
+fun Map<String, Any?>.toPlayerConfig(
+    appContext: AppContext,
+    networkScope: CoroutineScope?,
+): PlayerConfig = PlayerConfig(
+    key = getString("licenseKey"),
+).apply {
+    withMap("playbackConfig") { playbackConfig = it.toPlaybackConfig(appContext) }
     withMap("styleConfig") { styleConfig = it.toStyleConfig() }
     withMap("tweaksConfig") { tweaksConfig = it.toTweaksConfig() }
-    getMap("advertisingConfig")?.toAdvertisingConfig()?.let { advertisingConfig = it }
+    withMap("advertisingConfig") { advertisingConfig = it.toAdvertisingConfig(appContext) }
     withMap("adaptationConfig") { adaptationConfig = it.toAdaptationConfig() }
     withMap("remoteControlConfig") { remoteControlConfig = it.toRemoteControlConfig() }
     withMap("bufferConfig") { bufferConfig = it.toBufferConfig() }
     withMap("liveConfig") { liveConfig = it.toLiveConfig() }
-    withMap("networkConfig") { networkConfig = it.toNetworkConfig() }
+    networkScope?.let { scope -> withMap("networkConfig") { networkConfig = it.toNetworkConfig(appContext, scope) } }
 }
 
 fun Map<String, Any?>.toBufferMediaTypeConfig(): BufferMediaTypeConfig = BufferMediaTypeConfig().apply {
@@ -184,7 +225,10 @@ private fun Map<String, Any?>.toAdaptationConfig(): AdaptationConfig = Adaptatio
     withInt("initialBandwidthEstimateOverride") { initialBandwidthEstimateOverride = it.toLong(); }
 }
 
-fun Map<String, Any?>.toPlaybackConfig(): PlaybackConfig = PlaybackConfig().apply {
+fun Map<String, Any?>.toPlaybackConfig(appContext: AppContext): PlaybackConfig = PlaybackConfig(
+    // The SDK exposes decoderConfig as a val; it must be supplied to the constructor.
+    decoderConfig = withMap("decoderConfig") { it.toDecoderConfig(appContext) } ?: DecoderConfig(),
+).apply {
     withBoolean("isAutoplayEnabled") { isAutoplayEnabled = it }
     withBoolean("isMuted") { isMuted = it }
     withBoolean("isTimeShiftEnabled") { isTimeShiftEnabled = it }
@@ -215,7 +259,7 @@ fun Map<String, Any?>.toTweaksConfig(): TweaksConfig =
             setBandwidthMeterType(
                 BandwidthMeterType.Default(
                     bandwidthEstimateWeightLimit = it,
-                )
+                ),
             )
         }
         withMap("devicesThatRequireSurfaceWorkaround") { devices ->
@@ -237,14 +281,33 @@ fun Map<String, Any?>.toTweaksConfig(): TweaksConfig =
                 it
                     .filterNotNull()
                     .mapNotNull(String::toForceReuseVideoCodecReason)
-                    .toSet()
+                    .toSet(),
             )
         }
     }.build()
 
-fun Map<String, Any?>.toAdvertisingConfig(): AdvertisingConfig? {
-    val schedule = getArray("schedule")?.toMapList()?.mapNotNull { it?.toAdItem() } ?: emptyList()
-    return AdvertisingConfig(schedule)
+fun Map<String, Any?>.toAdvertisingConfig(appContext: AppContext): AdvertisingConfig {
+    val config = AdvertisingConfig(
+        withArray("schedule") { it.toMapList().mapNotNull { item -> item?.toAdItem() } } ?: emptyList(),
+    )
+    // These SDK properties are vals. Copy only the configured callbacks, preserving SDK defaults.
+    val configured = config.copy(
+        shouldLoadAdItem = withCallback("shouldLoadAdItem") { callback ->
+            ShouldLoadAdItemCallback {
+                callback.callBlocking(appContext, it.toJson()) { value ->
+                    if (value.isBool()) value.getBool() else null
+                } ?: true
+            }
+        } ?: config.shouldLoadAdItem,
+        shouldPlayAdBreak = withCallback("shouldPlayAdBreak") { callback ->
+            ShouldPlayAdBreakCallback {
+                callback.callBlocking(appContext, it.toJson()) { value ->
+                    if (value.isBool()) value.getBool() else null
+                } ?: true
+            }
+        } ?: config.shouldPlayAdBreak,
+    )
+    return configureIma(configured, appContext)
 }
 
 fun Map<String, Any?>.toAdItem(): AdItem? {
@@ -307,7 +370,6 @@ fun LoadingState.toJson(): Int = when (this) {
 }
 
 fun Source.toJson(): Map<String, Any> = mapOf(
-    "nativeId" to SourceRegistry.getNativeId(this),
     "duration" to duration,
     "isActive" to isActive,
     "isAttachedToPlayer" to isAttachedToPlayer,
@@ -898,7 +960,29 @@ fun Map<String, Any?>.toHttpResponse(): HttpResponse? {
     )
 }
 
-fun Map<String, Any?>.toNetworkConfig(): NetworkConfig = NetworkConfig()
+fun Map<String, Any?>.toNetworkConfig(appContext: AppContext, scope: CoroutineScope): NetworkConfig =
+    NetworkConfig().apply {
+        withCallback("preprocessHttpRequest") { callback ->
+            preprocessHttpRequestCallback = PreprocessHttpRequestCallback { type, request ->
+                scope.future {
+                    callback.callSuspending(appContext, type.toJson(), request.toJson()) {
+                        @Suppress("UNCHECKED_CAST")
+                        (it.toNativeValue() as? Map<String, Any?>)?.toHttpRequest()
+                    } ?: request
+                }.exceptionally { request }
+            }
+        }
+        withCallback("preprocessHttpResponse") { callback ->
+            preprocessHttpResponseCallback = PreprocessHttpResponseCallback { type, response ->
+                scope.future {
+                    callback.callSuspending(appContext, type.toJson(), response.toJson()) {
+                        @Suppress("UNCHECKED_CAST")
+                        (it.toNativeValue() as? Map<String, Any?>)?.toHttpResponse()
+                    } ?: response
+                }.exceptionally { response }
+            }
+        }
+    }
 
 fun HttpRequest.toJson(): Map<String, Any> = mapOf(
     "url" to url,
@@ -1025,7 +1109,7 @@ fun Metadata.toJson(type: String): Map<String, Any> {
 
     return mapOf(
         "startTime" to startTime,
-        "entries" to entriesArray
+        "entries" to entriesArray,
     ).filterNotNullValues()
 }
 
@@ -1041,7 +1125,7 @@ fun Metadata.Entry.toJson(): Map<String, Any> {
             Log.w(
                 "JsonConverter",
                 "Unsupported metadata entry type: ${this::class.simpleName}. " +
-                        "This metadata type is supported on native, but not yet on the React Native SDK"
+                    "This metadata type is supported on native, but not yet on the React Native SDK",
             )
             mapOf(
                 "metadataType" to "NONE",
@@ -1058,7 +1142,7 @@ fun DateRangeMetadata.toJson(): Map<String, Any> {
     val endSeconds = (duration ?: plannedDuration)?.let { startTime + it }
 
     val relativeTimeRange = mutableMapOf<String, Any>(
-        "start" to startTime
+        "start" to startTime,
     )
     if (endSeconds != null) {
         relativeTimeRange["end"] = endSeconds
@@ -1082,7 +1166,7 @@ fun EventMessage.toJson(): Map<String, Any> = mapOf(
     "schemeIdUri" to schemeIdUri,
     "value" to value,
     "duration" to durationMs?.div(1000.0),
-    "messageData" to messageData.toBase64String()
+    "messageData" to messageData.toBase64String(),
 ).filterNotNullValues()
 
 private fun Id3Frame.toJson(): Map<String, Any> = buildMap {
@@ -1162,7 +1246,7 @@ private fun Id3Frame.toJson(): Map<String, Any> = buildMap {
 fun ScteMessage.toJson(): Map<String, Any> = mapOf(
     "metadataType" to "SCTE",
     "key" to key,
-    "value" to value
+    "value" to value,
 ).filterNotNullValues()
 
 private fun Cue.toLayoutJson(): Map<String, Any>? {
@@ -1189,7 +1273,6 @@ private fun Cue.toLayoutLineJson(): Map<String, Any>? = when {
     lineType == Cue.LineType.LineTypeNumber -> mapOf("value" to line.toDouble(), "unit" to "line")
     else -> mapOf("value" to line.toPercent(), "unit" to "percent")
 }
-
 
 private fun Float.toPercent(): Double = (this * 100).toDouble()
 
@@ -1218,3 +1301,58 @@ private fun Alignment.toLayoutTextAlignJson(): String = when (this) {
     Alignment.ALIGN_OPPOSITE -> "end"
     Alignment.ALIGN_CENTER -> "center"
 }
+
+private fun JavaScriptWeakObject.prepare(appContext: AppContext, data: ByteArray): ByteArray =
+    callBlocking(appContext, Base64.encodeToString(data, Base64.NO_WRAP), timeout = 5.seconds) {
+        Base64.decode(it.getString(), Base64.NO_WRAP)
+    } ?: ByteArray(0)
+
+fun Any?.toReplayMode(): ReplayMode = when (this) {
+    null, "playlist" -> ReplayMode.Playlist
+    "lastSource" -> ReplayMode.LastSource
+    else -> throw IllegalArgumentException("Unknown replay mode")
+}
+
+fun Map<String, Any?>.toSourceConfig(appContext: AppContext): SourceConfig? {
+    val url = getString("url") ?: return null
+    val type = getString("type")?.toSourceType() ?: return null
+    return SourceConfig(url, type).apply {
+        withMap("drmConfig") { drmConfig = it.toWidevineConfig(appContext) }
+        withString("title") { title = it }
+        withString("description") { description = it }
+        withString("poster") { posterSource = it }
+        withBoolean("isPosterPersistent") { isPosterPersistent = it }
+        withArray("subtitleTracks") { subtitleTracks ->
+            subtitleTracks.indices.forEach { subtitleTrack ->
+                subtitleTracks.getMap(subtitleTrack)?.toSubtitleTrack()?.let {
+                    addSubtitleTrack(it)
+                }
+            }
+        }
+        withString("thumbnailTrack") { thumbnailTrack = it.toThumbnailTrack() }
+        withMap("metadata") { metadata = it.toMap() }
+        withMap("options") { options = it.toSourceOptions() }
+        // Note: cmcdConfig is not yet supported on Android.
+    }
+}
+
+fun Map<String, Any?>.toWidevineConfig(appContext: AppContext): WidevineConfig? =
+    withMap("widevine") { config ->
+        WidevineConfig(config.getString("licenseUrl")).apply {
+            config.withString("preferredSecurityLevel") { preferredSecurityLevel = it }
+            config.withBoolean("shouldKeepDrmSessionsAlive") { shouldKeepDrmSessionsAlive = it }
+            config.withMap("httpHeaders") {
+                httpHeaders = it.mapValues { entry -> entry.value as String }.toMutableMap()
+            }
+            config.withCallback("prepareMessage") { callback ->
+                prepareMessageCallback = PrepareMessageCallback {
+                    callback.prepare(appContext, it)
+                }
+            }
+            config.withCallback("prepareLicense") { callback ->
+                prepareLicenseCallback = PrepareLicenseCallback {
+                    callback.prepare(appContext, it)
+                }
+            }
+        }
+    }

@@ -12,12 +12,10 @@ const ts = req('typescript');
 const scheduler = req('scheduler/unstable_mock');
 let committedView;
 const bindings = new Map();
-let nextPlayer = 0;
 function playerWith() {
   return {
     config: {},
-    nativeId: `player-${++nextPlayer}`,
-    initialize: async () => {},
+    native: {},
     on: async () => mockEventSubscription(),
   };
 }
@@ -132,6 +130,8 @@ const playerViewContext = vm.createContext({
     if (name === 'expo-keep-awake') return { useKeepAwake() {} };
     if (name === './native') return { NativePlayerView: 'ProbePlayerView' };
     if (name.endsWith('/useProxy')) return { useProxy: () => (x) => x };
+    if (name === '../../player')
+      return { getNativePlayer: (player) => player.native };
     if (name.endsWith('/fullscreenhandlerbridge'))
       return {
         FullscreenHandlerBridge: class {
@@ -219,9 +219,9 @@ test('readiness waits for native attachment and is announced once', async () => 
   await flush();
   assert.ok(
     committedView,
-    'the native host remains mounted while initialization and attachment finish'
+    'the native host mounts without a JS initialization stage'
   );
-  assert.equal(bindings.get(committedView.tag).player, player.nativeId);
+  assert.equal(bindings.get(committedView.tag).player, player.native);
   for (const prop of ['player', 'fullscreenHandler', 'customMessageHandler'])
     assert.equal(Object.hasOwn(committedView.props, prop), false);
   assert.equal(
@@ -300,7 +300,7 @@ test('A to B to A keeps the host and ignores superseded native acknowledgments',
     tag,
     'Player changes preserve the native host'
   );
-  assert.equal(current.player, first.nativeId);
+  assert.equal(current.player, first.native);
   assert.equal(current.fullscreen, bridge);
   assert.equal(typeof bridge, 'string');
 
