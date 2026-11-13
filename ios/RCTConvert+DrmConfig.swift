@@ -61,10 +61,8 @@ extension RCTConvert {
         arguments: [Any] = []
     ) -> Data {
         let result = context.flatMap { context in
-            callback.callBlocking(context, arguments: [data.base64EncodedString()] + arguments) { (value: String) in
-                Data(base64Encoded: value)
-            }
+            callback.callBlocking(context, arguments: [data.base64EncodedString()] + arguments) { try $0.asString() }
         }
-        return result ?? data
+        return result.flatMap { Data(base64Encoded: $0) } ?? data
     }
 }
