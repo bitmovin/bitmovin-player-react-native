@@ -10,6 +10,7 @@ import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.time.Duration
@@ -53,12 +54,15 @@ internal suspend fun <T> JavaScriptWeakObject.callSuspending(
     vararg arguments: Any?,
     convert: (JavaScriptValue) -> T,
 ): T? = suspendCancellableCoroutine { continuation ->
+    // Clear the delegate on cancellation so an unresolved JS Promise cannot retain its coroutine frame.
+    val waiting = AtomicReference<CancellableContinuation<T?>?>(continuation)
+    continuation.invokeOnCancellation { waiting.set(null) }
     appContext.runtime.schedule {
-        if (continuation.isActive) {
+        if (waiting.get()?.isActive == true) {
             try {
-                invokeAndAwaitOnJs(appContext, arguments, continuation, convert)
+                invokeAndAwaitOnJs(appContext, arguments, waiting, convert)
             } catch (error: Exception) {
-                if (continuation.isActive) continuation.resumeWithException(error)
+                waiting.getAndSet(null)?.resumeWithException(error)
             }
         }
     }
@@ -67,7 +71,7 @@ internal suspend fun <T> JavaScriptWeakObject.callSuspending(
 private fun <T> JavaScriptWeakObject.invokeAndAwaitOnJs(
     appContext: AppContext,
     arguments: Array<out Any?>,
-    continuation: CancellableContinuation<T?>,
+    waiting: AtomicReference<CancellableContinuation<T?>?>,
     convert: (JavaScriptValue) -> T,
 ) {
     val function: JavaScriptObject? = lock()
@@ -77,11 +81,13 @@ private fun <T> JavaScriptWeakObject.invokeAndAwaitOnJs(
     val factory = checkNotNull(appContext.registry.getModule<NativeModulesProxyModule>())
     val handlers = factory.Object {
         Function("resolve") { value: JavaScriptValue ->
-            if (continuation.isActive) continuation.resumeWith(runCatching { convert(value) })
+            val pending = waiting.getAndSet(null)
+            if (pending?.isActive == true) pending.resumeWith(runCatching { convert(value) })
         }
         Function("reject") { reason: JavaScriptValue ->
-            if (continuation.isActive) {
-                continuation.resumeWith(
+            val pending = waiting.getAndSet(null)
+            if (pending?.isActive == true) {
+                pending.resumeWith(
                     runCatching {
                         val message = if (reason.isString()) reason.getString() else "JavaScript callback rejected"
                         throw IllegalStateException(message)
