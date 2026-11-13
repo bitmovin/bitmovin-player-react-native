@@ -7,39 +7,9 @@ import {
 } from 'bitmovin-player-react-native';
 import type { TestScope } from 'cavy';
 import PlayerTestWorld from '../playertesting/PlayerTestWorld';
+import { receiveEvent } from '../playertesting/receiveEvent';
 import { expect } from './helper/Expect';
 import { fixtureUrl } from './helper/FixtureUrl';
-
-// Event infrastructure only: install before the trigger and dispose on every exit.
-async function receiving<T>(
-  subscribe: (
-    resolve: (event: T) => void,
-    reject: (error: Error) => void
-  ) => Promise<() => void> | (() => void),
-  trigger: () => Promise<void>
-): Promise<T> {
-  let remove: (() => void) | undefined;
-  let timeout: ReturnType<typeof setTimeout> | undefined;
-  let resolve: (event: T) => void = () => {};
-  let reject: (error: Error) => void = () => {};
-  const event = new Promise<T>((res, rej) => {
-    resolve = res;
-    reject = rej;
-    timeout = setTimeout(
-      () => rej(new Error('Offline event timed out')),
-      15000
-    );
-  });
-  void event.catch(() => {});
-  try {
-    remove = await subscribe(resolve, reject);
-    await trigger();
-    return await event;
-  } finally {
-    clearTimeout(timeout);
-    remove?.();
-  }
-}
 
 export default (spec: TestScope) => {
   spec.describe('offline Source ownership', () => {
@@ -60,27 +30,26 @@ export default (spec: TestScope) => {
           remoteControlConfig: { isCastEnabled: false },
         });
         try {
-          await receiving(
-            (resolve, reject) =>
-              manager.addListener({
+          await receiveEvent(
+            async (resolve, reject) => ({
+              remove: manager.addListener({
                 onOptionsAvailable: resolve,
                 onError: (event) => reject(new Error(event.message)),
               }),
+            }),
             () => manager.getOptions()
           );
-          await receiving(
-            (resolve, reject) =>
-              manager.addListener({
+          await receiveEvent(
+            async (resolve, reject) => ({
+              remove: manager.addListener({
                 onCompleted: resolve,
                 onError: (event) => reject(new Error(event.message)),
               }),
+            }),
             () => manager.download({ minimumBitrate: 0 })
           );
-          await receiving(
-            async (resolve) => {
-              const subscription = await player.on('ready', resolve);
-              return () => subscription.remove();
-            },
+          await receiveEvent(
+            (resolve) => player.on('ready', resolve),
             () => player.loadOfflineContent(manager)
           );
           const source = await player.getSource();
@@ -90,21 +59,15 @@ export default (spec: TestScope) => {
           expect(source.config?.title).toBe(title);
 
           // No duration/isActive/repeated query before subscribing: those can initialize a lazy peer.
-          const unloaded = await receiving<SourceUnloadedEvent>(
-            async (resolve) => {
-              const subscription = await source.on('sourceUnloaded', resolve);
-              return () => subscription.remove();
-            },
+          const unloaded = await receiveEvent<SourceUnloadedEvent>(
+            (resolve) => source.on('sourceUnloaded', resolve),
             () => player.unload()
           );
           expect(Boolean(unloaded.source)).toBe(true);
           expect(typeof unloaded.source?.duration).toBe('number');
 
-          await receiving(
-            async (resolve) => {
-              const subscription = await player.on('ready', resolve);
-              return () => subscription.remove();
-            },
+          await receiveEvent(
+            (resolve) => player.on('ready', resolve),
             () => player.loadOfflineContent(manager)
           );
           const reloaded = await player.getSource();
