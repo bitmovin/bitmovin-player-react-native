@@ -23,12 +23,8 @@ internal fun <T> JavaScriptWeakObject.callBlocking(
     timeout: Duration = 250.milliseconds,
     convert: (JavaScriptValue) -> T,
 ): T? {
-    fun call(): T? {
-        val value = invokeOnJs(appContext, arguments) ?: return null
-        return convert(value)
-    }
     return if (appContext.runtime.reactContext?.isOnJSQueueThread == true) {
-        call()
+        callOnJs(appContext, arguments, convert)
     } else {
         runBlocking {
             withTimeoutOrNull(timeout) {
@@ -37,7 +33,7 @@ internal fun <T> JavaScriptWeakObject.callBlocking(
                         appContext.runtime.schedule {
                             if (continuation.isActive) {
                                 try {
-                                    continuation.resume(call())
+                                    continuation.resume(callOnJs(appContext, arguments, convert))
                                 } catch (error: Exception) {
                                     continuation.resumeWithException(error)
                                 }
@@ -98,9 +94,13 @@ internal suspend fun <T> JavaScriptWeakObject.callSuspending(
 }
 
 /** Recover a callable wrapper transiently: Expo exposes getFunction on values, not on weak object locks. */
-private fun JavaScriptWeakObject.invokeOnJs(appContext: AppContext, arguments: Array<out Any?>): JavaScriptValue? {
+private fun <T> JavaScriptWeakObject.callOnJs(
+    appContext: AppContext,
+    arguments: Array<out Any?>,
+    convert: (JavaScriptValue) -> T,
+): T? {
     val function: JavaScriptObject? = lock()
     val holder = appContext.runtime.jsiContext.createObject()
     holder.setProperty("callback", function ?: return null)
-    return holder.getProperty("callback").getFunction<JavaScriptValue>()(*arguments, appContext = appContext)
+    return convert(holder.getProperty("callback").getFunction<JavaScriptValue>()(*arguments, appContext = appContext))
 }

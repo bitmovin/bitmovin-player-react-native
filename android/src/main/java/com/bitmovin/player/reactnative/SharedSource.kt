@@ -35,17 +35,14 @@ class SharedSource private constructor(
             analyticsSourceMetadata: Map<String, Any>?,
         ): SharedSource {
             val nativeConfig = config?.toNativeConfig()
-            return SharedSource(appContext, {
-                val sourceConfig = nativeConfig?.toSourceConfig(appContext) ?: throw CodedException(
-                    "ERR_INVALID_ARGUMENT",
-                    "Invalid source configuration",
-                    null,
-                )
+            return SharedSource(appContext) {
+                val sourceConfig = nativeConfig?.toSourceConfig(appContext)
+                    ?: throw InvalidArgumentException("Invalid source configuration")
                 val source = analyticsSourceMetadata?.toAnalyticsSourceMetadata()?.let {
                     Source.create(sourceConfig, it)
                 } ?: Source.create(sourceConfig)
                 source
-            },)
+            }
         }
 
         private fun snapshot(source: Source): Map<String, Any?> = with(source.config) {
@@ -59,3 +56,5 @@ class SharedSource private constructor(
         }
     }
 }
+
+private class InvalidArgumentException(message: String) : CodedException(message)
