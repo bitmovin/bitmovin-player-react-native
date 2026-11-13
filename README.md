@@ -29,9 +29,9 @@ Please refer to the [Features](https://developer.bitmovin.com/playback/docs/reac
 
 ### Google IMA
 
-Google IMA is disabled by default. Enable it only if the app uses IMA ad
-sources. Bitmovin Advertising Module (BAM) ads and ordinary playback work
-without it.
+Automatic Google IMA inclusion is disabled by default. Enable it when the app
+uses IMA ad sources. Bitmovin Advertising Module (BAM) ads and ordinary playback
+work without it.
 
 For apps using Expo prebuild, enable the feature in the config plugin:
 
@@ -59,10 +59,19 @@ BITMOVIN_ENABLE_GOOGLE_IMA=true
 `BITMOVIN_ENABLE_GOOGLE_IMA` accepts only `true` or `false` (case-insensitive).
 Any other value fails the native build.
 
-If Google IMA is disabled, the player ignores
+On Android, the flag controls the runtime dependency added by this library.
+If the host app supplies Google IMA itself, IMA remains available even when the
+flag is false. The host is responsible for its dependency and required Android
+build configuration.
+
+When Google IMA is unavailable in the native build, the player ignores
 `advertisingConfig.ima.beforeInitialization` and logs a JavaScript warning. IMA
 ad sources are skipped: Android emits a `PlayerWarning` event, iOS and tvOS only
 write a native log message.
+
+`beforeInitialization` must return the settings fields to apply. Omitted fields
+keep their native SDK values. Mutating the input without returning a result
+does not apply those changes.
 
 Manually maintained iOS and tvOS projects need additional SPM configuration.
 See [iOS SDK dependencies](docs/ios-dependencies.md).
