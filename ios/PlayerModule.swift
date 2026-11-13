@@ -76,6 +76,41 @@ public class PlayerModule: Module {
             }.runOnQueue(.main)
         }
 
+        Class(SharedPlaylistApi.self) {
+            Constructor { (owner: SharedPlayer) in SharedPlaylistApi(owner: owner) }
+            AsyncFunction("getSources") { (owner: SharedPlaylistApi, known: [SharedSource]) -> [SharedSource] in
+                try owner.player.playlist.sources.map { source in
+                    known.first { $0.source === source } ?? SharedSource(source: source)
+                }
+            }.runOnQueue(.main)
+            AsyncFunction("add") { (owner: SharedPlaylistApi, source: SharedSource, index: Int?) in
+                try ensurePlaylistSourceType(source.source)
+                guard !source.source.isAttachedToPlayer else {
+                    throw Exception(
+                        name: "SourceAlreadyAttached", description: "Source is already attached to a player"
+                    )
+                }
+                if let index {
+                    (try owner.player).playlist.add(source: source.source, at: index)
+                } else {
+                    (try owner.player).playlist.add(source: source.source)
+                }
+            }.runOnQueue(.main)
+            AsyncFunction("remove") { (owner: SharedPlaylistApi, source: SharedSource) in
+                if let index = try owner.player.playlist.sources.firstIndex(where: {
+                    $0 === source.source
+                }) {
+                    (try owner.player).playlist.remove(sourceAt: index)
+                }
+            }.runOnQueue(.main)
+            AsyncFunction("removeAt") { (owner: SharedPlaylistApi, index: Int) in
+                (try owner.player).playlist.remove(sourceAt: index)
+            }.runOnQueue(.main)
+            AsyncFunction("seek") { (owner: SharedPlaylistApi, source: SharedSource, time: Double) in
+                (try owner.player).playlist.seek(source: source.source, time: time)
+            }.runOnQueue(.main)
+        }
+
         AsyncFunction("play") { (owner: SharedPlayer) in
                     (try owner.player).play()
         }.runOnQueue(.main)

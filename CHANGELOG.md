@@ -50,6 +50,8 @@
 
 ### Added
 
+- Add experimental native playlist loading, source queries, mutation, cross-source seeking, replay options, and playlist events
+
 - `Player.on` and `Source.on` for asynchronous subscriptions to native object events, including without a mounted `PlayerView`
 
 - iOS: Play VMAP ad tags with the Bitmovin Advertising Module (`AdSourceType.BITMOVIN`) without enabling Google IMA, matching Android
@@ -63,6 +65,8 @@
 - Android: Fix `Player.getSource()` after loading offline content before constructing a `Source`.
 
 - Android: Rebind subtitles and picture-in-picture controls when replacing the Player of a mounted PlayerView.
+
+- Preserve `ReplayMode.Playlist` and `ReplayMode.LastSource` as deprecated aliases for `PLAYLIST` and `LAST_SOURCE`.
 
 - Android: Include the owning Source metadata in `Source.on('sourceUnloaded')` events
 - Android: Reject loading a Source attached to another Player before unloading the current session, leaving the Player usable for later loads
