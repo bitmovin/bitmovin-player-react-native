@@ -2,11 +2,14 @@ package com.bitmovin.player.reactnative
 
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.analytics.AnalyticsApi.Companion.analytics
+import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.api.playlist.PlaylistConfig
 import com.bitmovin.player.api.playlist.PlaylistOptions
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.IS_GOOGLE_IMA_ENABLED
 import com.bitmovin.player.reactnative.converter.toAdItem
+import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
+import com.bitmovin.player.reactnative.converter.toBufferTypeOrThrow
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toReplayMode
 import expo.modules.kotlin.exception.CodedException
@@ -57,6 +60,32 @@ class PlayerModule : Module() {
             AsyncFunction("loadSource") { shared: SharedPlayer, sharedSource: SharedSource ->
                 ensureSourcesAvailable(shared.player, listOf(sharedSource.source))
                 shared.player.load(sharedSource.source)
+            }.runOnQueue(Queues.MAIN)
+        }
+
+        Class(SharedBufferApi::class) {
+            Constructor { owner: SharedPlayer -> SharedBufferApi(owner) }
+            AsyncFunction("getLevel") { shared: SharedBufferApi, type: String ->
+                val buffer = shared.player.buffer
+                val bufferType = type.toBufferTypeOrThrow()
+                mapOf(
+                    "audio" to buffer.getLevel(bufferType, MediaType.Audio).toJson(),
+                    "video" to buffer.getLevel(bufferType, MediaType.Video).toJson(),
+                )
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("setTargetLevel") { shared: SharedBufferApi, type: String, value: Double ->
+                shared.player.buffer.setTargetLevel(type.toBufferTypeOrThrow(), value)
+            }.runOnQueue(Queues.MAIN)
+        }
+
+        Class(SharedAnalyticsApi::class) {
+            Constructor { owner: SharedPlayer -> SharedAnalyticsApi(owner) }
+            AsyncFunction("sendCustomDataEvent") { shared: SharedAnalyticsApi, json: Map<String, Any?> ->
+                checkNotNull(shared.player.analytics) { "Analytics is disabled" }
+                    .sendCustomDataEvent(json.toAnalyticsCustomData())
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("getUserId") { shared: SharedAnalyticsApi ->
+                checkNotNull(shared.player.analytics) { "Analytics is disabled" }.userId
             }.runOnQueue(Queues.MAIN)
         }
 

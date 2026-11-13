@@ -16,6 +16,7 @@ const testRegistrations = [
     androidAndIos,
     () => require('./sharedObjectLifecycleTest').default
   ),
+  testSuite('buffer', androidAndIos, () => require('./bufferTest').default),
   testSuite(
     'decoder',
     ['android'],
