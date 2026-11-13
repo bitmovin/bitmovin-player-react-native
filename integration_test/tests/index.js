@@ -12,6 +12,11 @@ const testRegistrations = [
     () => require('./mediaSessionTeardownTest').default
   ),
   testSuite(
+    'view-boundary',
+    androidAndIos,
+    () => require('./viewBoundaryTest').default
+  ),
+  testSuite(
     'advertising',
     androidAndIos,
     () => require('./advertisingTest').default

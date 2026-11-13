@@ -1,4 +1,5 @@
 import BitmovinPlayer
+@_spi(ExperimentalApi)
 import BitmovinPlayerCore
 import ExpoModulesCore
 
@@ -18,9 +19,7 @@ public class RNPlayerView: ExpoView {
             }
             addSubview(playerView)
             maybeFixAVPlayerViewControllerVisibility()
-            if let fullscreenBridgeId {
-                attachFullscreenBridge(fullscreenBridgeId: fullscreenBridgeId)
-            }
+            playerView.fullscreenHandler = fullscreenHandler
             if let scalingMode {
                 playerView.scalingMode = scalingMode
             }
@@ -39,19 +38,21 @@ public class RNPlayerView: ExpoView {
         }
     }
 
-    private var customMessageHandlerBridgeId: NativeId?
-    private var playerId: NativeId?
-    private var fullscreenBridgeId: NativeId?
+    private var customMessageHandler: CustomMessageHandlerBridge?
+    private var configuredPlayer: Player?
+    private var playerViewConfigWrapper: RNPlayerViewConfig?
+    private var fullscreenHandler: FullscreenHandlerBridge?
     private var scalingMode: ScalingMode?
     private var requestedFullscreenValue: Bool?
     private var requestedPictureInPictureValue: Bool?
     private var isPictureInPictureEnabledValue: Bool?
     private var pictureInPictureActions: [RNPictureInPictureAction]?
     private var avPlayerViewControllerTransitionForced = false
-    private var shouldExitPictureInPictureOnForeground = false
     private var foregroundObserver: NSObjectProtocol?
 
     let onBmpPlayerViewReady = EventDispatcher()
+    let onBmpViewAttached = EventDispatcher()
+    let onBmpPictureInPictureAvailabilityChanged = EventDispatcher()
     let onBmpPictureInPictureEnter = EventDispatcher()
     let onBmpPictureInPictureEntered = EventDispatcher()
     let onBmpPictureInPictureExit = EventDispatcher()
@@ -60,7 +61,6 @@ public class RNPlayerView: ExpoView {
     let onBmpFullscreenDisabled = EventDispatcher()
     let onBmpFullscreenEnter = EventDispatcher()
     let onBmpFullscreenExit = EventDispatcher()
-    let onBmpPictureInPictureAvailabilityChanged = EventDispatcher()
 
     required init(appContext: AppContext? = nil) {
         super.init(appContext: appContext)
@@ -78,21 +78,46 @@ public class RNPlayerView: ExpoView {
         maybeFixAVPlayerViewControllerVisibility()
     }
 
-    internal func attachPlayer(
-        playerId: NativeId?,
-        playerViewConfigWrapper: RNPlayerViewConfig?,
-        customMessageHandlerBridgeId: NativeId?
+    override public func didMoveToWindow() {
+        super.didMoveToWindow()
+        if window != nil { onBmpViewAttached([:]) }
+    }
+
+    internal func attachBindings(
+        player: Player,
+        fullscreen: FullscreenHandlerBridge?,
+        messages: CustomMessageHandlerBridge?,
+        config: [String: Any]?
+    ) throws {
+        guard !player.isDestroyed else {
+            throw Exception(name: "DestroyedPlayer", description: "Cannot attach a destroyed player")
+        }
+        setConfiguredPlayer(player)
+        configurePlayer(playerViewConfig: RCTConvert.rnPlayerViewConfig(config?["playerViewConfig"]))
+        setFullscreenHandler(fullscreen)
+        setCustomMessageHandler(messages)
+        attachConfiguredPlayer()
+    }
+
+    internal func setConfiguredPlayer(_ player: Player?) {
+        guard configuredPlayer !== player else { return }
+        playerView?.player?.remove(listener: self)
+        configuredPlayer = player
+    }
+
+    internal func configurePlayer(
+        playerViewConfig: RNPlayerViewConfig?
     ) {
-        self.playerId = playerId
-        guard let playerId else {
-            detachCurrentPlayer()
-            return
-        }
-        // PlayerView renders this native view only after player.initialize() resolves,
-        // so the player is already registered on the normal attachment path.
-        guard let player = self.appContext?.moduleRegistry.get(PlayerModule.self)?.retrieve(playerId) else {
-            return
-        }
+        playerViewConfigWrapper = playerViewConfig
+    }
+
+    internal func detachConfiguredPlayer() {
+        detachCurrentPlayer()
+        configuredPlayer = nil
+    }
+
+    internal func attachConfiguredPlayer() {
+        guard let player = configuredPlayer, !player.isDestroyed else { return }
         if let playerView, let currentPlayer = playerView.player, currentPlayer === player {
             // Player is already attached to the PlayerView
             return
@@ -100,41 +125,42 @@ public class RNPlayerView: ExpoView {
 
         if let userInterfaceConfig = maybeCreateUserInterfaceConfig(
             styleConfig: player.config.styleConfig,
-            playerViewConfig: playerViewConfigWrapper,
-            customMessageHandlerBridgeId: customMessageHandlerBridgeId
+            playerViewConfig: playerViewConfigWrapper
         ) {
             player.config.styleConfig.userInterfaceConfig = userInterfaceConfig
         }
 
         let previousPictureInPictureAvailableValue = playerView?.isPictureInPictureAvailable ?? false
-        if playerView?.player != nil {
-            prepareForNewPlayerAttachment()
+        if let playerView {
+            playerView.player = player
+        } else {
+            self.playerView = PlayerView(
+                player: player,
+                frame: bounds,
+                playerViewConfig: playerViewConfigWrapper?.playerViewConfig ?? PlayerViewConfig()
+            )
         }
-        self.playerView = PlayerView(
-            player: player,
-            frame: bounds,
-            playerViewConfig: playerViewConfigWrapper?.playerViewConfig ?? PlayerViewConfig()
-        )
 
+        player.add(listener: self)
         playerView?.add(listener: self)
 
-        shouldExitPictureInPictureOnForeground =
-            playerViewConfigWrapper?.pictureInPictureConfig?.shouldExitOnForeground ?? false
-        updateForegroundObserver()
+        updateForegroundObserver(
+            shouldExitOnForeground: playerViewConfigWrapper?.pictureInPictureConfig?.shouldExitOnForeground ?? false
+        )
 
         self.maybeEmitPictureInPictureAvailabilityEvent(
             previousState: previousPictureInPictureAvailableValue
         )
-        onBmpPlayerViewReady(["playerId": playerId])
+        onBmpPlayerViewReady([:])
     }
 
-    internal func attachFullscreenBridge(fullscreenBridgeId: NativeId) {
-        self.fullscreenBridgeId = fullscreenBridgeId
-        guard let fullscreenBridgeModule = self.appContext?.moduleRegistry.get(FullscreenHandlerModule.self),
-              let fullscreenBridge = fullscreenBridgeModule.retrieve(fullscreenBridgeId) else {
-            return
-        }
-        playerView?.fullscreenHandler = fullscreenBridge
+    internal func setFullscreenHandler(_ handler: FullscreenHandlerBridge?) {
+        fullscreenHandler = handler
+        playerView?.fullscreenHandler = handler
+    }
+
+    internal func setCustomMessageHandler(_ handler: CustomMessageHandlerBridge?) {
+        customMessageHandler = handler
     }
 
     internal func setFullscreenRequested(isFullscreen: Bool) {
@@ -211,18 +237,18 @@ private extension RNPlayerView {
         guard let playerView else {
             return
         }
+        playerView.player?.remove(listener: self)
         playerView.remove(listener: self)
         playerView.player = nil
-        shouldExitPictureInPictureOnForeground = false
         updateForegroundObserver()
     }
 
-    func updateForegroundObserver() {
+    func updateForegroundObserver(shouldExitOnForeground: Bool = false) {
         if let foregroundObserver {
             NotificationCenter.default.removeObserver(foregroundObserver)
             self.foregroundObserver = nil
         }
-        guard shouldExitPictureInPictureOnForeground else { return }
+        guard shouldExitOnForeground else { return }
 #if os(iOS)
         foregroundObserver = NotificationCenter.default.addObserver(
             forName: UIApplication.didBecomeActiveNotification,
@@ -234,27 +260,10 @@ private extension RNPlayerView {
         }
 #endif
     }
+}
 
-    func prepareForNewPlayerAttachment() {
-        guard let playerView else {
-            return
-        }
-
-        // Avoid carrying over fullscreen/PiP state to a new player.
-        // Native PlayerView replaces its UI controller when the player instance changes, and does not
-        // support preserving fullscreen/PiP state across that swap. We tear down first to avoid stale state.
-        if playerView.isFullscreen {
-            playerView.exitFullscreen()
-        }
-        if playerView.isPictureInPicture {
-            playerView.exitPictureInPicture()
-        }
-
-        detachCurrentPlayer()
-
-        // Force a fresh PlayerView on next attach.
-        self.playerView = nil
-    }
+extension RNPlayerView: PlayerListener {
+    public func onDestroy(_ event: DestroyEvent, player: Player) { detachConfiguredPlayer() }
 }
 
 extension RNPlayerView: UserInterfaceListener {
@@ -308,8 +317,7 @@ private extension RNPlayerView {
 
     func maybeCreateUserInterfaceConfig(
         styleConfig: StyleConfig,
-        playerViewConfig: RNPlayerViewConfig?,
-        customMessageHandlerBridgeId: NativeId?
+        playerViewConfig: RNPlayerViewConfig?
     ) -> UserInterfaceConfig? {
         #if os(iOS)
         if styleConfig.userInterfaceType == .bitmovin {
@@ -326,9 +334,7 @@ private extension RNPlayerView {
                 bitmovinUserInterfaceConfig.hideFirstFrame = hideFirstFrame
             }
 
-            if let customMessageHandlerBridgeId {
-                attachCustomMessageHandlerBridge(id: customMessageHandlerBridgeId, to: bitmovinUserInterfaceConfig)
-            }
+            bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandler?.customMessageHandler
 
             return bitmovinUserInterfaceConfig
         }
@@ -346,24 +352,6 @@ private extension RNPlayerView {
 
         return nil
     }
-
-    #if os(iOS)
-    func attachCustomMessageHandlerBridge(
-        id customMessageHandlerBridgeId: NativeId,
-        to bitmovinUserInterfaceConfig: BitmovinUserInterfaceConfig
-    ) {
-        guard let customMessageHandlerBridgeModule = self.appContext?.moduleRegistry
-            .get(CustomMessageHandlerModule.self) else {
-            return
-        }
-        guard let customMessageHandlerBridge = customMessageHandlerBridgeModule
-            .retrieve(customMessageHandlerBridgeId) else {
-            return
-        }
-
-        bitmovinUserInterfaceConfig.customMessageHandler = customMessageHandlerBridge.customMessageHandler
-    }
-    #endif
 
     @MainActor
     func maybeEmitPictureInPictureAvailabilityEvent(previousState: Bool) {
