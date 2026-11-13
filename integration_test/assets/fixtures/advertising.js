@@ -24,6 +24,12 @@ const vastXml = `<VAST version="3.0">
 
 const linearXml = `<?xml version="1.0" encoding="UTF-8"?>\n${vastXml}`;
 
+// An empty VAST response is a defined IMA load error, independent of HTTP failures.
+const emptyVastXml =
+  '<?xml version="1.0" encoding="UTF-8"?><VAST version="3.0"></VAST>';
+
+const emptyVastAdTag = `data:application/xml;base64,${btoa(emptyVastXml)}`;
+
 const linearAdTag = `data:application/xml;base64,${btoa(linearXml)}`;
 
 const vmapXml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -66,4 +72,10 @@ const bamVmapXml = `<?xml version="1.0" encoding="UTF-8"?>
   </vmap:AdBreak>
 </vmap:VMAP>`;
 
-module.exports = { linearXml, bamVmapXml, linearAdTag, vmapAdTag };
+module.exports = {
+  linearXml,
+  emptyVastAdTag,
+  bamVmapXml,
+  linearAdTag,
+  vmapAdTag,
+};

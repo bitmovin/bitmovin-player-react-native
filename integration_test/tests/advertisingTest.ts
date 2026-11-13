@@ -384,7 +384,7 @@ export default (spec: TestScope) => {
 
   const adErrorScenarios: AdErrorScenario[] = [
     {
-      adItem: { sources: [{ tag: AdTags.error, type: AdSourceType.IMA }] },
+      adItem: { sources: [{ tag: AdTags.imaError, type: AdSourceType.IMA }] },
       label: 'IMA',
       enabledOn: ['ios', 'android'],
     },

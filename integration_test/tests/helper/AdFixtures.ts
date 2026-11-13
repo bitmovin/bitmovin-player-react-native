@@ -1,1 +1,5 @@
-export { linearAdTag, vmapAdTag } from '../../assets/fixtures/advertising';
+export {
+  emptyVastAdTag,
+  linearAdTag,
+  vmapAdTag,
+} from '../../assets/fixtures/advertising';
