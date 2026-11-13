@@ -105,8 +105,8 @@ jobs:
       - name: Test player command completion
         run: node --test scripts/test-player-command-completion.js
 
-      - name: Test PlayerView event props
-        run: node --test scripts/test-player-event-props.js
+      - name: Test PlayerView attachment and event props
+        run: yarn integration-test test:runner
 
       - name: Test playlist config validation
         run: node --test scripts/test-playlist-config-validation.js

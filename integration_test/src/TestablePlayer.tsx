@@ -1,11 +1,7 @@
 import React, { useState } from 'react';
 import { useCavy, wrap } from 'cavy';
 import { StyleSheet, Text } from 'react-native';
-import {
-  Event,
-  PlayerActiveEvent,
-  PlayerView,
-} from 'bitmovin-player-react-native';
+import { Event, PlayerView } from 'bitmovin-player-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 import { fromDedicatedProp } from '../playertesting/expectations';
@@ -80,9 +76,7 @@ export default function TestablePlayer({
               }
             }}
             onEvent={(event: Event) => {
-              // PlayerView in src/components/PlayerView/index.tsx attaches the
-              // metadata handlers only when their props are set and enriches
-              // their events with addPlatformToMetadataEvent. Ignore the raw
+              // Player.on enriches the dedicated metadata subscriptions. Ignore the raw
               // catch-all copies here to observe each metadata event once.
               if (
                 event.name !== 'onMetadata' &&
@@ -94,12 +88,7 @@ export default function TestablePlayer({
             onMetadata={onEvent}
             onMetadataParsed={onEvent}
             // Also received through onEvent; marked to tell the dedicated props apart.
-            onPlayerActive={(event: PlayerActiveEvent) => {
-              if (player && playerTestWorld.player === player) {
-                playerTestWorld.onPlayerActive(event);
-              }
-              onEvent(fromDedicatedProp(event));
-            }}
+            onPlayerActive={(event: Event) => onEvent(fromDedicatedProp(event))}
             onPlayerInactive={(event: Event) =>
               onEvent(fromDedicatedProp(event))
             }

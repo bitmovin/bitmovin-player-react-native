@@ -6,7 +6,6 @@ export * from './audioSession';
 export * from './components';
 export * from './drm';
 export * from './events';
-export * from './eventMap';
 export * from './hooks';
 export { Player } from './player';
 export * from './playlist';

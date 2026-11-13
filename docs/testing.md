@@ -58,7 +58,7 @@ Run commands from the repository root after the documented development setup.
 
 ```sh
 node --test scripts/test-player-command-completion.js
-node --test scripts/test-player-event-props.js
+yarn integration-test test:runner
 yarn test:plugin
 python3 -m unittest discover -s .github/scripts -p 'test_*.py'
 ```
@@ -70,11 +70,11 @@ verify that public command promises stay pending until the mocked native call
 settles and expose the original native command rejection.
 They prove JS promise forwarding; playback readiness still requires SDK events.
 
-The [PlayerView event prop tests](../scripts/test-player-event-props.js) render
-the real `usePlayerEventProps` hook with `react-test-renderer` and a player
-double. They cover which events are attached for the set props, moving the
-listeners to a new player, unmounting, and a throwing prop. They do not prove
-that the native `PlayerView` renders or that events are emitted.
+The [PlayerView readiness tests](../integration_test/scripts/player-view-readiness.test.js)
+render the real component with the installed Fabric renderer and controlled
+native acknowledgments. They cover attachment ordering, changing Players,
+subscription cleanup and event props. They prove JS orchestration; native
+rendering and event delivery still need Cavy.
 
 `yarn test:plugin` builds and tests the config plugin. The Python command tests
 repository automation. Neither establishes Player runtime behavior. There is
@@ -135,7 +135,7 @@ and tests. Confirm execution from the job's steps and results. A test file,
 suite registration, typecheck, or successful app build alone is insufficient.
 
 Currently, [TypeScript CI](../.github/workflows/ci-typescript.yml) runs the network
-preprocessing, event listener and PlayerView event prop scripts and plugin tests. The
+preprocessing, PlayerView readiness and event prop checks, and plugin tests. The
 [integration-test workflow](../.github/workflows/integration-tests.yml) is a
 manually dispatched stub and does not run Cavy. Do not report Cavy coverage from
 that workflow's success. Any automated Cavy coverage needs actual runner steps,
