@@ -168,13 +168,13 @@ export interface ImaAdvertisingConfig {
    * Invoked before the IMA SDK initializes to customize its settings.
    *
    * @param settings - Current IMA settings received from the native SDK.
-   * @returns The settings to apply. Return the modified argument or a new settings object.
+   * @returns Settings fields to apply. Omitted fields keep their current SDK values.
    * @example
    * ```ts
-   * beforeInitialization: (settings) => ({ ...settings, language: 'en' })
+   * beforeInitialization: () => ({ language: 'en' })
    * ```
    */
-  beforeInitialization?: (settings: ImaSettings) => ImaSettings;
+  beforeInitialization?: (settings: ImaSettings) => Partial<ImaSettings>;
 }
 
 /**

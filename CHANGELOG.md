@@ -13,7 +13,8 @@
 
 #### Breaking changes
 
-- Configure callback functions before constructing a Player, Source, OfflineContentManager or custom message handler. Callbacks are captured once and invoked as standalone functions; use closures or bound functions for application state. Return the processed value, including the complete settings object from `ImaAdvertisingConfig.beforeInitialization`
+- Configure callback functions before constructing a Player, Source, OfflineContentManager or custom message handler. Callbacks are captured once and invoked as standalone functions; use closures or bound functions for application state. Return the processed value; `ImaAdvertisingConfig.beforeInitialization` can return a settings patch, while returning `void` is not supported
+- Remove the callback-forwarding methods `CustomMessageHandler.receivedSynchronousMessage` and `receivedAsynchronousMessage`. Provide the callbacks through `CustomMessageHandlerProps` instead
 - Remove `Player.initialize()`, `Source.initialize()`, `OfflineContentManager.initialize()` and their `isInitialized` flags. Constructors create the native SharedObject immediately; the first SDK operation or PlayerView attachment creates SDK resources automatically. SDK creation failures reject that operation
 - Guard the optional `SourceUnloadedEvent.source` field. Android Player subscriptions and PlayerView events do not identify the unloaded Source; Source subscriptions include its snapshot. iOS provides it on all subscription paths
 - Pass `NetworkConfig` and `DrmConfig` objects directly; the configuration-only `Network` and `Drm` wrapper classes have been removed

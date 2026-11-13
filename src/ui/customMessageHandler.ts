@@ -1,6 +1,5 @@
 import { SharedCustomMessageHandler } from './customMessageHandlerModule';
 
-/** Callbacks are captured at construction. Use closures or bound functions for application state. */
 export interface CustomMessageHandlerProps {
   /**
    * A function that will be called when the Player UI sends a synchronous message through the native bridge.
@@ -26,22 +25,11 @@ export class CustomMessageHandler {
   readonly native: SharedCustomMessageHandler;
 
   constructor(private readonly options: CustomMessageHandlerProps) {
-    this.native = new SharedCustomMessageHandler(options);
+    this.native = new SharedCustomMessageHandler(this.options);
   }
   /** Releases the configured message callbacks. */
   destroy = (): Promise<void> => this.native.destroy();
 
-  /** Handles a synchronous message delivered by the Player UI. */
-  receivedSynchronousMessage(
-    message: string,
-    data: string | undefined
-  ): string | undefined {
-    return this.options.onReceivedSynchronousMessage(message, data);
-  }
-  /** Handles an asynchronous message delivered by the Player UI. */
-  receivedAsynchronousMessage(message: string, data: string | undefined): void {
-    this.options.onReceivedAsynchronousMessage(message, data);
-  }
   /** Sends a message to the Player UI. Resolution acknowledges native submission. */
   sendMessage = (message: string, data?: string): Promise<void> =>
     this.native.sendMessage(message, data);

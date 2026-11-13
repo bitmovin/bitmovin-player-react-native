@@ -84,8 +84,6 @@ export enum TimelineReferencePoint {
 
 /**
  * Represents a source configuration that can be loaded into a player instance.
- * Settings and callback functions are captured when the Source or OfflineContentManager is constructed.
- * Use closures or bound functions when callbacks need application state.
  */
 export interface SourceConfig {
   /**
