@@ -121,6 +121,7 @@ import expo.modules.kotlin.jni.JavaScriptWeakObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.future.future
 import java.util.UUID
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Filters out null values from a map to ensure compatibility with Expo modules
@@ -653,7 +654,7 @@ fun Map<String, Any?>.toWidevineConfig(appContext: AppContext): WidevineConfig? 
     }
 
 private fun JavaScriptWeakObject.prepare(appContext: AppContext, data: ByteArray): ByteArray =
-    callBlocking(appContext, Base64.encodeToString(data, Base64.NO_WRAP)) {
+    callBlocking(appContext, Base64.encodeToString(data, Base64.NO_WRAP), timeout = 5.seconds) {
         Base64.decode(it.getString(), Base64.NO_WRAP)
     } ?: ByteArray(0)
 

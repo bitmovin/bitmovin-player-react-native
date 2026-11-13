@@ -5,6 +5,7 @@ import com.bitmovin.player.ui.CustomMessageHandler
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.jni.JavaScriptObject
 import expo.modules.kotlin.sharedobjects.SharedObject
+import kotlin.time.Duration.Companion.seconds
 
 class SharedCustomMessageHandler(appContext: AppContext, config: JavaScriptObject) : SharedObject(appContext) {
     private val context = appContext
@@ -17,7 +18,7 @@ class SharedCustomMessageHandler(appContext: AppContext, config: JavaScriptObjec
     @JavascriptInterface
     fun sendSynchronous(name: String, data: String?): String? {
         val arguments = if (data == null) arrayOf(name) else arrayOf(name, data)
-        return onReceivedSynchronousMessage?.callBlocking(context, *arguments) {
+        return onReceivedSynchronousMessage?.callBlocking(context, *arguments, timeout = 5.seconds) {
             if (it.isString()) it.getString() else null
         }
     }
