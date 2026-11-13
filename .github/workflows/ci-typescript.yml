@@ -5,6 +5,7 @@ on:
 
   pull_request:
     paths:
+      - '.ruby-version'
       - '.github/workflows/ci-typescript.yml'
       - '.github/actions/**'
       - '**.ts'
@@ -25,6 +26,7 @@ on:
   push:
     branches: [development, development-v0]
     paths:
+      - '.ruby-version'
       - '.github/workflows/ci-typescript.yml'
       - '.github/actions/**'
       - '**.ts'
@@ -83,15 +85,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Setup Node
-        uses: actions/setup-node@v7
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
         with:
-          node-version: '24'
-          check-latest: true
-          cache: 'yarn'
-
-      - name: Install node_modules
-        run: yarn install --frozen-lockfile
+          node: true
+          ruby: true
 
       - name: Install node_modules (example/)
         run: yarn install --frozen-lockfile --cwd example

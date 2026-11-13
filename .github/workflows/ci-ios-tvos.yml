@@ -7,6 +7,7 @@ on:
     branches:
       - development
     paths:
+      - '.ruby-version'
       - 'ios/**'
       - 'src/**'
       - 'scripts/**'
@@ -42,6 +43,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
+      - '.ruby-version'
       - 'ios/**'
       - 'src/**'
       - 'scripts/**'
@@ -125,7 +127,9 @@ jobs:
         with:
           node: true
           subprojects: true
-          ios: true
+          ruby: true
+          xcode: true
+          brew: true
           skip-prebuild: true
 
       - name: Test iOS HTTP response conversion
@@ -209,7 +213,9 @@ jobs:
         with:
           node: true
           subprojects: true
-          ios: true
+          ruby: true
+          xcode: true
+          brew: true
           skip-prebuild: true
 
       - name: Build config plugin
@@ -294,7 +300,9 @@ jobs:
           node: true
           node-version: '22'
           subprojects: true
-          ios: true
+          ruby: true
+          xcode: true
+          brew: true
           skip-prebuild: true
 
       - name: Check iOS CI launcher failure handling
@@ -413,7 +421,9 @@ jobs:
         with:
           node: true
           subprojects: true
-          ios: true
+          ruby: true
+          xcode: true
+          brew: true
           tv: true
           skip-prebuild: true
 
@@ -506,7 +516,9 @@ jobs:
         uses: ./.github/actions/setup-environment
         with:
           subprojects: true
-          ios: true
+          ruby: true
+          xcode: true
+          brew: true
           skip-prebuild: true
       - name: Build library and configure example
         run: |
