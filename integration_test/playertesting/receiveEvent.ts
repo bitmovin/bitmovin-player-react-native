@@ -1,6 +1,9 @@
 /** Wait for both a triggering operation and its event within one deadline. */
 export async function receiveEvent<Event>(
-  subscribe: (listener: (event: Event) => void) => Promise<{ remove(): void }>,
+  subscribe: (
+    listener: (event: Event) => void,
+    reject: (error: Error) => void
+  ) => Promise<{ remove(): void }>,
   trigger: () => void | Promise<void>,
   timeoutMs = 15000
 ): Promise<Event> {
@@ -8,8 +11,10 @@ export async function receiveEvent<Event>(
   let timeout: ReturnType<typeof setTimeout> | undefined;
   let finished = false;
   let listener: (event: Event) => void = () => {};
-  const received = new Promise<Event>((resolve) => {
+  let rejectEvent: (error: Error) => void = () => {};
+  const received = new Promise<Event>((resolve, reject) => {
     listener = resolve;
+    rejectEvent = reject;
   });
   const deadline = new Promise<never>((_, reject) => {
     timeout = setTimeout(
@@ -18,14 +23,16 @@ export async function receiveEvent<Event>(
     );
   });
   try {
-    const operation = subscribe(listener).then((registered) => {
-      if (finished) {
-        registered.remove();
-        throw new Error('Event registration completed after the deadline');
-      }
-      subscription = registered;
-      return trigger();
-    });
+    const operation = Promise.resolve()
+      .then(() => subscribe(listener, rejectEvent))
+      .then((registered) => {
+        if (finished) {
+          registered.remove();
+          throw new Error('Event registration completed after the deadline');
+        }
+        subscription = registered;
+        return trigger();
+      });
     const [, event] = await Promise.race([
       Promise.all([operation, received]),
       deadline,

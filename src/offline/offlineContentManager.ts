@@ -1,5 +1,4 @@
 import type { EventSubscription } from 'expo-modules-core';
-import NativeInstance from '../nativeInstance';
 import type {
   BitmovinNativeOfflineEventData,
   OfflineContentManagerListener,
@@ -8,8 +7,11 @@ import { OfflineEventType } from './offlineContentManagerListener';
 import type { OfflineContentConfig } from './offlineContentConfig';
 import type { OfflineDownloadRequest } from './offlineDownloadRequest';
 import type { OfflineState } from './offlineState';
-import { LegacyDrm as Drm } from '../drm/legacyDrm';
-import OfflineModule from './offlineModule';
+import {
+  SharedOfflineContentManager,
+  SharedOfflineEvents,
+} from './offlineModule';
+import { legacyOfflineRegistry } from '../nativeInstanceRegistry';
 
 const handleBitmovinNativeOfflineEvent = (
   data: BitmovinNativeOfflineEventData,
@@ -43,63 +45,39 @@ const handleBitmovinNativeOfflineEvent = (
 /**
  * Provides the means to download and store sources locally that can be played back with a Player
  * without an active network connection. An OfflineContentManager instance can be created via
- * the constructor and will be idle until initialized.
+ * the constructor. Native SDK resources are created on the first SDK operation.
  *
- * @platform Android, iOS
  */
-export class OfflineContentManager extends NativeInstance<OfflineContentConfig> {
-  isInitialized = false;
+export class OfflineContentManager {
+  /** @internal Native peer used by the view and runtime API adapters. */
+  readonly native!: SharedOfflineContentManager;
+  private readonly listeners = new Set<OfflineContentManagerListener>();
+  private subscription?: EventSubscription;
+
+  constructor(readonly config: OfflineContentConfig) {
+    const alias = legacyOfflineRegistry.get(config.nativeId);
+    if (alias) return alias;
+    const events = new SharedOfflineEvents();
+    this.native = new SharedOfflineContentManager(config, events);
+    this.nativeId = legacyOfflineRegistry.register(config.nativeId, this);
+    this.observeEvents(events);
+  }
+
+  /** User-defined compatibility ID, or a generated UUIDv4. */
+  declare readonly nativeId: string;
+
+  /** Whether `destroy()` has been called on this wrapper. */
   isDestroyed = false;
-  private eventSubscription?: EventSubscription;
-  private listeners: Set<OfflineContentManagerListener> =
-    new Set<OfflineContentManagerListener>();
-  private drm?: Drm;
-
-  /**
-   * Allocates the native `OfflineManager` instance and its resources natively.
-   * Registers the `DeviceEventEmitter` listener to receive data from the native `OfflineContentManagerListener` callbacks
-   */
-  initialize = async (): Promise<void> => {
-    if (!this.isInitialized && this.config) {
-      this.eventSubscription = OfflineModule.addListener(
-        'onBitmovinOfflineEvent',
-        (event: BitmovinNativeOfflineEventData) => {
-          if (this.nativeId !== event.nativeId) {
-            return;
-          }
-
-          handleBitmovinNativeOfflineEvent(event, this.listeners);
-        }
-      );
-
-      if (this.config.sourceConfig.drmConfig) {
-        this.drm = new Drm(this.config.sourceConfig.drmConfig);
-        await this.drm.initialize();
-      }
-
-      await OfflineModule.initializeWithConfig(
-        this.nativeId,
-        {
-          identifier: this.config.identifier,
-          sourceConfig: this.config.sourceConfig,
-        },
-        this.drm?.nativeId
-      );
-    }
-
-    this.isInitialized = true;
-    return Promise.resolve();
-  };
 
   /**
    * Adds a listener to the receive data from the native `OfflineContentManagerListener` callbacks
    * Returns a function that removes this listener from the `OfflineContentManager` that registered it.
    */
   addListener = (listener: OfflineContentManagerListener): (() => void) => {
-    this.listeners.add(listener);
-
+    const listeners = this.listeners;
+    listeners.add(listener);
     return () => {
-      this.listeners.delete(listener);
+      listeners.delete(listener);
     };
   };
 
@@ -107,86 +85,65 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    * Destroys the native `OfflineManager` and releases all of its allocated resources.
    */
   destroy = async (): Promise<void> => {
-    if (!this.isDestroyed) {
-      this.isDestroyed = true;
-      this.eventSubscription?.remove?.();
-      this.listeners.clear();
-      await this.drm?.destroy();
-
-      return OfflineModule.release(this.nativeId);
-    }
-
-    return Promise.resolve();
+    this.isDestroyed = true;
+    this.subscription?.remove();
+    this.subscription = undefined;
+    this.listeners.clear();
+    legacyOfflineRegistry.remove(this.nativeId, this);
+    await this.native.destroy();
   };
 
   /**
    * Gets the current state of the `OfflineContentManager`
    */
-  state = async (): Promise<OfflineState> => {
-    return OfflineModule.getState(this.nativeId) as Promise<OfflineState>;
-  };
+  state = (): Promise<OfflineState> => this.native.state();
 
   /**
    * Loads the current `OfflineContentOptions`.
    * When the options are loaded the data will be passed to the `OfflineContentManagerListener.onOptionsAvailable`.
    */
-  getOptions = async (): Promise<void> => {
-    return OfflineModule.getOptions(this.nativeId);
-  };
+  getOptions = (): Promise<void> => this.native.getOptions();
 
   /**
    * Enqueues downloads according to the `OfflineDownloadRequest`.
-   * The promise will reject in the event of null or invalid request parameters.
-   * The promise will reject when calling this method when download has already started or is completed.
-   * The promise will resolve when the download has been queued. The download will is not finished when the promise resolves.
+   * The native SDK handles requests according to the current download state.
+   * A resolved promise does not indicate that the download has finished.
+   * Observe `OfflineContentManagerListener` for download completion and errors.
    */
-  download = async (request: OfflineDownloadRequest): Promise<void> => {
-    return OfflineModule.download(this.nativeId, request);
-  };
+  download = (request: OfflineDownloadRequest): Promise<void> =>
+    this.native.download(request);
 
   /**
    * Resumes all suspended actions.
    */
-  resume = async (): Promise<void> => {
-    return OfflineModule.resume(this.nativeId);
-  };
+  resume = (): Promise<void> => this.native.resume();
 
   /**
    * Suspends all active actions.
    */
-  suspend = async (): Promise<void> => {
-    return OfflineModule.suspend(this.nativeId);
-  };
+  suspend = (): Promise<void> => this.native.suspend();
 
   /**
    * Cancels and deletes the active download.
    */
-  cancelDownload = async (): Promise<void> => {
-    return OfflineModule.cancelDownload(this.nativeId);
-  };
+  cancelDownload = (): Promise<void> => this.native.cancelDownload();
 
   /**
    * Resolves how many bytes of storage are used by the offline content.
    */
-  usedStorage = async (): Promise<number> => {
-    return OfflineModule.usedStorage(this.nativeId);
-  };
+  usedStorage = (): Promise<number> => this.native.usedStorage();
 
   /**
    * Deletes everything related to the related content ID.
    */
-  deleteAll = async (): Promise<void> => {
-    return OfflineModule.deleteAll(this.nativeId);
-  };
+  deleteAll = (): Promise<void> => this.native.deleteAll();
 
   /**
    * Downloads the offline license.
    * When finished successfully, data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    */
-  downloadLicense = async (): Promise<void> => {
-    return OfflineModule.downloadLicense(this.nativeId);
-  };
+  downloadLicense = (): Promise<void> => this.native.downloadLicense();
 
   /**
    * Releases the currently held offline license.
@@ -195,16 +152,34 @@ export class OfflineContentManager extends NativeInstance<OfflineContentConfig> 
    *
    * @platform Android
    */
-  releaseLicense = async (): Promise<void> => {
-    return OfflineModule.releaseLicense(this.nativeId);
-  };
+  releaseLicense = (): Promise<void> => this.native.releaseLicense();
 
   /**
    * Renews the already downloaded DRM license.
    * When finished successfully data will be passed to the `OfflineContentManagerListener.onDrmLicenseUpdated`.
    * Errors are transmitted to the `OfflineContentManagerListener.onError`.
    */
-  renewOfflineLicense = async (): Promise<void> => {
-    return OfflineModule.renewOfflineLicense(this.nativeId);
-  };
+  renewOfflineLicense = (): Promise<void> => this.native.renewOfflineLicense();
+  private observeEvents(events: SharedOfflineEvents) {
+    if (!this.subscription)
+      this.subscription = events.addListener(
+        'onBitmovinOfflineEvent',
+        OfflineContentManager.weakEventListener(new WeakRef(this))
+      );
+  }
+
+  // A separate scope keeps the native-held listener from capturing the manager.
+  private static weakEventListener(reference: WeakRef<OfflineContentManager>) {
+    return (event: Omit<BitmovinNativeOfflineEventData, 'nativeId'>) => {
+      const manager = reference.deref();
+      if (!manager) return;
+      handleBitmovinNativeOfflineEvent(
+        {
+          ...event,
+          nativeId: manager.nativeId,
+        } as BitmovinNativeOfflineEventData,
+        manager.listeners
+      );
+    };
+  }
 }

@@ -12,6 +12,7 @@ import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
 import com.bitmovin.player.reactnative.converter.toBufferTypeOrThrow
 import com.bitmovin.player.reactnative.converter.toJson
 import com.bitmovin.player.reactnative.converter.toReplayMode
+import com.bitmovin.player.reactnative.offline.SharedOfflineContentManager
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.jni.JavaScriptValue
@@ -293,11 +294,10 @@ class PlayerModule : Module() {
             return@AsyncFunction player?.getThumbnail(time)?.toJson()
         }.runOnQueue(Queues.MAIN)
 
-        AsyncFunction("loadOfflineContent") { owner: SharedPlayer, offlineId: String, options: Map<String, Any>? ->
-            val manager = appContext.registry.getModule<OfflineModule>()?.getOfflineContentManagerBridge(offlineId)
-                ?: return@AsyncFunction false
-            val config = manager.offlineContentManager?.offlineSourceConfig ?: return@AsyncFunction false
-            owner.player.load(config)
+        AsyncFunction("loadOfflineContent") { shared: SharedPlayer, offline: SharedOfflineContentManager,
+            options: Map<String, Any>?, ->
+            val config = offline.offlineContentManager.offlineSourceConfig ?: return@AsyncFunction false
+            shared.player.load(config)
             true
         }.runOnQueue(Queues.MAIN)
 
