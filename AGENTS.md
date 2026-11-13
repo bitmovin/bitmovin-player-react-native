@@ -76,10 +76,10 @@
 
 - Source of truth: export public surface from `src/index.ts:1-29` (ensure new modules are re‑exported).
 - Use typed Expo wrappers in `src/modules/`:
-  - Define `declare class <Feature>Module extends NativeModule<Events> { ... }` and load with `requireNativeModule('<Feature>Module')` (example: `src/modules/PlayerModule.ts:1,251`).
+  - Define `declare class <Feature>Module extends NativeModule<Events> { ... }` and load with `requireNativeModule('<Feature>Module')` (example: `src/modules/playerModule.ts:1,251`).
 - For platform-specific native modules:
   - Do not add a native stub on unsupported platforms just to satisfy `requireNativeModule`.
-  - Platform-gate the TS wrapper instead, following `src/modules/AudioSessionModule.ts`.
+  - Platform-gate the TS wrapper instead, following `src/modules/audioSessionModule.ts`.
   - Register the native module in `expo-module.config.json` only for platforms that actually implement it.
   - The public JS API may still exist cross-platform if it has guarded no-op/unsupported behavior and a future implementation is expected.
 - Public React Native API names should be platform-neutral when Android/iOS parity is expected. Keep Apple/Android SDK terminology inside native implementation files only.
