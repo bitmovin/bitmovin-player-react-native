@@ -6,10 +6,16 @@ export * from './audioSession';
 export * from './components';
 export * from './drm';
 export * from './events';
-export * from './eventMap';
 export * from './hooks';
-export * from './player';
-export * from './source';
+export { Player } from './player';
+export * from './playlist';
+export {
+  Source,
+  SourceType,
+  LoadingState,
+  TimelineReferencePoint,
+} from './source';
+export type { SourceConfig, SourceOptions } from './source';
 export * from './subtitleTrack';
 export * from './styleConfig';
 export * from './ui';
@@ -25,12 +31,12 @@ export * from './bufferConfig';
 export * from './playbackConfig';
 export * from './playerConfig';
 export * from './liveConfig';
-export * from './bufferApi';
-export * from './mediaControlsApi';
+export { BufferType, MediaType } from './bufferApi';
+export type { BufferApi, BufferLevel, BufferLevels } from './bufferApi';
+export type { MediaControlsApi } from './mediaControlsApi';
 export * from './network';
-export * from './playlist';
 export * from './mediaControlConfig';
-export * from './debug';
+export * from './debugConfig';
 export * from './decoder/decoderConfig';
 export * from './mediaTrackRole';
 export * from './subtitleFormat';

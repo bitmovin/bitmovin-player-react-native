@@ -1,5 +1,3 @@
-import type { NativeInstanceConfig } from '../nativeInstance';
-
 /**
  * Available HTTP request types.
  */
@@ -66,7 +64,7 @@ export interface HttpResponse {
  * The network API gives the ability to influence network requests.
  * It enables preprocessing requests and preprocessing responses.
  */
-export interface NetworkConfig extends NativeInstanceConfig {
+export interface NetworkConfig {
   /**
    * Called before an HTTP request is made.
    * Can be used to change request parameters.
@@ -79,7 +77,7 @@ export interface NetworkConfig extends NativeInstanceConfig {
    *
    * @example
    * ```
-   *  const requestCallback = (type: HttpRequestType, request: HttpRequest) => {
+   *  const requestCallback = async (type: HttpRequestType, request: HttpRequest) => {
    *    // Access current properties
    *
    *    console.log(JSON.stringify(type));
@@ -90,7 +88,7 @@ export interface NetworkConfig extends NativeInstanceConfig {
    *    request.headers['New-Header'] = 'val';
    *    request.method = 'GET';
    *
-   *    // Return the processed request via a Promise
+   *    // Return the processed request
    *
    *    const processed: HttpRequest = {
    *      body: request.body,
@@ -98,7 +96,7 @@ export interface NetworkConfig extends NativeInstanceConfig {
    *      method: request.method,
    *      url: request.url,
    *    };
-   *    return Promise.resolve(processed);
+   *    return processed;
    *  };
    *
    *  const player = usePlayer({
@@ -124,7 +122,7 @@ export interface NetworkConfig extends NativeInstanceConfig {
    *
    * @example
    * ```
-   *  const responseCallback = (type: HttpRequestType, response: HttpResponse) => {
+   *  const responseCallback = async (type: HttpRequestType, response: HttpResponse) => {
    *    // Access response properties
    *
    *    console.log(JSON.stringify(type));
@@ -135,7 +133,7 @@ export interface NetworkConfig extends NativeInstanceConfig {
    *    response.headers['New-Header'] = 'val';
    *    response.url = response.request.url; // remove eventual redirect changes
    *
-   *    // Return the processed response via a Promise
+   *    // Return the processed response
    *
    *    const processed: HttpResponse = {
    *      body: response.body,
@@ -144,7 +142,7 @@ export interface NetworkConfig extends NativeInstanceConfig {
    *      status: response.status,
    *      url: response.url,
    *    };
-   *    return Promise.resolve(processed);
+   *    return processed;
    *  };
    *
    *  // Properly attach the callback to the config

@@ -243,7 +243,7 @@ export function expect(actual: any, desc?: string) {
         );
       }
       try {
-        const result = await Promise.resolve(actual);
+        const result = await actual;
         logPass(`Expected promise to resolve, got: ${formatValue(result)}`);
         return result;
       } catch (error) {
@@ -262,7 +262,7 @@ export function expect(actual: any, desc?: string) {
         );
       }
       try {
-        const result = await Promise.resolve(actual);
+        const result = await actual;
         throwErr(
           `Expected promise to reject, but it resolved with: ${formatValue(
             result
@@ -281,7 +281,7 @@ export function expect(actual: any, desc?: string) {
         );
       }
       try {
-        const result = await Promise.resolve(actual);
+        const result = await actual;
         assert(
           deepEqual(result, expected),
           `Expected promise to resolve with ${formatValue(
@@ -305,7 +305,7 @@ export function expect(actual: any, desc?: string) {
         );
       }
       try {
-        const result = await Promise.resolve(actual);
+        const result = await actual;
         throwErr(
           `Expected promise to reject with ${formatValue(
             expected

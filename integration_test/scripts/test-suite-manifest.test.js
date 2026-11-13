@@ -33,7 +33,7 @@ describe('test suite manifest', () => {
     };
 
     try {
-      const specs = createSpecs();
+      const specs = createSpecs('android');
 
       assert.equal(specs.length, loadedModulePaths.length);
       for (const registerSpec of specs) {
@@ -52,6 +52,7 @@ describe('test suite manifest', () => {
       assert.deepEqual(
         registeredTags,
         availableTestTags
+          .filter(({ platforms }) => platforms.includes('android'))
           .map(({ name }) => name)
           .filter((name) => name !== 'loading-vod')
       );
@@ -65,6 +66,30 @@ describe('test suite manifest', () => {
       } else {
         delete require.extensions['.ts'];
       }
+    }
+  });
+
+  it('does not load Android-only suites on iOS', () => {
+    const originalTypeScriptLoader = require.extensions['.ts'];
+    const loaded = [];
+    require.extensions['.ts'] = (module, filename) => {
+      loaded.push(filename);
+      module.exports = { default() {} };
+    };
+    try {
+      createSpecs('ios');
+      const names = loaded.map((filename) =>
+        require('node:path').basename(filename)
+      );
+      assert.ok(!names.includes('drmCallbacksTest.ts'));
+      assert.ok(!names.includes('mediaSessionTeardownTest.ts'));
+      assert.ok(!names.includes('decoderConfigTest.ts'));
+      assert.ok(names.includes('mediaControlsTest.ts'));
+    } finally {
+      for (const filename of loaded) delete require.cache[filename];
+      if (originalTypeScriptLoader)
+        require.extensions['.ts'] = originalTypeScriptLoader;
+      else delete require.extensions['.ts'];
     }
   });
 
@@ -83,12 +108,12 @@ describe('test suite manifest', () => {
     };
     try {
       process.env.EXPO_PUBLIC_CAVY_ONLY_TAGS = 'playback,loading-vod';
-      for (const register of createSpecs())
+      for (const register of createSpecs('android'))
         register({ describe() {}, it() {} });
       assert.equal(calls.filter((call) => call === 'vod').length, 1);
       delete process.env.EXPO_PUBLIC_CAVY_ONLY_TAGS;
       calls.length = 0;
-      for (const register of createSpecs())
+      for (const register of createSpecs('android'))
         register({ describe() {}, it() {} });
       assert.ok(calls.length > 0);
       assert.ok(calls.every((call) => call === 'full'));
@@ -134,7 +159,7 @@ describe('test suite manifest', () => {
     console.warn = (...args) => warnings.push(args.join(' '));
 
     try {
-      const [registerSpec] = createSpecs();
+      const [registerSpec] = createSpecs('android');
       const testCases = [];
       const scope = {
         component: {

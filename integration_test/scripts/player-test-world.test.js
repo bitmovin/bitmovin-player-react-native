@@ -179,7 +179,6 @@ for (const multiple of [false, true]) {
       const actionError = new Error('subtitle action failed');
       const trigger = asynchronous
         ? async () => {
-            await Promise.resolve();
             throw actionError;
           }
         : () => {
@@ -198,13 +197,36 @@ for (const multiple of [false, true]) {
     });
   }
 
-  test(`${label}: preserves the action error after the expectation times out`, async () => {
+  test(`${label}: bounds a pending operation even after the event arrives`, async () => {
     const harness = createWorld();
-    const actionError = new Error('slow action failed');
+    const expectation = multiple ? ['onSubtitleChanged'] : 'onSubtitleChanged';
+    let rejectOperation;
+    const operation = new Promise((_, reject) => {
+      rejectOperation = reject;
+    });
+    const running = harness.world[method](expectation, 1, () => {
+      harness.world.onEvent({ name: 'onSubtitleChanged' });
+      return operation;
+    });
+    const rejected = assert.rejects(
+      running,
+      /Player operation did not complete/
+    );
+    await new Promise(setImmediate);
+    harness.expireTimers();
+    await rejected;
+    assert.equal(harness.timers.size, 0);
+    rejectOperation(new Error('late operation failure'));
+    await new Promise(setImmediate);
+  });
+
+  test(`${label}: observes an operation rejection after the event arrives`, async () => {
+    const harness = createWorld();
+    const actionError = new Error('action failed after its event');
     const expectation = multiple ? ['onSubtitleChanged'] : 'onSubtitleChanged';
     await assert.rejects(
       harness.world[method](expectation, 1, async () => {
-        harness.expireTimers();
+        harness.world.onEvent({ name: 'onSubtitleChanged' });
         await new Promise(setImmediate);
         throw actionError;
       }),
@@ -227,10 +249,14 @@ for (const multiple of [false, true]) {
   test(`${label}: still rejects when the event never arrives`, async () => {
     const harness = createWorld();
     const expectation = multiple ? ['onSubtitleChanged'] : 'onSubtitleChanged';
-    await assert.rejects(
-      harness.world[method](expectation, 1, async () => harness.expireTimers()),
+    const running = harness.world[method](expectation, 1, async () => {});
+    const rejected = assert.rejects(
+      running,
       /Expectation was not met:.*onSubtitleChanged/
     );
+    await new Promise(setImmediate);
+    harness.expireTimers();
+    await rejected;
     assert.equal(harness.timers.size, 0);
   });
 }

@@ -1,506 +1,281 @@
 package com.bitmovin.player.reactnative
 
-import android.os.Handler
-import android.os.Looper
-import androidx.core.os.bundleOf
-import com.bitmovin.analytics.api.DefaultMetadata
 import com.bitmovin.player.api.Player
-import com.bitmovin.player.api.PlayerConfig
-import com.bitmovin.player.api.advertising.AdvertisingConfig
-import com.bitmovin.player.api.analytics.create
-import com.bitmovin.player.api.event.Event
+import com.bitmovin.player.api.analytics.AnalyticsApi.Companion.analytics
+import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.api.playlist.PlaylistConfig
 import com.bitmovin.player.api.playlist.PlaylistOptions
+import com.bitmovin.player.api.playlist.SeekTarget
 import com.bitmovin.player.api.source.Source
+import com.bitmovin.player.reactnative.converter.IS_GOOGLE_IMA_ENABLED
 import com.bitmovin.player.reactnative.converter.toAdItem
-import com.bitmovin.player.reactnative.converter.toAnalyticsConfig
-import com.bitmovin.player.reactnative.converter.toAnalyticsDefaultMetadata
+import com.bitmovin.player.reactnative.converter.toAnalyticsCustomData
+import com.bitmovin.player.reactnative.converter.toBufferTypeOrThrow
 import com.bitmovin.player.reactnative.converter.toJson
-import com.bitmovin.player.reactnative.converter.toMediaControlConfig
-import com.bitmovin.player.reactnative.converter.toPlayerConfig
-import com.bitmovin.player.reactnative.converter.toPlaylistOptions
-import com.bitmovin.player.reactnative.extensions.getMap
-import com.bitmovin.player.reactnative.util.NonFiniteSanitizer
+import com.bitmovin.player.reactnative.converter.toReplayMode
+import com.bitmovin.player.reactnative.converter.toTimelineReferencePoint
+import com.bitmovin.player.reactnative.offline.SharedOfflineContentManager
+import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.functions.Queues
+import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
 class PlayerModule : Module() {
-
-    val mediaSessionPlaybackManager by lazy { MediaSessionPlaybackManager(appContext) }
-    private val shouldLoadAdItemWaiter = ResultWaiter<Boolean>()
-    private val shouldPlayAdBreakWaiter = ResultWaiter<Boolean>()
-    private val imaSettingsWaiter = ResultWaiter<Map<String, Any?>>()
-
-    private val eventRelay = EventRelay<Event>(PlayerEventTypes.player) { nativeId, eventName, event ->
-        sendEvent(
-            "onPlayerEvent",
-            mapOf(
-                "nativeId" to nativeId,
-                "eventName" to eventName,
-                "event" to NonFiniteSanitizer.sanitizeEventData(event.toJson()),
-            ),
-        )
-    }
+    private val mediaSessionPlaybackManager by lazy { MediaSessionPlaybackManager(appContext) }
 
     override fun definition() = ModuleDefinition {
         Name("PlayerModule")
+        Constant("isGoogleImaEnabled") { IS_GOOGLE_IMA_ENABLED }
+        Class(SharedPlayer::class) {
+            Constructor { config: JavaScriptValue?, analytics: Map<String, Any>? ->
+                SharedPlayer.create(
+                    appContext,
+                    config?.getObject(),
+                    analytics,
+                    mediaSessionPlaybackManager,
+                )
+            }
+            AsyncFunction("loadPlaylist") { shared: SharedPlayer, sources: List<SharedSource>,
+                options: Map<String, Any>?, ->
+                val nativeSources = sources.map { it.source }
+                ensureSourcesAvailable(shared.player, nativeSources)
+                shared.player.load(
+                    PlaylistConfig(
+                        nativeSources,
+                        PlaylistOptions(
+                            preloadAllSources = options?.get("preloadAllSources") as? Boolean ?: false,
+                            replayMode = options?.get("replayMode").toReplayMode(),
+                        ),
+                    ),
+                )
+            }.runOnQueue(Queues.MAIN)
 
-        OnCreate {
-            // Module initialization
+            AsyncFunction("getSource") { shared: SharedPlayer, known: List<SharedSource> ->
+                shared.player.source?.let { source ->
+                    known.firstOrNull { it.source === source } ?: SharedSource(appContext, source)
+                }
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("play") { shared: SharedPlayer -> shared.player.play() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("pause") { shared: SharedPlayer -> shared.player.pause() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("mute") { shared: SharedPlayer -> shared.player.mute() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("unmute") { shared: SharedPlayer -> shared.player.unmute() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("seek") { shared: SharedPlayer, time: Double ->
+                shared.player.seek(time)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("timeShift") { shared: SharedPlayer, offset: Double ->
+                shared.player.timeShift(offset)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("destroy", SharedPlayer::destroy).runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setVolume") { shared: SharedPlayer, volume: Double ->
+                shared.player.volume = volume.toInt()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getVolume") { shared: SharedPlayer ->
+                shared.player.volume.toDouble()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getCurrentTime") { shared: SharedPlayer, mode: String? ->
+                val player = shared.player
+                when (mode ?: "absolute") {
+                    "relative" -> player.currentTime + player.playbackTimeOffsetToRelativeTime
+                    "absolute" -> player.currentTime + player.playbackTimeOffsetToAbsoluteTime
+                    else -> player.currentTime
+                }
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isPlaying") { shared: SharedPlayer -> shared.player.isPlaying }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isPaused") { shared: SharedPlayer -> shared.player.isPaused }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getDuration") { shared: SharedPlayer -> shared.player.duration }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isMuted") { shared: SharedPlayer -> shared.player.isMuted }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("unload") { shared: SharedPlayer -> shared.player.unload() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getTimeShift") { shared: SharedPlayer -> shared.player.timeShift }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isLive") { shared: SharedPlayer -> shared.player.isLive }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getMaxTimeShift") { shared: SharedPlayer ->
+                shared.player.maxTimeShift
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getPlaybackSpeed") { shared: SharedPlayer ->
+                shared.player.playbackSpeed.toDouble()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setPlaybackSpeed") { shared: SharedPlayer, playbackSpeed: Double ->
+                shared.player.playbackSpeed = playbackSpeed.toFloat()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isAd") { shared: SharedPlayer -> shared.player.isAd }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setMaxSelectableBitrate") { shared: SharedPlayer, maxBitrate: Double ->
+                shared.player.setMaxSelectableVideoBitrate(maxBitrate.toInt())
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isAirPlayActive") { _: SharedPlayer ->
+                // AirPlay is iOS-only, return false on Android
+                false
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isAirPlayAvailable") { _: SharedPlayer ->
+                // AirPlay is iOS-only, return false on Android
+                false
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("showAirPlayTargetPicker") { _: SharedPlayer ->
+                // AirPlay is iOS-only, no-op on Android
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isCastAvailable") { shared: SharedPlayer ->
+                shared.player.isCastAvailable
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("isCasting") { shared: SharedPlayer -> shared.player.isCasting }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("castVideo") { shared: SharedPlayer -> shared.player.castVideo() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("castStop") { shared: SharedPlayer -> shared.player.castStop() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("skipAd") { shared: SharedPlayer -> shared.player.skipAd() }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("canPlayAtPlaybackSpeed") { _: SharedPlayer, _: Double ->
+                // This method is iOS-only, return false on Android
+                false
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getAudioTrack") { shared: SharedPlayer ->
+                shared.player.audio?.toJson()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getAvailableAudioTracks") { shared: SharedPlayer ->
+                shared.player.availableAudio.map { it.toJson() }
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setAudioTrack") { shared: SharedPlayer, trackIdentifier: String ->
+                shared.player.setAudio(trackIdentifier)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getSubtitleTrack") { shared: SharedPlayer ->
+                shared.player.subtitle?.takeUnless { it.id == "bitmovin-off" }?.toJson()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getAvailableSubtitles") { shared: SharedPlayer ->
+                shared.player.availableSubtitles.filterNot { it.id == "bitmovin-off" }.map { it.toJson() }
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setSubtitleTrack") { shared: SharedPlayer, trackIdentifier: String? ->
+                shared.player.setSubtitle(trackIdentifier)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getVideoQuality") { shared: SharedPlayer ->
+                shared.player.videoQuality?.toJson()
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getAvailableVideoQualities") { shared: SharedPlayer ->
+                shared.player.availableVideoQualities.map { it.toJson() }
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("setVideoQuality") { shared: SharedPlayer, qualityId: String ->
+                shared.player.setVideoQuality(qualityId)
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("getThumbnail") { shared: SharedPlayer, time: Double ->
+                shared.player.getThumbnail(time)?.toJson()
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("loadOfflineContent") { shared: SharedPlayer, offline: SharedOfflineContentManager,
+                options: Map<String, Any>?, ->
+                val config = offline.offlineContentManager.offlineSourceConfig ?: return@AsyncFunction false
+                shared.player.load(config)
+                true
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("scheduleAd") { shared: SharedPlayer, adItemJson: Map<String, Any> ->
+                adItemJson.toAdItem()?.let { shared.player.scheduleAd(it) }
+            }.runOnQueue(Queues.MAIN)
+
+            AsyncFunction("loadSource") { shared: SharedPlayer, sharedSource: SharedSource ->
+                ensureSourcesAvailable(shared.player, listOf(sharedSource.source))
+                shared.player.load(sharedSource.source)
+            }.runOnQueue(Queues.MAIN)
         }
-
-        OnDestroy {
-            // `OnDestroy` has no `runOnQueue` and is not guaranteed to run on the main thread, which the event relay
-            // and the players require. Post to the main looper directly: Expo cancels its `mainQueue` right after
-            // `OnDestroy`, which would drop a block launched on it.
-            Handler(Looper.getMainLooper()).post {
-                // Detach the listeners first, so destroying the players does not emit into this module.
-                eventRelay.clear { PlayerRegistry.getPlayer(it) }
-                // Clean up all players when module is destroyed
-                PlayerRegistry.getAllPlayers().forEach { player ->
-                    try {
-                        player.destroy()
-                    } catch (e: Exception) {
-                        // Log but don't crash on cleanup
+        Class(SharedBufferApi::class) {
+            Constructor { owner: SharedPlayer -> SharedBufferApi(owner) }
+            AsyncFunction("getLevel") { shared: SharedBufferApi, type: String ->
+                val buffer = shared.player.buffer
+                val bufferType = type.toBufferTypeOrThrow()
+                mapOf(
+                    "audio" to buffer.getLevel(bufferType, MediaType.Audio).toJson(),
+                    "video" to buffer.getLevel(bufferType, MediaType.Video).toJson(),
+                )
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("setTargetLevel") { shared: SharedBufferApi, type: String, value: Double ->
+                shared.player.buffer.setTargetLevel(type.toBufferTypeOrThrow(), value)
+            }.runOnQueue(Queues.MAIN)
+        }
+        Class(SharedAnalyticsApi::class) {
+            Constructor { owner: SharedPlayer -> SharedAnalyticsApi(owner) }
+            AsyncFunction("sendCustomDataEvent") { shared: SharedAnalyticsApi, json: Map<String, Any?> ->
+                checkNotNull(shared.player.analytics) { "Analytics is disabled" }
+                    .sendCustomDataEvent(json.toAnalyticsCustomData())
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("getUserId") { shared: SharedAnalyticsApi ->
+                checkNotNull(shared.player.analytics) { "Analytics is disabled" }.userId
+            }.runOnQueue(Queues.MAIN)
+        }
+        Class(SharedPlaylistApi::class) {
+            Constructor { owner: SharedPlayer -> SharedPlaylistApi(owner) }
+            AsyncFunction("getSources") { shared: SharedPlaylistApi, known: List<SharedSource> ->
+                shared.player.playlist.sources.map { source ->
+                    known.firstOrNull { it.source === source } ?: SharedSource(appContext, source)
+                }
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("add") { shared: SharedPlaylistApi, source: SharedSource, index: Int? ->
+                if (index == null) {
+                    shared.player.playlist.add(source.source)
+                } else {
+                    shared.player.playlist.add(source.source, index)
+                }
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("remove") { shared: SharedPlaylistApi, source: SharedSource ->
+                shared.player.playlist.remove(source.source)
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("removeAt") { shared: SharedPlaylistApi, index: Int ->
+                shared.player.playlist.remove(index)
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("seek") { shared: SharedPlaylistApi, source: SharedSource, time: Double ->
+                shared.player.playlist.seek(source.source, time)
+            }.runOnQueue(Queues.MAIN)
+            AsyncFunction("seekTo") { shared: SharedPlaylistApi, source: SharedSource, target: Map<String, Any> ->
+                val reference = target["startOffsetTimelineReference"]?.let {
+                    requireNotNull((it as? String)?.toTimelineReferencePoint()) {
+                        "Unknown timeline reference point"
                     }
                 }
-                PlayerRegistry.clear()
-            }
-            shouldLoadAdItemWaiter.clear()
-            shouldPlayAdBreakWaiter.clear()
-            imaSettingsWaiter.clear()
-        }
-
-        Events("onShouldLoadAdItem", "onShouldPlayAdBreak", "onImaBeforeInitialization", "onPlayerEvent")
-
-        AsyncFunction("on") { nativeId: NativeId, eventName: String ->
-            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
-            eventRelay.on(nativeId, player, eventName)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("off") { nativeId: NativeId, eventName: String ->
-            eventRelay.off(nativeId, PlayerRegistry.getPlayer(nativeId), eventName)
-        }.runOnQueue(Queues.MAIN)
-
-        Constant("isGoogleImaEnabled") { ImaBeforeInitializationConfigurator.IS_GOOGLE_IMA_ENABLED }
-
-        AsyncFunction("play") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.play()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("pause") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.pause()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("mute") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.mute()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("unmute") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.unmute()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("seek") { nativeId: NativeId, time: Double ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.seek(time)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("timeShift") { nativeId: NativeId, offset: Double ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.timeShift(offset)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("destroy") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            if (player != null) {
-                // Note: MediaSession cleanup would need to be handled here
-                // For now, just destroy the player and remove from registry
-                player.destroy()
-                PlayerRegistry.unregister(nativeId)
-            }
-            eventRelay.offAll(nativeId, player)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("setVolume") { nativeId: NativeId, volume: Double ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.volume = volume.toInt()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getVolume") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.volume?.toDouble()
-        }
-
-        AsyncFunction("currentTime") { nativeId: NativeId, mode: String? ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction when {
-                player == null -> null
-                mode == "relative" -> player.currentTime + player.playbackTimeOffsetToRelativeTime
-                mode == "absolute" -> player.currentTime + player.playbackTimeOffsetToAbsoluteTime
-                else -> player.currentTime
-            }
-        }
-
-        AsyncFunction("isPlaying") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.isPlaying
-        }
-
-        AsyncFunction("isPaused") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.isPaused
-        }
-
-        AsyncFunction("duration") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.duration
-        }
-
-        AsyncFunction("isMuted") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.isMuted
-        }
-
-        AsyncFunction("unload") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.unload()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getTimeShift") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.timeShift
-        }
-
-        AsyncFunction("isLive") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.isLive
-        }
-
-        AsyncFunction("getMaxTimeShift") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.maxTimeShift
-        }
-
-        AsyncFunction("getPlaybackSpeed") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.playbackSpeed?.toDouble()
-        }
-
-        AsyncFunction("setPlaybackSpeed") { nativeId: NativeId, playbackSpeed: Double ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.playbackSpeed = playbackSpeed.toFloat()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("isAd") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.isAd
-        }
-
-        AsyncFunction("setMaxSelectableBitrate") { nativeId: NativeId, maxBitrate: Double ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.setMaxSelectableVideoBitrate(maxBitrate.toInt())
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("isAirPlayActive") { _: String ->
-            // AirPlay is iOS-only, return null on Android
-            false
-        }
-
-        AsyncFunction("isAirPlayAvailable") { _: String ->
-            // AirPlay is iOS-only, return null on Android
-            false
-        }
-
-        AsyncFunction("showAirPlayTargetPicker") { _: String ->
-            // AirPlay is iOS-only, no-op on Android
-        }
-
-        AsyncFunction("isCastAvailable") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.isCastAvailable
-        }
-
-        AsyncFunction("isCasting") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.isCasting
-        }
-
-        AsyncFunction("castVideo") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.castVideo()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("castStop") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.castStop()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("skipAd") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.skipAd()
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("canPlayAtPlaybackSpeed") { _: String, _: Double ->
-            // This method is iOS-only, return false on Android
-            false
-        }
-
-        AsyncFunction("getAudioTrack") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.source?.selectedAudioTrack?.toJson()
-        }
-
-        AsyncFunction("getAvailableAudioTracks") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.source?.availableAudioTracks?.map { it.toJson() } ?: emptyList()
-        }
-
-        AsyncFunction("setAudioTrack") { nativeId: NativeId, trackIdentifier: String ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.source?.setAudioTrack(trackIdentifier)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getSubtitleTrack") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.source?.selectedSubtitleTrack?.toJson()
-        }
-
-        AsyncFunction("getAvailableSubtitles") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.source?.availableSubtitleTracks?.map { it.toJson() } ?: emptyList()
-        }
-
-        AsyncFunction("setSubtitleTrack") { nativeId: NativeId, trackIdentifier: String? ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.source?.setSubtitleTrack(trackIdentifier)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getVideoQuality") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.videoQuality?.toJson()
-        }
-
-        AsyncFunction("getAvailableVideoQualities") { nativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.availableVideoQualities?.map { it.toJson() } ?: emptyList()
-        }
-
-        AsyncFunction("setVideoQuality") { nativeId: NativeId, qualityId: String ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            player?.source?.setVideoQuality(qualityId)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("getThumbnail") { nativeId: NativeId, time: Double ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            return@AsyncFunction player?.getThumbnail(time)?.toJson()
-        }
-        AsyncFunction("loadOfflineContent") { nativeId: NativeId, offlineContentManagerBridgeId: String,
-            options: Map<String, Any>?, ->
-            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
-            val offlineContentManagerBridge = appContext.registry.getModule<OfflineModule>()
-                ?.getOfflineContentManagerBridge(offlineContentManagerBridgeId)
-
-            offlineContentManagerBridge?.offlineContentManager?.offlineSourceConfig?.let {
-                player.load(it)
-            }
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("scheduleAd") { nativeId: NativeId, adItemJson: Map<String, Any> ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            val adItem = adItemJson.toAdItem()
-            if (player != null && adItem != null) {
-                player.scheduleAd(adItem)
-            }
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("setPreparedImaSettings") { id: Int, settings: Map<String, Any?>? ->
-            imaSettingsWaiter.complete(id, settings ?: emptyMap())
-        }
-
-        AsyncFunction("setShouldLoadAdItem") { id: Int, shouldLoad: Boolean ->
-            shouldLoadAdItemWaiter.complete(id, shouldLoad)
-        }
-
-        AsyncFunction("setShouldPlayAdBreak") { id: Int, shouldPlay: Boolean ->
-            shouldPlayAdBreakWaiter.complete(id, shouldPlay)
-        }
-
-        AsyncFunction("initializeWithConfig") { nativeId: NativeId, config: Map<String, Any>?,
-            networkNativeId: NativeId?, decoderNativeId: NativeId?, ->
-            initializePlayer(nativeId, config, networkNativeId, decoderNativeId, null)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("initializeWithAnalyticsConfig") { nativeId: NativeId, analyticsConfigJson: Map<String, Any>,
-            config: Map<String, Any>?, networkNativeId: NativeId?, decoderNativeId: NativeId?, ->
-            initializePlayer(nativeId, config, networkNativeId, decoderNativeId, analyticsConfigJson)
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("loadSource") { nativeId: NativeId, sourceNativeId: NativeId ->
-            val player = PlayerRegistry.getPlayer(nativeId)
-            val source = appContext.registry.getModule<SourceModule>()?.getSourceOrNull(sourceNativeId)
-            if (player != null && source != null) {
-                player.throwIfAttachedToAnotherPlayer(listOf(source))
-                player.load(source)
-            }
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("loadPlaylist") { nativeId: NativeId, sourceNativeIds: List<NativeId>,
-            options: Map<String, Any?>?, ->
-            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction
-            val sources = sourceNativeIds.map {
-                SourceRegistry.getSource(it) ?: throw SourceException.SourceNotInitialized(it)
-            }
-            player.throwIfAttachedToAnotherPlayer(sources)
-            player.load(PlaylistConfig(sources, options?.toPlaylistOptions() ?: PlaylistOptions()))
-        }.runOnQueue(Queues.MAIN)
-
-        AsyncFunction("source") { nativeId: NativeId ->
-            PlayerRegistry.getPlayer(nativeId)?.source?.let { SourceRegistry.getNativeId(it) }
-        }.runOnQueue(Queues.MAIN)
-    }
-
-    /**
-     * The SDK only checks for sources attached to another player while it sets up the new playback session, after
-     * unloading the current one. If the check fails there, the player cannot load any source afterwards.
-     * Sources of this player's current session are fine, as loading unloads the session first.
-     */
-    private fun Player.throwIfAttachedToAnotherPlayer(sources: List<Source>) {
-        val sessionSources = playlist.sources
-        val attached = sources
-            .filter { !sessionSources.contains(it) }
-            .firstOrNull { it.isAttachedToPlayer }
-            ?: return
-        throw SourceException.SourceAlreadyAttached(SourceRegistry.getNativeId(attached) ?: "unknown")
-    }
-
-    private fun initializePlayer(
-        nativeId: NativeId,
-        config: Map<String, Any>?,
-        networkNativeId: NativeId?,
-        decoderNativeId: NativeId?,
-        analyticsConfigJson: Map<String, Any>?,
-    ) {
-        if (PlayerRegistry.hasPlayer(nativeId)) {
-            // Player already exists for this nativeId
-            return
-        }
-
-        val playerConfig = config?.toPlayerConfig() ?: PlayerConfig()
-        @Suppress("UNCHECKED_CAST")
-        val configJson = config as? Map<String, Any?>
-        setupShouldLoadAdItem(nativeId, configJson, playerConfig)
-        setupShouldPlayAdBreak(nativeId, configJson, playerConfig)
-        ImaBeforeInitializationConfigurator.configure(
-            nativeId = nativeId,
-            configJson = configJson,
-            playerConfig = playerConfig,
-            imaSettingsWaiter = imaSettingsWaiter,
-        ) { eventNativeId, id, payload ->
-            sendEvent(
-                "onImaBeforeInitialization",
-                bundleOf(
-                    "nativeId" to eventNativeId,
-                    "id" to id,
-                    "settings" to payload,
-                ),
-            )
-        }
-        val enableMediaSession = config?.getMap("mediaControlConfig")
-            ?.toMediaControlConfig()?.isEnabled ?: true
-
-        val networkConfig = networkNativeId?.let { id ->
-            appContext.registry.getModule<NetworkModule>()?.getConfig(id)
-        }
-        networkConfig?.let {
-            playerConfig.networkConfig = it
-        }
-
-        val decoderConfig = decoderNativeId?.let {
-            appContext.registry.getModule<DecoderConfigModule>()?.getDecoderConfig(it)
-        }
-        if (decoderConfig != null) {
-            playerConfig.playbackConfig = playerConfig.playbackConfig.copy(decoderConfig = decoderConfig)
-        }
-
-        val applicationContext = appContext.reactContext?.applicationContext
-            ?: throw IllegalStateException("Application context is not available")
-        val analyticsConfig = analyticsConfigJson?.toAnalyticsConfig()
-        val defaultMetadata = analyticsConfigJson?.getMap("defaultMetadata")?.toAnalyticsDefaultMetadata()
-
-        val player = if (analyticsConfig != null) {
-            Player.create(
-                context = applicationContext,
-                playerConfig = playerConfig,
-                analyticsConfig = analyticsConfig,
-                defaultMetadata = defaultMetadata ?: DefaultMetadata(),
-            )
-        } else {
-            Player.create(applicationContext, playerConfig)
-        }
-        PlayerRegistry.register(player, nativeId)
-
-        if (enableMediaSession) {
-            mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)
-        }
-    }
-
-    private fun setupShouldLoadAdItem(
-        nativeId: NativeId,
-        configJson: Map<String, Any?>?,
-        playerConfig: PlayerConfig,
-    ) {
-        val advertisingConfigJson = configJson?.getMap("advertisingConfig") ?: return
-        if (!advertisingConfigJson.containsKey("shouldLoadAdItem")) {
-            return
-        }
-        val advertisingConfig = playerConfig.advertisingConfig ?: AdvertisingConfig()
-        playerConfig.advertisingConfig = advertisingConfig.copy(
-            shouldLoadAdItem = { adItem ->
-                val (id, wait) = shouldLoadAdItemWaiter.make(250)
-                sendEvent(
-                    "onShouldLoadAdItem",
-                    bundleOf(
-                        "nativeId" to nativeId,
-                        "id" to id,
-                        "adItem" to adItem.toJson(),
-                    ),
+                shared.player.playlist.seek(
+                    source.source,
+                    SeekTarget((target["offset"] as Number).toDouble(), reference),
                 )
-                wait() ?: true
-            },
-        )
-    }
-
-    private fun setupShouldPlayAdBreak(
-        nativeId: NativeId,
-        configJson: Map<String, Any?>?,
-        playerConfig: PlayerConfig,
-    ) {
-        val advertisingConfigJson = configJson?.getMap("advertisingConfig") ?: return
-        if (!advertisingConfigJson.containsKey("shouldPlayAdBreak")) {
-            return
+            }.runOnQueue(Queues.MAIN)
         }
-        val advertisingConfig = playerConfig.advertisingConfig ?: AdvertisingConfig()
-        playerConfig.advertisingConfig = advertisingConfig.copy(
-            shouldPlayAdBreak = { adBreak ->
-                val (id, wait) = shouldPlayAdBreakWaiter.make(250)
-                sendEvent(
-                    "onShouldPlayAdBreak",
-                    bundleOf(
-                        "nativeId" to nativeId,
-                        "id" to id,
-                        "adBreak" to adBreak.toJson(),
-                    ),
-                )
-                wait() ?: true
-            },
-        )
     }
+}
 
-    // CRITICAL: This method must remain available for cross-module access
-    fun getPlayerOrNull(nativeId: NativeId): Player? = PlayerRegistry.getPlayer(nativeId)
+// The SDK checks foreign attachment after unloading, which can leave the Player unable to load again.
+private fun ensureSourcesAvailable(player: Player, sources: List<Source>) {
+    val sessionSources = player.playlist.sources
+    if (sources.any { source -> source.isAttachedToPlayer && sessionSources.none { it === source } }) {
+        throw CodedException("ERR_SOURCE_ALREADY_ATTACHED", "Source is already attached to another player", null)
+    }
 }

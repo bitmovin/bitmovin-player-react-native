@@ -19,12 +19,15 @@ export default (spec: TestScope) => {
       await startPlayerTest({}, async () => {
         await loadCaptionSource(Sources.sintel);
         await callPlayer(async (player) => {
-          const subtitleTrack = (await player.getAvailableSubtitles())[1];
+          const subtitleTrack = (await player.getAvailableSubtitles()).find(
+            (track) => track.language === 'en'
+          )!;
+          expect(subtitleTrack, 'Sintel English subtitle track').toBeDefined();
           await player.setSubtitleTrack(subtitleTrack.identifier);
-          player.play();
+          await player.play();
         });
-        await callPlayerAndExpectEvent((player) => {
-          player.seek(105);
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.seek(105);
         }, EventType.Seeked);
         await expectEvents(
           EventSequence(
@@ -53,8 +56,15 @@ export default (spec: TestScope) => {
             subtitleTracks.length,
             'Should have at least 2 subtitle tracks'
           ).toBeGreaterThan(1);
+          expect(
+            subtitleTracks.some((track) => track.identifier === 'bitmovin-off'),
+            'Subtitle choices should not include the SDK Off placeholder'
+          ).toBe(false);
 
-          const subtitleTrack = subtitleTracks[1];
+          const subtitleTrack = subtitleTracks.find(
+            (track) => track.language === 'en'
+          )!;
+          expect(subtitleTrack, 'Sintel English subtitle track').toBeDefined();
           expect(
             subtitleTrack.identifier,
             'Subtitle track should have identifier'
@@ -95,12 +105,15 @@ export default (spec: TestScope) => {
       await startPlayerTest({}, async () => {
         await loadCaptionSource(Sources.sintel);
         await callPlayer(async (player) => {
-          const subtitleTrack = (await player.getAvailableSubtitles())[1];
+          const subtitleTrack = (await player.getAvailableSubtitles()).find(
+            (track) => track.language === 'en'
+          )!;
+          expect(subtitleTrack, 'Sintel English subtitle track').toBeDefined();
           await player.setSubtitleTrack(subtitleTrack.identifier);
-          player.play();
+          await player.play();
         });
-        await callPlayerAndExpectEvent((player) => {
-          player.seek(105);
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.seek(105);
         }, EventType.Seeked);
 
         const cueEnterEvent: CueEnterEvent = await expectEvent(
@@ -160,12 +173,15 @@ export default (spec: TestScope) => {
       await startPlayerTest({}, async () => {
         await loadCaptionSource(Sources.sintel);
         await callPlayer(async (player) => {
-          const subtitleTrack = (await player.getAvailableSubtitles())[1];
+          const subtitleTrack = (await player.getAvailableSubtitles()).find(
+            (track) => track.language === 'en'
+          )!;
+          expect(subtitleTrack, 'Sintel English subtitle track').toBeDefined();
           await player.setSubtitleTrack(subtitleTrack.identifier);
-          player.play();
+          await player.play();
         });
-        await callPlayerAndExpectEvent((player) => {
-          player.seek(105);
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.seek(105);
         }, EventType.Seeked);
 
         // Wait for CueEnter first, then CueExit

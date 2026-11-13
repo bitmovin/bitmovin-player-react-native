@@ -1,6 +1,5 @@
 import {
   Player,
-  PlayerActiveEvent,
   PlayerConfig,
   ReadyEvent,
   SourceConfig,
@@ -94,15 +93,6 @@ export default class PlayerTestWorld {
 
   onReRender: (() => void) | undefined;
 
-  /**
-   * Events received by the `onPlayerActive` prop of the `PlayerView` during the current test.
-   */
-  playerActivePropEvents: PlayerActiveEvent[] = [];
-
-  onPlayerActive = (event: PlayerActiveEvent): void => {
-    this.playerActivePropEvents.push(event);
-  };
-
   onEvent = (event: Event): void => {
     Object.entries(this.eventListeners).forEach(([_, listener]) =>
       listener(event)
@@ -121,16 +111,19 @@ export default class PlayerTestWorld {
       nativeId: `player-${uuid.v4()}`,
       ...config,
     });
-    await player.initialize();
     this.player = player;
 
-    await fn().finally(() => {
-      player.destroy();
-      this.isFinished_ = true;
-      this.player = undefined;
-      this.eventListeners = {};
-      this.playerActivePropEvents = [];
-    });
+    try {
+      await fn();
+    } finally {
+      try {
+        await player.destroy();
+      } finally {
+        this.isFinished_ = true;
+        this.player = undefined;
+        this.eventListeners = {};
+      }
+    }
   };
 
   callPlayer = async <T>(fn: (player: Player) => Promise<T>): Promise<T> => {
@@ -184,8 +177,8 @@ export default class PlayerTestWorld {
     timeoutSeconds: number = 10
   ): Promise<ReadyEvent> => {
     return await this.callPlayerAndExpectEvent(
-      (player) => {
-        player.load(sourceConfig);
+      async (player) => {
+        await player.load(sourceConfig);
       },
       EventType.Ready,
       timeoutSeconds
@@ -207,8 +200,8 @@ export default class PlayerTestWorld {
     timeoutSeconds: number
   ): Promise<TimeChangedEvent> => {
     return await this.callPlayerAndExpectEvent<TimeChangedEvent>(
-      (player) => {
-        player.play();
+      async (player) => {
+        await player.play();
       },
       FilteredEvent<TimeChangedEvent>(
         EventType.TimeChanged,
@@ -254,27 +247,37 @@ export default class PlayerTestWorld {
       actualExpectation = PlainEvent(expectationConvertible as EventType);
     }
     let resolve: (event: T) => void = () => {};
-    let reject: (error: Error) => void = () => {};
-    const future = new Promise<T>((res, rej) => {
+    const future = new Promise<T>((res) => {
       resolve = res;
-      reject = rej;
     });
     const removeListener = this.addEventListener((event) => {
       if (actualExpectation.maybeFulfillExpectation(event)) {
         resolve(event as T);
       }
     });
-    const timeoutHandle = setTimeout(() => {
-      if (!actualExpectation.isFulfilled) {
-        removeListener();
-        reject(new Error(`Expectation was not met: ${actualExpectation}`));
-      }
-    }, timeoutSeconds * 1000);
-    // The expectation can time out while the trigger is still running.
-    void future.catch(() => {});
+    let operationFinished = false;
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+    const deadline = new Promise<never>((_, reject) => {
+      timeoutHandle = setTimeout(() => {
+        reject(
+          new Error(
+            operationFinished
+              ? `Expectation was not met: ${actualExpectation}`
+              : `Player operation did not complete: ${actualExpectation}`
+          )
+        );
+      }, timeoutSeconds * 1000);
+    });
     try {
-      await afterListenerAttached();
-      return await future;
+      const operation = (async () => {
+        await afterListenerAttached();
+        operationFinished = true;
+      })();
+      const [, result] = await Promise.race([
+        Promise.all([operation, future]),
+        deadline,
+      ]);
+      return result;
     } finally {
       clearTimeout(timeoutHandle);
       removeListener();
@@ -299,10 +302,8 @@ export default class PlayerTestWorld {
     let fulfilledExpectations = 0;
     const receivedEvents: Event[] = [];
     let resolve: (event: Event[]) => void = () => {};
-    let reject: (error: Error) => void = () => {};
-    const future = new Promise<Event[]>((res, rej) => {
+    const future = new Promise<Event[]>((res) => {
       resolve = res;
-      reject = rej;
     });
     const removeListener = this.addEventListener((event) => {
       if (actualExpectation.isNextExpectationMet(event)) {
@@ -315,17 +316,29 @@ export default class PlayerTestWorld {
         }
       }
     });
-    const timeoutHandle = setTimeout(() => {
-      if (fulfilledExpectations < actualExpectation.expectedFulfillmentCount) {
-        removeListener();
-        reject(new Error(`Expectation was not met: ${actualExpectation}`));
-      }
-    }, timeoutSeconds * 1000);
-    // The expectation can time out while the trigger is still running.
-    void future.catch(() => {});
+    let operationFinished = false;
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+    const deadline = new Promise<never>((_, reject) => {
+      timeoutHandle = setTimeout(() => {
+        reject(
+          new Error(
+            operationFinished
+              ? `Expectation was not met: ${actualExpectation}`
+              : `Player operation did not complete: ${actualExpectation}`
+          )
+        );
+      }, timeoutSeconds * 1000);
+    });
     try {
-      await afterListenerAttached();
-      return await future;
+      const operation = (async () => {
+        await afterListenerAttached();
+        operationFinished = true;
+      })();
+      const [, result] = await Promise.race([
+        Promise.all([operation, future]),
+        deadline,
+      ]);
+      return result;
     } finally {
       clearTimeout(timeoutHandle);
       removeListener();

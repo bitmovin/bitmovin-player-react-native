@@ -14,7 +14,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.reactnative.PictureInPictureAction
-import com.bitmovin.player.reactnative.PictureInPictureConfig
 import com.bitmovin.player.reactnative.R
 
 private const val SEEK_INTERVAL_SECONDS = 10.0
@@ -37,7 +36,7 @@ internal interface PictureInPictureActionHandler {
 @RequiresApi(Build.VERSION_CODES.O)
 internal class DefaultPictureInPictureActionHandler(
     private val activity: Activity,
-    private val player: Player,
+    var player: Player,
     private val updatePictureInPictureParams: () -> Unit,
 ) : PictureInPictureActionHandler {
     private val pictureInPictureActionFilter = IntentFilter().apply {

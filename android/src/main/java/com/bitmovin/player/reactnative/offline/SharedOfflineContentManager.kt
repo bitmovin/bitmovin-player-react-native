@@ -1,0 +1,204 @@
+package com.bitmovin.player.reactnative.offline
+
+import com.bitmovin.player.api.deficiency.ErrorEvent
+import com.bitmovin.player.api.offline.OfflineContentManager
+import com.bitmovin.player.api.offline.OfflineContentManagerListener
+import com.bitmovin.player.api.offline.options.OfflineContentOptions
+import com.bitmovin.player.api.offline.options.OfflineOptionEntry
+import com.bitmovin.player.api.offline.options.OfflineOptionEntryAction
+import com.bitmovin.player.api.offline.options.OfflineOptionEntryState
+import com.bitmovin.player.api.source.SourceConfig
+import com.bitmovin.player.reactnative.SharedOfflineEvents
+import com.bitmovin.player.reactnative.converter.toJson
+import expo.modules.kotlin.AppContext
+import expo.modules.kotlin.sharedobjects.SharedObject
+import kotlinx.coroutines.Dispatchers
+import kotlin.coroutines.EmptyCoroutineContext
+
+class SharedOfflineContentManager internal constructor(
+    appContext: AppContext,
+    private val identifier: String,
+    val events: SharedOfflineEvents,
+    factory: (OfflineContentManagerListener) -> OfflineContentManager,
+) : SharedObject(appContext), OfflineContentManagerListener {
+    private var contentOptions: OfflineContentOptions? = null
+    private val managerDelegate = lazy {
+        check(!isReleased) { "Destroyed before SDK creation" }
+        factory(this)
+    }
+    private var isReleased = false
+    val offlineContentManager: OfflineContentManager by managerDelegate
+
+    enum class OfflineEventType(val eventName: String) {
+        ON_COMPLETED("onCompleted"),
+        ON_ERROR("onError"),
+        ON_PROGRESS("onProgress"),
+        ON_OPTIONS_AVAILABLE("onOptionsAvailable"),
+        ON_DRM_LICENSE_UPDATED("onDrmLicenseUpdated"),
+        ON_SUSPENDED("onSuspended"),
+        ON_RESUMED("onResumed"),
+        ON_CANCELED("onCanceled"),
+    }
+
+    val state: OfflineOptionEntryState
+        get() { offlineContentManager; return aggregateState(contentOptions) }
+
+    fun getOptions() {
+        offlineContentManager.getOptions()
+    }
+
+    /**
+     * Process the `OfflineDownloadRequest`.
+     * The `OfflineContentOptions` are stored in memory in this class because they can not be constructed to pass to the process call.
+     * We're copying the iOS interface for the `minimumBitrate` so that react-native will have a consistent interface.
+     * When no `minimumBitrate` is provided, the highest bitrate will be downloaded.
+     */
+    fun process(request: OfflineDownloadRequest) {
+        val manager = offlineContentManager
+        if (contentOptions != null) {
+            val sortedVideoOptions = contentOptions!!.videoOptions.sortedBy { option -> option.bitrate }
+            if (request.minimumBitrate == null) {
+                sortedVideoOptions.lastOrNull()
+            } else {
+                sortedVideoOptions.firstOrNull { option -> option.bitrate >= request.minimumBitrate }
+            }?.apply {
+                action = OfflineOptionEntryAction.Download
+            }
+            appliesDownloadActions(request.audioOptionIds, contentOptions!!.audioOptions)
+            appliesDownloadActions(request.textOptionIds, contentOptions!!.textOptions)
+
+            manager.process(contentOptions!!)
+        }
+    }
+
+    fun resume() {
+        offlineContentManager.resume()
+    }
+
+    fun suspend() {
+        offlineContentManager.suspend()
+    }
+
+    fun cancelDownload() {
+        suspend()
+        deleteAll()
+        sendEvent(OfflineEventType.ON_CANCELED)
+    }
+
+    fun deleteAll() {
+        offlineContentManager.deleteAll()
+    }
+
+    fun downloadLicense() {
+        offlineContentManager.downloadLicense()
+    }
+
+    fun releaseLicense() {
+        offlineContentManager.releaseLicense()
+    }
+
+    fun renewOfflineLicense() {
+        offlineContentManager.renewOfflineLicense()
+    }
+
+    fun release() {
+        if (isReleased) return
+        isReleased = true
+        if (managerDelegate.isInitialized()) offlineContentManager.release()
+    }
+
+    override fun sharedObjectDidRelease() {
+        Dispatchers.Main.dispatch(EmptyCoroutineContext) { release() }
+    }
+
+    override fun onCompleted(source: SourceConfig, options: OfflineContentOptions) {
+        this.contentOptions = options
+        sendEvent(
+            OfflineEventType.ON_COMPLETED,
+            mapOf("options" to options.toJson()),
+        )
+    }
+
+    override fun onError(source: SourceConfig, event: ErrorEvent) {
+        sendEvent(
+            OfflineEventType.ON_ERROR,
+            mapOf(
+                "code" to event.code.value,
+                "message" to event.message,
+            ),
+        )
+    }
+
+    override fun onProgress(source: SourceConfig, progress: Float) {
+        sendEvent(
+            OfflineEventType.ON_PROGRESS,
+            mapOf("progress" to progress.toDouble()),
+        )
+    }
+
+    override fun onOptionsAvailable(source: SourceConfig, options: OfflineContentOptions) {
+        this.contentOptions = options
+        sendEvent(
+            OfflineEventType.ON_OPTIONS_AVAILABLE,
+            mapOf("options" to options.toJson()),
+        )
+    }
+
+    override fun onDrmLicenseUpdated(source: SourceConfig) {
+        sendEvent(OfflineEventType.ON_DRM_LICENSE_UPDATED)
+    }
+
+    override fun onSuspended(source: SourceConfig) {
+        sendEvent(OfflineEventType.ON_SUSPENDED)
+    }
+
+    override fun onResumed(source: SourceConfig) {
+        sendEvent(OfflineEventType.ON_RESUMED)
+    }
+
+    private fun appliesDownloadActions(
+        ids: List<String?>?,
+        potentialOptions: List<OfflineOptionEntry>,
+    ) {
+        if (ids.isNullOrEmpty()) {
+            return
+        }
+
+        ids.forEach { idToDownload ->
+            potentialOptions.forEach { option ->
+                if (idToDownload == option.id && option.action !== OfflineOptionEntryAction.Download) {
+                    option.action = OfflineOptionEntryAction.Download
+                }
+            }
+        }
+    }
+
+    /**
+     * Produces an aggregate state of the `OfflineOptionEntryState` for the `OfflineContentOptions`
+     * iOS does not have granular data access to the states of each entry, but instead provides a single aggregate status.
+     * Adding this produces a consistent interface in the react-native layer.
+     */
+    private fun aggregateState(options: OfflineContentOptions?): OfflineOptionEntryState {
+        val allOptions = mutableListOf<OfflineOptionEntry>()
+        options?.videoOptions?.let { allOptions.addAll(it) }
+        options?.audioOptions?.let { allOptions.addAll(it) }
+        options?.textOptions?.let { allOptions.addAll(it) }
+        val trackableStates = listOf(OfflineOptionEntryState.Suspended, OfflineOptionEntryState.Downloading)
+
+        var state = allOptions.firstOrNull { trackableStates.contains(it.state) }?.state
+
+        if (state == null && allOptions.any { it.state == OfflineOptionEntryState.Downloaded }) {
+            state = OfflineOptionEntryState.Downloaded
+        }
+
+        return state ?: OfflineOptionEntryState.NotDownloaded
+    }
+
+    private fun sendEvent(eventType: OfflineEventType, event: Map<String, Any> = mapOf()) {
+        val mutableEvent = event.toMutableMap()
+        mutableEvent["identifier"] = identifier
+        mutableEvent["eventType"] = eventType.eventName
+        mutableEvent["state"] = aggregateState(contentOptions).name
+        events.emit("onBitmovinOfflineEvent", mutableEvent)
+    }
+}

@@ -1,47 +1,38 @@
+/* eslint-disable @typescript-eslint/no-redeclare -- Native constructor values intentionally share their instance interface names. */
 import type { NativeModule } from 'expo-modules-core';
+import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
-import type { SourceConfig } from '../source';
-import type { OfflineDownloadRequest } from './offlineDownloadRequest';
+import type { OfflineContentManager } from './offlineContentManager';
+import type { OfflineContentConfig } from './offlineContentConfig';
+import type { NativeMethods } from '../native/nativeMethods';
 import type { BitmovinNativeOfflineEventData } from './offlineContentManagerListener';
 
-export type OfflineModuleEvents = {
-  onBitmovinOfflineEvent: (event: BitmovinNativeOfflineEventData) => void;
+type OfflineEvents = {
+  onBitmovinOfflineEvent: (
+    event: Omit<BitmovinNativeOfflineEventData, 'nativeId'>
+  ) => void;
 };
 
-/**
- * Native OfflineModule using Expo modules API.
- * Provides modern async/await interface while maintaining backward compatibility.
- */
-declare class OfflineModule extends NativeModule<OfflineModuleEvents> {
-  initializeWithConfig(
-    nativeId: string,
-    config: { identifier: string; sourceConfig: SourceConfig },
-    drmNativeId: string | undefined
-  ): Promise<void>;
+/** @internal */
+export type SharedOfflineEvents = SharedObject<OfflineEvents>;
 
-  getState(nativeId: string): Promise<string>;
+/** @internal */
+export type SharedOfflineContentManager = SharedObject &
+  Omit<NativeMethods<OfflineContentManager>, 'addListener'> & {
+    readonly events: SharedOfflineEvents;
+  };
 
-  getOptions(nativeId: string): Promise<void>;
-
-  download(nativeId: string, request: OfflineDownloadRequest): Promise<void>;
-
-  resume(nativeId: string): Promise<void>;
-
-  suspend(nativeId: string): Promise<void>;
-
-  cancelDownload(nativeId: string): Promise<void>;
-
-  usedStorage(nativeId: string): Promise<number>;
-
-  deleteAll(nativeId: string): Promise<void>;
-
-  downloadLicense(nativeId: string): Promise<void>;
-
-  releaseLicense(nativeId: string): Promise<void>;
-
-  renewOfflineLicense(nativeId: string): Promise<void>;
-
-  release(nativeId: string): Promise<void>;
+declare class OfflineModule extends NativeModule {
+  readonly SharedOfflineEvents: new () => SharedOfflineEvents;
+  readonly SharedOfflineContentManager: new (
+    config: Pick<OfflineContentConfig, 'identifier' | 'sourceConfig'>,
+    events: SharedOfflineEvents
+  ) => SharedOfflineContentManager;
 }
-
-export default requireNativeModule<OfflineModule>('OfflineModule');
+const nativeModule = requireNativeModule<OfflineModule>('OfflineModule');
+/** @internal */
+export const SharedOfflineContentManager =
+  nativeModule.SharedOfflineContentManager;
+/** @internal */
+export const SharedOfflineEvents = nativeModule.SharedOfflineEvents;
+export default nativeModule;

@@ -1,21 +1,21 @@
+import { SharedMediaControlsApi } from './modules/playerModule';
+import type { Player } from './player';
 import { Platform } from 'react-native';
-import MediaControlsModule from './modules/MediaControlsModule';
 
 /**
  * Provides control for the Player's media controls integration.
  *
  * Accessible through {@link Player.mediaControls}.
  *
- * @platform iOS, tvOS
+ * @platform iOS/tvOS
  */
 export class MediaControlsApi {
-  /**
-   * The native player id that this media controls api is attached to.
-   */
-  readonly nativeId: string;
+  private readonly native?: SharedMediaControlsApi;
 
-  constructor(playerId: string) {
-    this.nativeId = playerId;
+  /** @internal */
+  constructor(player: Player) {
+    if (Platform.OS === 'ios')
+      this.native = new SharedMediaControlsApi(player.native);
   }
 
   /**
@@ -30,32 +30,32 @@ export class MediaControlsApi {
    *   It does not manage media controls, sessions, command handlers, or metadata
    *   created directly by the app or by other libraries.
    *
-   * @platform iOS, tvOS
+   * @platform iOS/tvOS
    * @returns `true` if the media controls integration is enabled, `false` otherwise. Always `false` on Android.
    */
   isEnabled = async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
       console.warn(
-        `[Player ${this.nativeId}] Runtime mediaControls APIs are not implemented on Android yet.`
+        'Runtime mediaControls APIs are not implemented on Android yet.'
       );
       return false;
     }
-    return (await MediaControlsModule?.isEnabled(this.nativeId)) ?? false;
+    return (await this.native?.isEnabled()) ?? false;
   };
 
   /**
    * Enables or disables the Player's media controls integration at runtime.
    *
-   * @platform iOS, tvOS
+   * @platform iOS/tvOS
    * @param enabled Whether the media controls integration should be enabled.
    */
   setEnabled = async (enabled: boolean): Promise<void> => {
     if (Platform.OS === 'android') {
       console.warn(
-        `[Player ${this.nativeId}] Runtime mediaControls APIs are not implemented on Android yet.`
+        'Runtime mediaControls APIs are not implemented on Android yet.'
       );
       return;
     }
-    return MediaControlsModule?.setEnabled(this.nativeId, enabled);
+    return this.native?.setEnabled(enabled);
   };
 }

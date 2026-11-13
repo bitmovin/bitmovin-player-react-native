@@ -44,7 +44,7 @@ export default function ProgrammaticTrackSelection() {
 
   useFocusEffect(
     useCallback(() => {
-      player.load({
+      void player.load({
         url:
           Platform.OS === 'ios'
             ? 'https://cdn.bitmovin.com/content/internal/assets/sintel/hls/playlist.m3u8'
@@ -54,7 +54,7 @@ export default function ProgrammaticTrackSelection() {
           'https://cdn.bitmovin.com/content/internal/assets/sintel/poster.png',
       });
       return () => {
-        player.destroy();
+        void player.destroy();
       };
     }, [player])
   );

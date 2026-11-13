@@ -4,46 +4,46 @@ import BitmovinCollector
 import BitmovinPlayer
 @_spi(ExperimentalApi)
 import BitmovinPlayerCore
+import ExpoModulesCore
+import ExpoModulesJSI
 import Foundation
 
 extension RCTConvert {
-    static func playerConfig(_ json: Any?) -> PlayerConfig? { // swiftlint:disable:this cyclomatic_complexity
+    @JavaScriptActor
+    static func playerConfig(_ raw: JavaScriptValue?, context: AppContext) -> PlayerConfig { // swiftlint:disable:this cyclomatic_complexity line_length
         let playerConfig = PlayerConfig()
-        guard let json = json as? [String: Any?] else {
+        guard let json = raw?.getAny() as? [String: Any?] else {
             return playerConfig
         }
         if let licenseKey = json["licenseKey"] as? String {
             playerConfig.key = licenseKey
         }
-        if let playbackConfig = RCTConvert.playbackConfig(json["playbackConfig"]) {
+        if let playbackConfig = Self.playbackConfig(json["playbackConfig"]) {
             playerConfig.playbackConfig = playbackConfig
         }
-        if let styleConfig = RCTConvert.styleConfig(json["styleConfig"]) {
+        if let styleConfig = Self.styleConfig(json["styleConfig"]) {
             playerConfig.styleConfig = styleConfig
         }
-        if let tweaksConfig = RCTConvert.tweaksConfig(json["tweaksConfig"]) {
+        if let tweaksConfig = Self.tweaksConfig(json["tweaksConfig"]) {
             playerConfig.tweaksConfig = tweaksConfig
         }
-        if let advertisingConfig = RCTConvert.advertisingConfig(json["advertisingConfig"]) {
+        if let advertisingConfig = Self.advertisingConfig(raw?.property("advertisingConfig"), context: context) {
             playerConfig.advertisingConfig = advertisingConfig
         }
-        if let adaptationConfig = RCTConvert.adaptationConfig(json["adaptationConfig"]) {
+        if let adaptationConfig = Self.adaptationConfig(json["adaptationConfig"]) {
             playerConfig.adaptationConfig = adaptationConfig
         }
-        if let bufferConfig = RCTConvert.bufferConfig(json["bufferConfig"]) {
+        if let bufferConfig = Self.bufferConfig(json["bufferConfig"]) {
             playerConfig.bufferConfig = bufferConfig
         }
-        if let liveConfig = RCTConvert.liveConfig(json["liveConfig"]) {
+        if let liveConfig = Self.liveConfig(json["liveConfig"]) {
             playerConfig.liveConfig = liveConfig
         }
-        if let networkConfig = RCTConvert.networkConfig(json["networkConfig"]) {
-            playerConfig.networkConfig = networkConfig
-        }
-        if let nowPlayingConfig = RCTConvert.mediaControlConfig(json["mediaControlConfig"]) {
+        if let nowPlayingConfig = Self.mediaControlConfig(json["mediaControlConfig"]) {
             playerConfig.nowPlayingConfig = nowPlayingConfig
         }
 #if os(iOS)
-        if let remoteControlConfig = RCTConvert.remoteControlConfig(json["remoteControlConfig"]) {
+        if let remoteControlConfig = Self.remoteControlConfig(raw?.property("remoteControlConfig"), context: context) {
             playerConfig.remoteControlConfig = remoteControlConfig
         }
 #endif
@@ -86,13 +86,13 @@ extension RCTConvert {
         }
 #if !os(tvOS)
         if let playerUiCss = json["playerUiCss"] as? String {
-            styleConfig.playerUiCss = RCTConvert.nsurl(playerUiCss)
+            styleConfig.playerUiCss = Self.nsurl(playerUiCss)
         }
         if let supplementalPlayerUiCss = json["supplementalPlayerUiCss"] as? String {
-            styleConfig.supplementalPlayerUiCss = RCTConvert.nsurl(supplementalPlayerUiCss)
+            styleConfig.supplementalPlayerUiCss = Self.nsurl(supplementalPlayerUiCss)
         }
         if let playerUiJs = json["playerUiJs"] as? String {
-            styleConfig.playerUiJs = RCTConvert.nsurl(playerUiJs)
+            styleConfig.playerUiJs = Self.nsurl(playerUiJs)
         }
 #endif
         if let scalingMode = json["scalingMode"] as? String {
@@ -186,7 +186,7 @@ extension RCTConvert {
     static func httpRequest(_ json: Any?) -> HttpRequest? {
         guard
             let json = json as? [String: Any?],
-            let url = RCTConvert.nsurl(json["url"]),
+            let url = Self.nsurl(json["url"]),
             let method = json["method"] as? String,
             let headers = json["headers"] as? [String: String]
         else {
@@ -205,8 +205,8 @@ extension RCTConvert {
     static func httpResponse(_ json: Any?) -> HttpResponse? {
         guard
             let json = json as? [String: Any?],
-            let request = RCTConvert.httpRequest(json["request"]),
-            let url = RCTConvert.nsurl(json["url"]),
+            let request = Self.httpRequest(json["request"]),
+            let url = Self.nsurl(json["url"]),
             let status = (json["status"] as? Int) ?? (json["status"] as? Double).flatMap(Int.init(exactly:)),
             let headers = json["headers"] as? [String: String]
         else {
@@ -227,21 +227,34 @@ extension RCTConvert {
         )
     }
 
-    static func networkConfig(_ json: Any?) -> NetworkConfig? {
-        guard json is [String: Any?] else {
-            return nil
+    @JavaScriptActor
+    static func advertisingConfig(_ raw: JavaScriptValue?, context: AppContext) -> AdvertisingConfig? {
+        guard let json = raw?.getAny() as? [String: Any?] else { return nil }
+        let config: AdvertisingConfig
+        if let schedule = json["schedule"] as? [[String: Any?]] {
+            config = AdvertisingConfig(schedule: schedule.compactMap { Self.adItem($0) })
+        } else {
+            config = AdvertisingConfig()
         }
-        return NetworkConfig()
-    }
-
-    static func advertisingConfig(_ json: Any?) -> AdvertisingConfig? {
-        guard
-            let json = json as? [String: Any?],
-            let schedule = json["schedule"] as? [[String: Any?]]
-        else {
-            return nil
+        if let callback = weakCallback(raw, "shouldLoadAdItem") {
+            config.shouldLoadAdItem = { [weak context] adItem in
+                guard let context else { return true }
+                return callback.callBlocking(
+                    context, arguments: [Self.toJson(adItem: adItem) as Any]
+                ) { try $0.asBool() } ?? true
+            }
         }
-        return AdvertisingConfig(schedule: schedule.compactMap { RCTConvert.adItem($0) })
+        if let callback = weakCallback(raw?.property("ima"), "beforeInitialization") {
+            config.beforeInitialization = { [weak context] settings in
+                guard let context, let value = callback.callBlocking(
+                    context,
+                    arguments: [Self.imaSettingsDictionary(settings)],
+                    convert: { $0.getAny() as? [String: Any] }
+                ) else { return }
+                Self.applyImaSettings(settings, from: value)
+            }
+        }
+        return config
     }
 
     static func imaSettingsDictionary(_ settings: ImaSettings) -> [String: Any] {
@@ -294,10 +307,10 @@ extension RCTConvert {
         else {
             return nil
         }
-        let adSources = sources.compactMap { RCTConvert.adSource($0) }
+        let adSources = sources.compactMap { Self.adSource($0) }
         let position = json["position"] as? String
         switch position {
-        case RCTConvert.pauseTrigger:
+        case Self.pauseTrigger:
             return AdItem(adSources: adSources, trigger: .pause)
         default:
             return AdItem(adSources: adSources, atPosition: position)
@@ -307,8 +320,8 @@ extension RCTConvert {
     static func adSource(_ json: Any?) -> AdSource? {
         guard
             let json = json as? [String: Any?],
-            let tag = RCTConvert.nsurl(json["tag"]),
-            let type = RCTConvert.adSourceType(json["type"])
+            let tag = Self.nsurl(json["tag"]),
+            let type = Self.adSourceType(json["type"])
         else {
             return nil
         }
@@ -338,8 +351,8 @@ extension RCTConvert {
             return nil
         }
         let sourceConfig = SourceConfig(
-            url: RCTConvert.nsurl(json["url"]),
-            type: RCTConvert.sourceType(json["type"])
+            url: Self.nsurl(json["url"]),
+            type: Self.sourceType(json["type"])
         )
         if let drmConfig {
             sourceConfig.drmConfig = drmConfig
@@ -351,26 +364,26 @@ extension RCTConvert {
             sourceConfig.sourceDescription = description
         }
         if let poster = json["poster"] as? String {
-            sourceConfig.posterSource = RCTConvert.nsurl(poster)
+            sourceConfig.posterSource = Self.nsurl(poster)
         }
         if let isPosterPersistent = json["isPosterPersistent"] as? Bool {
             sourceConfig.isPosterPersistent = isPosterPersistent
         }
         if let subtitleTracks = json["subtitleTracks"] as? [[String: Any]] {
             subtitleTracks.forEach {
-                if let track = RCTConvert.subtitleTrack($0) {
+                if let track = Self.subtitleTrack($0) {
                     sourceConfig.add(subtitleTrack: track)
                 }
             }
         }
         if let thumbnailTrack = json["thumbnailTrack"] as? String {
-            sourceConfig.thumbnailTrack = RCTConvert.thumbnailTrack(thumbnailTrack)
+            sourceConfig.thumbnailTrack = Self.thumbnailTrack(thumbnailTrack)
         }
         if let metadata = json["metadata"] as? [String: String] {
             sourceConfig.metadata = metadata
         }
         if let options = json["options"] as? [String: Any] {
-            sourceConfig.options = RCTConvert.sourceOptions(options)
+            sourceConfig.options = Self.sourceOptions(options)
         }
         if let cmcdConfigJson = json["cmcdConfig"] as? [String: Any],
            let isEnabled = cmcdConfigJson["isEnabled"] as? Bool {
@@ -381,6 +394,53 @@ extension RCTConvert {
         return sourceConfig
     }
 
+    static func toJson(sourceConfig: SourceConfig) -> [String: Any] {
+        var json: [String: Any?] = [
+            "url": sourceConfig.url.absoluteString,
+            "type": [SourceType.hls: "hls", .dash: "dash", .progressive: "progressive"][sourceConfig.type] ?? "none",
+            "title": sourceConfig.title,
+            "description": sourceConfig.sourceDescription,
+            "poster": sourceConfig.posterSource?.absoluteString,
+            "isPosterPersistent": sourceConfig.isPosterPersistent,
+            "metadata": sourceConfig.metadata,
+            "subtitleTracks": sourceConfig.tracks.compactMap { ($0 as? SubtitleTrack).flatMap(Self.subtitleTrackJson) },
+            "thumbnailTrack": sourceConfig.thumbnailTrack?.url?.absoluteString,
+            "drmConfig": Self.toJson(drmConfig: sourceConfig.drmConfig),
+            "options": [
+                "startOffset": sourceConfig.options.startOffset,
+                "startOffsetTimelineReference": [
+                    TimelineReferencePoint.start: "start", .end: "end"
+                ][sourceConfig.options.startOffsetTimelineReference]
+            ].compactMapValues { $0 }
+        ]
+        if #available(iOS 18, tvOS 18, visionOS 2, *) {
+            json["cmcdConfig"] = ["isEnabled": sourceConfig.cmcdConfig.isEnabled]
+        }
+        return json.compactMapValues { $0 }
+    }
+
+    static func toJson(drmConfig: DrmConfig?) -> [String: Any]? {
+        if let fairplay = drmConfig as? FairplayConfig {
+            return [
+                "fairplay": [
+                    "licenseUrl": fairplay.licenseUrl?.absoluteString,
+                    "certificateUrl": fairplay.certificateUrl?.absoluteString,
+                    "licenseRequestHeaders": fairplay.licenseRequestHeaders,
+                    "certificateRequestHeaders": fairplay.certificateRequestHeaders
+                ].compactMapValues { $0 }
+            ]
+        }
+        if let widevine = drmConfig as? WidevineConfig {
+            return [
+                "widevine": [
+                    "licenseUrl": widevine.licenseUrl?.absoluteString,
+                    "httpHeaders": widevine.licenseRequestHeaders
+                ].compactMapValues { $0 }
+            ]
+        }
+        return nil
+    }
+
     static func sourceOptions(_ json: Any?) -> SourceOptions {
         let sourceOptions = SourceOptions()
         guard let json = json as? [String: Any?] else {
@@ -389,9 +449,20 @@ extension RCTConvert {
         if let startOffset = json["startOffset"] as? NSNumber {
             sourceOptions.startOffset = startOffset.doubleValue
         }
-        sourceOptions.startOffsetTimelineReference = RCTConvert
+        sourceOptions.startOffsetTimelineReference = Self
             .timelineReferencePoint(json["startOffsetTimelineReference"])
         return sourceOptions
+    }
+
+    static func toReplayMode(_ json: Any?) throws -> ReplayMode {
+        switch json as? String {
+        case nil, "playlist":
+            return .playlist
+        case "lastSource":
+            return .lastSource
+        default:
+            throw Exception(name: "InvalidReplayMode", description: "Unknown replay mode")
+        }
     }
 
     static func timelineReferencePoint(_ json: Any?) -> TimelineReferencePoint {
@@ -443,8 +514,8 @@ extension RCTConvert {
             return (nil, nil)
         }
         return (
-            fairplay: json["fairplay"].flatMap(RCTConvert.fairplayConfig),
-            widevine: json["widevine"].flatMap(RCTConvert.widevineConfig)
+            fairplay: json["fairplay"].flatMap(Self.fairplayConfig),
+            widevine: json["widevine"].flatMap(Self.widevineConfig)
         )
     }
 
@@ -482,7 +553,7 @@ extension RCTConvert {
 
     static func thumbnailTrack(_ url: String?) -> ThumbnailTrack? {
         guard
-            let url = RCTConvert.nsurl(url)
+            let url = Self.nsurl(url)
         else {
             return nil
         }
@@ -520,7 +591,7 @@ extension RCTConvert {
 
     static func subtitleTrack(_ json: [String: Any]) -> SubtitleTrack? {
         guard
-            let url = RCTConvert.nsurl(json["url"]),
+            let url = Self.nsurl(json["url"]),
             let label = json["label"] as? String
         else {
             return nil
@@ -531,7 +602,7 @@ extension RCTConvert {
         let isForced = json["isForced"] as? Bool ?? false
         let identifier = json["identifier"] as? String ?? UUID().uuidString
 
-        if let format = RCTConvert.subtitleFormat(json["format"]) {
+        if let format = Self.subtitleFormat(json["format"]) {
             return SubtitleTrack(
                 url: url,
                 format: format,
@@ -631,8 +702,8 @@ extension RCTConvert {
             return nil
         }
         return [
-            "position": adItem.trigger == .pause ? RCTConvert.pauseTrigger : adItem.position,
-            "sources": adItem.sources.compactMap { RCTConvert.toJson(adSource: $0) }
+            "position": adItem.trigger == .pause ? Self.pauseTrigger : adItem.position,
+            "sources": adItem.sources.compactMap { Self.toJson(adSource: $0) }
         ]
     }
 
@@ -642,7 +713,7 @@ extension RCTConvert {
         }
         return [
             "tag": adSource.tag,
-            "type": RCTConvert.toJson(adSourceType: adSource.type)
+            "type": Self.toJson(adSourceType: adSource.type)
         ]
     }
 
@@ -690,7 +761,7 @@ extension RCTConvert {
             return nil
         }
         return [
-            "ads": adBreak.ads.compactMap { RCTConvert.toJson(ad: $0) },
+            "ads": adBreak.ads.compactMap { Self.toJson(ad: $0) },
             "id": adBreak.identifier,
             "scheduleTime": adBreak.scheduleTime
         ]
@@ -702,7 +773,7 @@ extension RCTConvert {
         }
         return [
             "clickThroughUrl": ad.clickThroughUrl?.absoluteString,
-            "data": RCTConvert.toJson(adData: ad.data),
+            "data": Self.toJson(adData: ad.data),
             "height": ad.height,
             "id": ad.identifier,
             "isLinear": ad.isLinear,
@@ -957,8 +1028,8 @@ extension RCTConvert {
         }
 
         return [
-            "textOptions": offlineTracks.textTracks.compactMap { RCTConvert.toJson(offlineTrack: $0) },
-            "audioOptions": offlineTracks.audioTracks.compactMap { RCTConvert.toJson(offlineTrack: $0) }
+            "textOptions": offlineTracks.textTracks.compactMap { Self.toJson(offlineTrack: $0) },
+            "audioOptions": offlineTracks.audioTracks.compactMap { Self.toJson(offlineTrack: $0) }
         ]
     }
 #endif
@@ -992,12 +1063,13 @@ extension RCTConvert {
         ]
     }
 
-    static func remoteControlConfig(_ json: Any?) -> RemoteControlConfig? {
-        guard let json = json as? [String: Any?] else {
+    @JavaScriptActor
+    static func remoteControlConfig(_ raw: JavaScriptValue?, context: AppContext) -> RemoteControlConfig? {
+        guard let json = raw?.getAny() as? [String: Any?] else {
             return nil
         }
         let remoteControlConfig = RemoteControlConfig()
-        if let receiverStylesheetUrl = RCTConvert.nsurl(json["receiverStylesheetUrl"]) {
+        if let receiverStylesheetUrl = Self.nsurl(json["receiverStylesheetUrl"]) {
             remoteControlConfig.receiverStylesheetUrl = receiverStylesheetUrl
         }
         if let customReceiverConfig = json["customReceiverConfig"] as? [String: String] {
@@ -1015,6 +1087,18 @@ extension RCTConvert {
         if let sendDrmLicenseRequestsWithCredentials = json["sendDrmLicenseRequestsWithCredentials"] as? Bool {
             remoteControlConfig.sendDrmLicenseRequestsWithCredentials = sendDrmLicenseRequestsWithCredentials
         }
+#if os(iOS)
+        if let callback = weakCallback(raw, "prepareSource") {
+            remoteControlConfig.prepareSource = { [weak context] type, sourceConfig in
+                guard let context, let prepared = callback.callBlocking(
+                    context,
+                    arguments: [type.rawValue, Self.toJson(sourceConfig: sourceConfig)],
+                    convert: { $0.getAny() as? [String: Any] }
+                ) else { return nil }
+                return Self.sourceConfig(prepared, drmConfig: prepared["drmConfig"].flatMap(Self.drmConfig)?.widevine)
+            }
+        }
+#endif
         return remoteControlConfig
     }
 
@@ -1036,20 +1120,6 @@ extension RCTConvert {
             "deviceName": castPayload.deviceName,
             "type": castPayload.type,
         ]
-    }
-
-    static func sourceRemoteControlConfig(_ json: Any?) -> SourceRemoteControlConfig? {
-        guard let json = json as? [String: Any?],
-              let castSourceConfigJson = json["castSourceConfig"] as? [String: Any?] else {
-            return nil
-        }
-
-        return SourceRemoteControlConfig(
-            castSourceConfig: RCTConvert.sourceConfig(
-                castSourceConfigJson,
-                drmConfig: castSourceConfigJson["drmConfig"].flatMap(RCTConvert.drmConfig)?.widevine
-            )
-        )
     }
 #endif
 
@@ -1143,13 +1213,6 @@ extension RCTConvert {
             "targetLevel": bufferLevel.targetLevel,
             "media": mediaType,
             "type": toJson(bufferType: bufferLevel.type)
-        ]
-    }
-
-    static func toJson(bufferLevels: RNBufferLevels) -> [String: Any] {
-        [
-            "audio": toJson(bufferLevel: bufferLevels.audio, mediaType: "audio"),
-            "video": toJson(bufferLevel: bufferLevels.video, mediaType: "video"),
         ]
     }
 
@@ -1254,6 +1317,7 @@ extension RCTConvert {
         let absoluteTimeRange = absoluteTimeRange(dateRangeMetadata: dateRangeMetadata)
         var json: [String: Any] = [
             "metadataType": "DATERANGE",
+            "platform": "ios",
             "id": dateRangeMetadata.identifier,
             "absoluteTimeRange": absoluteTimeRange,
             "cueingOptions": dateRangeMetadata.cueingOptions
@@ -1317,7 +1381,8 @@ extension RCTConvert {
 
     static func toJson(avMetadataItem: AVMetadataItem, metadataType: MetadataType) -> [String: Any] {
         var json: [String: Any] = [
-            "metadataType": metadataTypeString(metadataType)
+            "metadataType": metadataTypeString(metadataType),
+            "platform": "ios"
         ]
 
         addTimeInfo(from: avMetadataItem, into: &json)
@@ -1439,78 +1504,4 @@ extension RCTConvert {
         }
         return json
     }
-}
-/**
- * React native specific PlayerViewConfig.
- */
-internal struct RNPlayerViewConfig {
-    /**
-     * The react native specific ui configuration.
-     */
-    let uiConfig: RNUiConfig?
-
-    /**
-     * React Native specific picture in picture config.
-     */
-    let pictureInPictureConfig: RNPictureInPictureConfig?
-
-    /**
-     * PlayerView config considering all properties
-     */
-    var playerViewConfig: PlayerViewConfig {
-        let config = PlayerViewConfig()
-        if let nativePictureInPictureConfig = pictureInPictureConfig?.nativeConfig {
-            config.pictureInPictureConfig = nativePictureInPictureConfig
-        }
-        return config
-    }
-
-    /**
-     * When set to `true` the first frame of the main content will not be rendered before playback starts.
-     * Default is `false`.
-     *
-     * To reliably hide the first frame before a pre-roll ad, please ensure that you are using the
-     * `AdvertisingConfig` to schedule ads and not the `scheduleAd` API call.
-     */
-    var hideFirstFrame: Bool?
-}
-
-/**
- * React native specific UiConfig.
- */
-internal struct RNUiConfig {
-    let playbackSpeedSelectionEnabled: Bool
-    let enableWebViewInspecting: Bool
-    let uiManagerFactoryFunction: String
-}
-
-/**
- * React Native specific PictureInPictureConfig.
- */
-internal struct RNPictureInPictureConfig {
-    /**
-     * Native SDK PiP configuration.
-     */
-    let nativeConfig: PictureInPictureConfig?
-
-    /**
-     * Whether PiP should exit automatically when the app comes to the foreground.
-     */
-    let shouldExitOnForeground: Bool
-}
-
-/**
- * Representation of the React Native API `BufferLevels` object.
- * This is necessary as we need a unified representation of the different APIs from both Android and iOS.
- * - Parameter audio: `BufferLevel` for `MediaType.Audio`.
- * - Parameter video: `BufferLevel` for `MediaType.Video`.
- */
-internal struct RNBufferLevels {
-    let audio: BufferLevel
-    let video: BufferLevel
-}
-
-internal enum RNPictureInPictureAction: String {
-    case togglePlayback = "TogglePlayback"
-    case seek = "Seek"
 }

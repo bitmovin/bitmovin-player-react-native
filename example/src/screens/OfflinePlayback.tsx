@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Platform,
   ScrollView,
@@ -81,13 +81,16 @@ export default function OfflinePlayback() {
   const [usedStorage, setUsedStorage] = useState<number>(0);
   const [isLoadedSourceOffline, setIsLoadedSourceOffline] =
     useState<boolean>(false);
+  useEffect(() => {
+    async function updateUsedStorage() {
+      if (!offlineContentManager) return;
+      const usedStorageInBytes = await offlineContentManager.usedStorage();
+      setUsedStorage(usedStorageInBytes / 1024 / 1024);
+    }
+    void updateUsedStorage().catch(console.error);
+  }, [downloadState, progress, offlineContentManager]);
+
   const stateLabel = useMemo(() => {
-    void offlineContentManager
-      ?.usedStorage()
-      .then((usedStorageInBytes) => {
-        setUsedStorage(usedStorageInBytes / 1024 / 1024);
-      })
-      .catch(console.error);
     switch (downloadState) {
       case OfflineState.Downloading:
         return `Downloading: ${progress.toFixed(2)}%`;
@@ -100,7 +103,7 @@ export default function OfflinePlayback() {
       default:
         return 'Unknown state';
     }
-  }, [downloadState, progress, offlineContentManager]);
+  }, [downloadState, progress]);
 
   const onEvent = useCallback((event: any) => {
     prettyPrint(`EVENT`, event);
@@ -165,19 +168,15 @@ export default function OfflinePlayback() {
           },
         });
 
-      newOfflineContentManager
-        .initialize()
-        .then(() => {
-          setOfflineContentManager(newOfflineContentManager);
-          void newOfflineContentManager
-            .state()
-            .then((state) => {
-              setDownloadState(state);
-            })
-            .catch(console.error);
-          newOfflineContentManager.getOptions().catch(console.error);
-        })
-        .catch(console.error);
+      async function updateDownloadState() {
+        setDownloadState(await newOfflineContentManager.state());
+      }
+      async function setupOffline() {
+        setOfflineContentManager(newOfflineContentManager);
+        void updateDownloadState().catch(console.error);
+        await newOfflineContentManager.getOptions();
+      }
+      void setupOffline().catch(console.error);
 
       return () => {
         removeOfflineContentManagerListener();
@@ -198,8 +197,8 @@ export default function OfflinePlayback() {
         {isLoadedSourceOffline && (
           <Action
             text={'Load online content'}
-            onPress={() => {
-              void player.load(sourceConfig);
+            onPress={async () => {
+              await player.load(sourceConfig);
               setIsLoadedSourceOffline(false);
             }}
           />
@@ -208,10 +207,10 @@ export default function OfflinePlayback() {
           !isLoadedSourceOffline && (
             <Action
               text={'Load offline content'}
-              onPress={() => {
+              onPress={async () => {
                 if (offlineContentManager != null) {
                   onEvent('Loading the offline video');
-                  player.loadOfflineContent(offlineContentManager);
+                  await player.loadOfflineContent(offlineContentManager);
                   setIsLoadedSourceOffline(true);
                 }
               }}
@@ -233,16 +232,13 @@ export default function OfflinePlayback() {
         {downloadState === OfflineState.Downloaded && (
           <Action
             text={'Delete all'}
-            onPress={() => {
-              void offlineContentManager
-                ?.deleteAll()
-                .then(() => {
-                  setDownloadState(OfflineState.NotDownloaded);
-                  offlineContentManager.getOptions().catch(console.error);
-                  void player.load(sourceConfig);
-                  setIsLoadedSourceOffline(false);
-                })
-                .catch(console.error);
+            onPress={async () => {
+              if (!offlineContentManager) return;
+              await offlineContentManager.deleteAll();
+              setDownloadState(OfflineState.NotDownloaded);
+              offlineContentManager.getOptions().catch(console.error);
+              await player.load(sourceConfig);
+              setIsLoadedSourceOffline(false);
             }}
           />
         )}
@@ -256,7 +252,7 @@ export default function OfflinePlayback() {
         {downloadState === OfflineState.Downloading && (
           <Action
             text={'Suspend download'}
-            onPress={offlineContentManager?.suspend}
+            onPress={() => void offlineContentManager?.suspend()}
           />
         )}
         {downloadState === OfflineState.Suspended && (

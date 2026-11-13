@@ -83,17 +83,21 @@ export default (spec: TestScope) => {
           } as AdvertisingConfig;
           const world = PlayerTestWorld.shared;
           const acknowledge = world.onPlayerViewReady;
+          let loading!: Promise<void>;
           world.onPlayerViewReady = (player) => {
             acknowledge(player);
-            player.load(Sources.artOfMotionHls);
+            loading = player.load(Sources.artOfMotionHls);
           };
           try {
             await startPlayerTest({ advertisingConfig }, async () => {
               // Observe before native readiness, then load immediately in its
               // callback to verify the native ad listeners are already attached.
-              await expectEvents(
-                RepeatedEvent(EventType.AdScheduled, adItems.length)
-              );
+              await Promise.all([
+                expectEvents(
+                  RepeatedEvent(EventType.AdScheduled, adItems.length)
+                ),
+                callPlayer(() => loading),
+              ]);
             });
           } finally {
             world.onPlayerViewReady = acknowledge;
@@ -107,8 +111,10 @@ export default (spec: TestScope) => {
         await startPlayerTest({}, async () => {
           await loadSourceConfig(Sources.artOfMotionHls);
           await callPlayerAndExpectEvents(
-            (player) => {
-              adItems.forEach((adItem) => player.scheduleAd(adItem));
+            async (player) => {
+              for (const adItem of adItems) {
+                await player.scheduleAd(adItem);
+              }
             },
             RepeatedEvent(EventType.AdScheduled, adItems.length)
           );
@@ -141,7 +147,7 @@ export default (spec: TestScope) => {
             (async () => {
               await loadSourceConfig(Sources.artOfMotionHls);
               await callPlayer(async (player) => {
-                player.play();
+                await player.play();
               });
             })(),
           ]);
@@ -161,8 +167,8 @@ export default (spec: TestScope) => {
             expectManifestLoadedAfterSeek
               ? expectEvent(EventType.AdManifestLoaded, 20)
               : Promise.resolve(),
-            callPlayerAndExpectEvent((player) => {
-              player.seek(13);
+            callPlayerAndExpectEvent(async (player) => {
+              await player.seek(13);
             }, EventType.Seeked),
           ]);
           await waitForAdExpectations([
@@ -183,7 +189,7 @@ export default (spec: TestScope) => {
               : Promise.resolve(),
             callPlayerAndExpectEvent(async (player) => {
               const duration = await player.getDuration();
-              player.seek(duration - 5);
+              await player.seek(duration - 5);
             }, EventType.Seeked),
           ]);
         });
@@ -209,8 +215,8 @@ export default (spec: TestScope) => {
             { playbackConfig, advertisingConfig },
             async () => {
               await callPlayerAndExpectEvent(
-                (player) => {
-                  player.load(Sources.artOfMotionHls);
+                async (player) => {
+                  await player.load(Sources.artOfMotionHls);
                 },
                 FilteredEvent<TimeChangedEvent>(
                   EventType.TimeChanged,
@@ -248,8 +254,8 @@ export default (spec: TestScope) => {
               { playbackConfig, advertisingConfig },
               async () => {
                 await callPlayerAndExpectEvent(
-                  (player) => {
-                    player.load(Sources.artOfMotionHls);
+                  async (player) => {
+                    await player.load(Sources.artOfMotionHls);
                   },
                   FilteredEvent<TimeChangedEvent>(
                     EventType.TimeChanged,
@@ -289,8 +295,6 @@ export default (spec: TestScope) => {
           position: '15',
         },
         {
-          // Not vast2: IMA's request for it was rejected by CORS (ad error
-          // 1005) on CI. BITMOVIN VAST still covers vast2.
           sources: [{ tag: AdTags.vast1, type: AdSourceType.IMA }],
           position: 'post',
         },
@@ -328,15 +332,15 @@ export default (spec: TestScope) => {
       name: 'BITMOVIN VAST',
       adItems: [
         {
-          sources: [{ tag: AdTags.vastSkippable, type: AdSourceType.BITMOVIN }],
+          sources: [{ tag: AdTags.bitmovinVast, type: AdSourceType.BITMOVIN }],
           position: 'pre',
         },
         {
-          sources: [{ tag: AdTags.vast1, type: AdSourceType.BITMOVIN }],
+          sources: [{ tag: AdTags.bitmovinVast, type: AdSourceType.BITMOVIN }],
           position: '15',
         },
         {
-          sources: [{ tag: AdTags.vast2, type: AdSourceType.BITMOVIN }],
+          sources: [{ tag: AdTags.bitmovinVast, type: AdSourceType.BITMOVIN }],
           position: 'post',
         },
       ],
@@ -346,9 +350,7 @@ export default (spec: TestScope) => {
       name: 'BITMOVIN VMAP',
       adItems: [
         {
-          sources: [
-            { tag: AdTags.vmapPreMidPost, type: AdSourceType.BITMOVIN },
-          ],
+          sources: [{ tag: AdTags.bitmovinVmap, type: AdSourceType.BITMOVIN }],
         },
       ],
       expectManifestLoaded: false,
@@ -371,9 +373,9 @@ export default (spec: TestScope) => {
       spec.it('emits AdError events', async () => {
         await startPlayerTest({}, async () => {
           await loadSourceConfig(Sources.artOfMotionHls);
-          await callPlayerAndExpectEvent((player) => {
-            player.scheduleAd(adItem);
-            player.play();
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.scheduleAd(adItem);
+            await player.play();
           }, EventType.AdError);
         });
       });
@@ -382,7 +384,7 @@ export default (spec: TestScope) => {
 
   const adErrorScenarios: AdErrorScenario[] = [
     {
-      adItem: { sources: [{ tag: AdTags.error, type: AdSourceType.IMA }] },
+      adItem: { sources: [{ tag: AdTags.imaError, type: AdSourceType.IMA }] },
       label: 'IMA',
       enabledOn: ['ios', 'android'],
     },
@@ -418,8 +420,8 @@ export default (spec: TestScope) => {
       await loadSourceConfig(Sources.artOfMotionHls);
       await playUntil(1);
       await callPlayerAndExpectEvent(
-        (player) => {
-          player.pause();
+        async (player) => {
+          await player.pause();
         },
         eventType,
         20
@@ -441,8 +443,8 @@ export default (spec: TestScope) => {
         { advertisingConfig: pauseAdvertisingConfig(AdTags.pause) },
         async () => {
           await pauseAndExpectPauseAd();
-          await callPlayerAndExpectEvent((player) => {
-            player.skipAd();
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.skipAd();
           }, EventType.NonLinearAdSkipped);
         }
       );
@@ -453,8 +455,8 @@ export default (spec: TestScope) => {
         { advertisingConfig: pauseAdvertisingConfig(AdTags.pause) },
         async () => {
           await pauseAndExpectPauseAd();
-          await callPlayerAndExpectEvent((player) => {
-            player.play();
+          await callPlayerAndExpectEvent(async (player) => {
+            await player.play();
           }, EventType.NonLinearAdFinished);
         }
       );

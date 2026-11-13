@@ -102,17 +102,11 @@ jobs:
       - name: Typecheck TypeScript
         run: yarn typecheck:all
 
-      - name: Test network preprocessing
-        run: node --test scripts/test-network-preprocessing.js
+      - name: Test offline public API compatibility
+        run: node --test scripts/test-offline-compatibility.js
 
-      - name: Test event listeners
-        run: node --test scripts/test-event-listeners.js
-
-      - name: Test PlayerView event props
-        run: node --test scripts/test-player-event-props.js
-
-      - name: Test playlist config validation
-        run: node --test scripts/test-playlist-config-validation.js
+      - name: Test SharedObject public API compatibility
+        run: node --test scripts/test-shared-object-compatibility.js
 
       - name: Build TypeScript (Module)
         run: yarn build:module

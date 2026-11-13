@@ -93,6 +93,44 @@ test('Metro serves a fixed 403 for repeated binary license POSTs', async (t) => 
   }
 });
 
+test('serves only the two fixed BAM manifests for GET and HEAD', async (t) => {
+  const request = await serve(
+    t,
+    metroMiddleware()((_req, _res, next) => next())
+  );
+  const { linearXml, bamVmapXml } = require('../assets/fixtures/advertising');
+  for (const [name, xml] of [
+    ['vast.xml', linearXml],
+    ['vmap.xml', bamVmapXml],
+  ]) {
+    const fixturePath = `/cavy-fixtures/advertising/${name}`;
+    const response = await request(fixturePath, 'GET');
+    assert.equal(response.status, 200);
+    assert.equal(
+      response.headers['content-type'],
+      'application/xml; charset=utf-8'
+    );
+    assert.equal(response.body, xml);
+    assert.equal(
+      Number(response.headers['content-length']),
+      Buffer.byteLength(xml)
+    );
+    assert.equal(response.headers['cache-control'], 'no-store');
+    const head = await request(fixturePath, 'HEAD');
+    assert.equal(head.status, 200);
+    assert.equal(head.body, '');
+    assert.equal(
+      head.headers['content-length'],
+      response.headers['content-length']
+    );
+    assert.equal((await request(fixturePath, 'POST')).status, 404);
+  }
+  assert.equal(
+    (await request('/cavy-fixtures/advertising/missing.xml', 'GET')).status,
+    404
+  );
+});
+
 test('fixture routing preserves existing Metro middleware and next', async (t) => {
   const marker = {};
   const calls = [];

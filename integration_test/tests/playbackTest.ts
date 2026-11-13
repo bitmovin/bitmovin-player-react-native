@@ -1,4 +1,5 @@
 import { TestScope } from 'cavy';
+import { Platform } from 'react-native';
 import {
   callPlayerAndExpectEvent,
   callPlayerAndExpectEvents,
@@ -25,21 +26,38 @@ export default (spec: TestScope) => {
       await startPlayerTest({}, async () => {
         await loadSourceConfig(Sources.artOfMotionHls);
         await callPlayerAndExpectEvents(
-          (player) => {
-            player.play();
+          async (player) => {
+            await player.play();
           },
           EventSequence(EventType.Play, EventType.Playing)
         );
       });
     });
   });
+  if (Platform.OS === 'ios') {
+    spec.describe('resetting the maximum selectable bitrate', () => {
+      spec.it(
+        'accepts null after a finite cap and continues playback',
+        async () => {
+          await startPlayerTest({}, async () => {
+            await loadSourceConfig(Sources.artOfMotionHls);
+            await callPlayerAndExpectEvent(async (player) => {
+              await player.setMaxSelectableBitrate(1_000_000);
+              await player.setMaxSelectableBitrate(null);
+              await player.play();
+            }, EventType.Playing);
+          });
+        }
+      );
+    });
+  }
   spec.describe('calling pause when a source is loaded', () => {
     spec.it('emits a Paused event', async () => {
       await startPlayerTest({}, async () => {
         await loadSourceConfig(Sources.artOfMotionHls);
         await playFor(1);
-        await callPlayerAndExpectEvent((player) => {
-          player.pause();
+        await callPlayerAndExpectEvent(async (player) => {
+          await player.pause();
         }, EventType.Paused);
       });
     });
@@ -50,8 +68,8 @@ export default (spec: TestScope) => {
         await loadSourceConfig(Sources.artOfMotionHls);
         await playFor(1);
         const event = await callPlayerAndExpectEvent<PlaybackSpeedChangedEvent>(
-          (player) => {
-            player.setPlaybackSpeed(2);
+          async (player) => {
+            await player.setPlaybackSpeed(2);
           },
           EventType.PlaybackSpeedChanged
         );
@@ -65,8 +83,8 @@ export default (spec: TestScope) => {
       await startPlayerTest({}, async () => {
         await loadSourceConfig(Sources.artOfMotionHls);
         await callPlayerAndExpectEvents(
-          (player) => {
-            player.play();
+          async (player) => {
+            await player.play();
           },
           EventSequence(EventType.Play, EventType.Playing)
         );
@@ -78,8 +96,8 @@ export default (spec: TestScope) => {
       await startPlayerTest({}, async () => {
         await loadSourceConfig(Sources.artOfMotionHls);
         await callPlayerAndExpectEvents(
-          (player) => {
-            player.play();
+          async (player) => {
+            await player.play();
           },
           EventSequence(EventType.Play, EventType.Playing)
         );
@@ -109,9 +127,9 @@ export default (spec: TestScope) => {
       await startPlayerTest({}, async () => {
         await loadSourceConfig(Sources.artOfMotionHls);
         await callPlayerAndExpectEvent(async (player) => {
-          player.play();
+          await player.play();
           const duration = await player.getDuration();
-          player.seek(duration - 3);
+          await player.seek(duration - 3);
         }, EventType.PlaybackFinished);
       });
     });
@@ -121,9 +139,9 @@ export default (spec: TestScope) => {
         await loadSourceConfig(Sources.artOfMotionHls);
         const playbackFinishedEvent = (await callPlayerAndExpectEvent(
           async (player) => {
-            player.play();
+            await player.play();
             const duration = await player.getDuration();
-            player.seek(duration - 3);
+            await player.seek(duration - 3);
           },
           EventType.PlaybackFinished
         )) as PlaybackFinishedEvent;

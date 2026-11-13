@@ -64,7 +64,7 @@ export default function CustomHtmlUi({ navigation }: CustomHtmlUiProps) {
 
   useFocusEffect(
     useCallback(() => {
-      player.load({
+      void player.load({
         url:
           Platform.OS === 'ios'
             ? 'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8'
@@ -75,7 +75,7 @@ export default function CustomHtmlUi({ navigation }: CustomHtmlUiProps) {
           'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/poster.jpg',
       });
       return () => {
-        player.destroy();
+        void player.destroy();
       };
     }, [player])
   );
@@ -110,7 +110,7 @@ export default function CustomHtmlUi({ navigation }: CustomHtmlUiProps) {
         containerStyle={styles.buttonContainer}
         title="Toggle Close Button State"
         onPress={() => {
-          customMessageHandler.sendMessage('toggleCloseButton', undefined);
+          void customMessageHandler.sendMessage('toggleCloseButton', undefined);
         }}
       />
     </View>

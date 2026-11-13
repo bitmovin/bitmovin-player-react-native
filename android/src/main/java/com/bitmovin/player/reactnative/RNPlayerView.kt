@@ -19,7 +19,12 @@ import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.ScalingMode
 import com.bitmovin.player.api.ui.UiConfig
 import com.bitmovin.player.reactnative.converter.toJson
+import com.bitmovin.player.reactnative.converter.toPictureInPictureConfig
+import com.bitmovin.player.reactnative.converter.toPlayerViewConfig
 import com.bitmovin.player.reactnative.converter.toUserInterfaceType
+import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
+import com.bitmovin.player.reactnative.extensions.getMap
+import com.bitmovin.player.reactnative.extensions.getString
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.ReactRootView
 import com.facebook.react.views.view.ReactViewGroup
@@ -40,22 +45,34 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private var scalingMode: ScalingMode? = null
     private var requestedFullscreenValue: Boolean? = null
     private var requestedPictureInPictureValue: Boolean? = null
-    private var fullscreenBridgeId: NativeId? = null
+
+    // Expo props can arrive before the SDK view is created. Reapply them on attachment.
+    private var fullscreenHandler: SharedFullscreenHandler? = null
+    private var customMessageHandler: SharedCustomMessageHandler? = null
 
     private val onBmpPlayerViewReady by EventDispatcher()
+    private val onBmpViewAttached by EventDispatcher()
+    private val onBmpPictureInPictureAvailabilityChanged by EventDispatcher()
+
     private val onBmpFullscreenEnabled by EventDispatcher()
     private val onBmpFullscreenDisabled by EventDispatcher()
     private val onBmpFullscreenEnter by EventDispatcher()
     private val onBmpFullscreenExit by EventDispatcher()
-    private val onBmpPictureInPictureAvailabilityChanged by EventDispatcher()
     private val onBmpPictureInPictureEnter by EventDispatcher()
     private val onBmpPictureInPictureEntered by EventDispatcher()
     private val onBmpPictureInPictureExit by EventDispatcher()
     private val onBmpPictureInPictureExited by EventDispatcher()
 
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        onBmpViewAttached(emptyMap<String, Any>())
+    }
+
     private var pictureInPictureConfig: PictureInPictureConfig = PictureInPictureConfig()
 
     private var playerInMediaSessionService: Player? = null
+    private var sharedPlayer: SharedPlayer? = null
+    private var playerInfo: Map<String, Any>? = null
 
     // Setting this flag to `true` in order for React Native to re-render our view when [requestLayout] is triggered
     override val shouldUseAndroidLayout: Boolean = true
@@ -99,7 +116,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             if (!enableBackgroundPlayback) {
                 return
             }
-            if (appContext.registry.getModule<PlayerModule>()?.mediaSessionPlaybackManager?.player != player) {
+            if (sharedPlayer?.mediaSessionPlaybackManager?.player != player) {
                 return
             }
 
@@ -130,6 +147,21 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     fun dispose() {
+        sharedPlayer = null
+        playerInMediaSessionService = null
+        releasePlayerView()
+
+        activityLifecycle?.removeObserver(activityLifecycleObserver)
+        viewTreeObserver.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(globalLayoutListener)
+        pictureInPictureActions = null
+
+        // cleanup all children views explicitly,
+        // so that in case react native does some view caching we are 100% the child views of this view
+        // are cleaned up from the view hierarchy
+        removeAllViews()
+    }
+
+    private fun releasePlayerView() {
         playerView?.let { view ->
             view.setPictureInPictureHandler(null)
             // keep the player alive (before calling PlayerView.onDestroy,
@@ -155,15 +187,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
         playerContainer = null
 
-        activityLifecycle?.removeObserver(activityLifecycleObserver)
-        viewTreeObserver.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(globalLayoutListener)
         reparentHelper.dispose()
-        pictureInPictureActions = null
-
-        // cleanup all children views explicitly,
-        // so that in case react native does some view caching we are 100% the child views of this view
-        // are cleaned up from the view hierarchy
-        removeAllViews()
     }
 
     private fun setPlayerView(playerView: PlayerView) {
@@ -208,29 +232,62 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         scalingMode?.let {
             playerView.scalingMode = it
         }
-        fullscreenBridgeId?.let {
-            attachFullscreenBridge(it)
-        }
-        requestedFullscreenValue?.let {
-            setFullscreen(it)
-        }
+        fullscreenHandler?.let { playerView.setFullscreenHandler(it) }
+        applyPendingFullscreenRequest(playerView)
         requestedPictureInPictureValue?.let {
             setPictureInPicture(it)
         }
     }
 
-    fun attachPlayer(
-        playerId: NativeId,
-        playerViewConfigWrapper: RNPlayerViewConfigWrapper?,
-        customMessageHandlerBridgeId: NativeId?,
+    fun attachBindings(
+        owner: SharedPlayer,
+        fullscreen: SharedFullscreenHandler?,
+        messages: SharedCustomMessageHandler?,
+        config: Map<String, Any>?,
+    ) {
+        check(!owner.player.isDestroyed) { "Cannot attach a destroyed player" }
+        configure(config ?: emptyMap())
+        attachFullscreenHandler(fullscreen)
+        attachCustomMessageHandler(messages)
+        bindSharedPlayer(owner)
+        attachConfiguredPlayer()
+    }
+
+    fun bindSharedPlayer(shared: SharedPlayer?) {
+        if (sharedPlayer !== shared) {
+            playerInMediaSessionService = null
+        }
+        sharedPlayer = shared
+        if (shared == null) dispose()
+    }
+
+    fun configure(config: Map<String, Any>?) {
+        playerInfo = config
+    }
+
+    fun attachConfiguredPlayer() {
+        val shared = sharedPlayer ?: return
+        val config = playerInfo ?: return
+        val viewConfig = config.getMap("playerViewConfig")
+        attachPlayer(
+            shared,
+            viewConfig?.toPlayerViewConfig(),
+            viewConfig?.getMap("pictureInPictureConfig")?.toPictureInPictureConfig(),
+            config.getBooleanOrNull("enableBackgroundPlayback") ?: false,
+            config.getBooleanOrNull("isPictureInPictureEnabledOnPlayer") ?: false,
+            config.getString("userInterfaceTypeName"),
+        )
+    }
+
+    private fun attachPlayer(
+        shared: SharedPlayer,
+        configuredPlayerViewConfig: PlayerViewConfig?,
+        pictureInPictureConfig: PictureInPictureConfig?,
         enableBackgroundPlayback: Boolean,
         isPictureInPictureEnabledOnPlayer: Boolean,
         userInterfaceTypeName: String?,
     ) {
-        val playerModule = appContext.registry.getModule<PlayerModule>()
-        // PlayerView renders this native view only after player.initialize() resolves,
-        // so the player is already registered on the normal attachment path.
-        val player = playerModule?.getPlayerOrNull(playerId) ?: return
+        val player = shared.player
 
         if (playerView?.player == player) {
             // Player is already attached to the PlayerView
@@ -239,65 +296,83 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
         if (playerView != null) {
             playerView?.player = player
+            subtitleView?.setPlayer(player)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                pictureInPictureHandler?.setPlayer(player)
+            }
         } else {
-            this.enableBackgroundPlayback = enableBackgroundPlayback
-            val userInterfaceType = userInterfaceTypeName?.toUserInterfaceType() ?: UserInterfaceType.Bitmovin
-            val configuredPlayerViewConfig = playerViewConfigWrapper?.playerViewConfig ?: PlayerViewConfig()
-
-            val currentActivity = appContext.currentActivity
-                ?: throw IllegalStateException("Cannot create a PlayerView, because no activity is attached.")
-            val playerViewConfig: PlayerViewConfig = if (userInterfaceType != UserInterfaceType.Bitmovin) {
-                configuredPlayerViewConfig.copy(uiConfig = UiConfig.Disabled)
-            } else {
-                configuredPlayerViewConfig
-            }
-
-            val newPlayerView = PlayerView(currentActivity, player, playerViewConfig)
-
-            newPlayerView.layoutParams = LayoutParams(
-                LayoutParams.MATCH_PARENT,
-                LayoutParams.MATCH_PARENT,
+            createAndAttachPlayerView(
+                player,
+                configuredPlayerViewConfig,
+                pictureInPictureConfig,
+                enableBackgroundPlayback,
+                isPictureInPictureEnabledOnPlayer,
+                userInterfaceTypeName,
             )
+        }
+        customMessageHandler?.let { playerView?.setCustomMessageHandler(it.customMessageHandler) }
+        onBmpPlayerViewReady(emptyMap<String, Any>())
+    }
 
-            this.pictureInPictureConfig = playerViewConfigWrapper?.pictureInPictureConfig ?: PictureInPictureConfig()
-            val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer || pictureInPictureConfig.isEnabled
-            pictureInPictureHandler = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPictureInPictureEnabled) {
-                RNPictureInPictureHandler(
-                    activity = currentActivity,
-                    player = player,
-                    pictureInPictureConfig = pictureInPictureConfig,
-                    onPictureInPictureExited = {
-                        // It is safe to call this function with `newConfig = null`
-                        playerView?.onPictureInPictureModeChanged(
-                            isInPictureInPictureMode = false,
-                            newConfig = null,
-                        )
-                    },
-                )
-            } else {
-                null
-            }
-            newPlayerView.setPictureInPictureHandler(pictureInPictureHandler)
-            applyPictureInPictureActions()
-            setPlayerView(newPlayerView)
-            attachPlayerViewListeners(newPlayerView)
+    private fun createAndAttachPlayerView(
+        player: Player,
+        configuredPlayerViewConfig: PlayerViewConfig?,
+        pictureInPictureConfig: PictureInPictureConfig?,
+        enableBackgroundPlayback: Boolean,
+        isPictureInPictureEnabledOnPlayer: Boolean,
+        userInterfaceTypeName: String?,
+    ) {
+        this.enableBackgroundPlayback = enableBackgroundPlayback
+        val userInterfaceType = userInterfaceTypeName?.toUserInterfaceType() ?: UserInterfaceType.Bitmovin
+        val viewConfig = configuredPlayerViewConfig ?: PlayerViewConfig()
 
-            val playerConfig = player.config
-            if (playerConfig.styleConfig.isUiEnabled && userInterfaceType == UserInterfaceType.Subtitle) {
-                appContext.activityProvider?.currentActivity?.let { activity ->
-                    val subtitleView = SubtitleView(activity)
-                    subtitleView.setPlayer(player)
-                    setSubtitleView(subtitleView)
-                }
+        val currentActivity = checkNotNull(appContext.currentActivity) {
+            "Cannot create a PlayerView, because no activity is attached."
+        }
+        val playerViewConfig: PlayerViewConfig = if (userInterfaceType != UserInterfaceType.Bitmovin) {
+            viewConfig.copy(uiConfig = UiConfig.Disabled)
+        } else {
+            viewConfig
+        }
+
+        val newPlayerView = PlayerView(currentActivity, player, playerViewConfig)
+
+        newPlayerView.layoutParams = LayoutParams(
+            LayoutParams.MATCH_PARENT,
+            LayoutParams.MATCH_PARENT,
+        )
+
+        this.pictureInPictureConfig = pictureInPictureConfig ?: PictureInPictureConfig()
+        val isPictureInPictureEnabled = isPictureInPictureEnabledOnPlayer || this.pictureInPictureConfig.isEnabled
+        pictureInPictureHandler = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPictureInPictureEnabled) {
+            RNPictureInPictureHandler(
+                activity = currentActivity,
+                player = player,
+                pictureInPictureConfig = this.pictureInPictureConfig,
+                onPictureInPictureExited = {
+                    // It is safe to call this function with `newConfig = null`
+                    playerView?.onPictureInPictureModeChanged(
+                        isInPictureInPictureMode = false,
+                        newConfig = null,
+                    )
+                },
+            )
+        } else {
+            null
+        }
+        newPlayerView.setPictureInPictureHandler(pictureInPictureHandler)
+        applyPictureInPictureActions()
+        setPlayerView(newPlayerView)
+        attachPlayerViewListeners(newPlayerView)
+
+        val playerConfig = player.config
+        if (playerConfig.styleConfig.isUiEnabled && userInterfaceType == UserInterfaceType.Subtitle) {
+            appContext.activityProvider?.currentActivity?.let { activity ->
+                val subtitleView = SubtitleView(activity)
+                subtitleView.setPlayer(player)
+                setSubtitleView(subtitleView)
             }
         }
-        customMessageHandlerBridgeId?.let {
-            appContext.registry.getModule<CustomMessageHandlerModule>()?.getInstance(it)
-                ?.let { customMessageHandlerBridge ->
-                    playerView?.setCustomMessageHandler(customMessageHandlerBridge.customMessageHandler)
-                }
-        }
-        onBmpPlayerViewReady(mapOf("playerId" to playerId))
     }
 
     internal fun shouldEnterPictureInPictureOnBackground() = pictureInPictureConfig.let {
@@ -451,7 +526,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     fun setPictureInPicture(isPictureInPicture: Boolean) {
-        if (isPictureInPicture && !pictureInPictureConfig.isEnabled) {
+        if (playerView != null && isPictureInPicture && !pictureInPictureConfig.isEnabled) {
             return
         }
         requestedPictureInPictureValue = isPictureInPicture
@@ -472,22 +547,26 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         playerView?.scalingMode = this.scalingMode ?: ScalingMode.Fit
     }
 
-    fun attachFullscreenBridge(fullscreenBridgeId: NativeId) {
-        this.fullscreenBridgeId = fullscreenBridgeId
-        val playerView = playerView ?: return
-        appContext.registry.getModule<FullscreenHandlerModule>()?.getInstance(fullscreenBridgeId)
-            ?.let { fullscreenBridge ->
-                playerView.setFullscreenHandler(fullscreenBridge)
-            } ?: throw IllegalArgumentException("Fullscreen bridge with ID $fullscreenBridgeId not found")
-        requestedFullscreenValue?.let { isFullscreen ->
-            playerView.let {
-                if (isFullscreen) {
-                    it.enterFullscreen()
-                } else {
-                    it.exitFullscreen()
-                }
-            }
+    fun attachFullscreenHandler(handler: SharedFullscreenHandler?) {
+        if (fullscreenHandler === handler) return
+        fullscreenHandler = handler
+        playerView?.let { view ->
+            view.setFullscreenHandler(handler)
+            applyPendingFullscreenRequest(view)
         }
+    }
+
+    // Initial requests also notify a custom handler that already reports the requested state.
+    private fun applyPendingFullscreenRequest(view: PlayerView) {
+        requestedFullscreenValue?.let { requested ->
+            if (requested) view.enterFullscreen() else view.exitFullscreen()
+        }
+    }
+
+    fun attachCustomMessageHandler(handler: SharedCustomMessageHandler?) {
+        if (customMessageHandler === handler) return
+        customMessageHandler = handler
+        playerView?.setCustomMessageHandler(handler?.customMessageHandler)
     }
 
     fun updatePictureInPictureActions(pictureInPictureActions: List<PictureInPictureAction>) {
