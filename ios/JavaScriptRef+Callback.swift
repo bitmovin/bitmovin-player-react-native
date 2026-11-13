@@ -37,7 +37,7 @@ internal extension JavaScriptRef where T == JavaScriptWeakObject {
             guard !reply.isComplete else { return }
             reply.complete(invoke())
         }
-        return reply.wait(until: Date(timeIntervalSinceNow: 0.25))
+        return reply.wait(timeout: 0.25)
     }
 
     /// Matches the Apple SDK's asynchronous HTTP completion contract.
@@ -162,14 +162,17 @@ nonisolated internal final class CallbackCompletion<R>: CancellableCallback, Lon
     @JavaScriptActor
     func allowRelease() { cancel() }
 
-    func wait(until deadline: Date) -> R? {
+    func wait(timeout: TimeInterval) -> R? {
+        let deadline = Date(timeIntervalSinceNow: timeout)
         condition.lock()
         while !completed {
             if !condition.wait(until: deadline) { break }
         }
+        let timedOut = !completed
         let value = value
         condition.unlock()
         cancel()
+        if timedOut { log.error("JavaScript callback timed out after \(Int(timeout * 1_000)) ms") }
         return value
     }
 }
