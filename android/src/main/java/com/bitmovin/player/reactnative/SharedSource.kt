@@ -4,6 +4,7 @@ import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.toAnalyticsSourceMetadata
 import com.bitmovin.player.reactnative.converter.toSourceConfig
+import expo.modules.core.interfaces.DoNotStrip
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.jni.JavaScriptObject
@@ -57,4 +58,5 @@ class SharedSource private constructor(
     }
 }
 
+@DoNotStrip
 private class InvalidArgumentException(message: String) : CodedException(message)
