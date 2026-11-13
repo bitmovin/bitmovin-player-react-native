@@ -37,7 +37,7 @@ public final class SharedCustomMessageHandler: SharedObject {
 
     public func receivedAsynchronousMessage(_ message: String, withData data: String?) {
         guard let context else { return }
-        asynchronousMessage.notify(context, arguments: [message, data.map { $0 as Any } ?? JavaScriptValue.undefined])
+        asynchronousMessage.emit(context, arguments: [message, data.map { $0 as Any } ?? JavaScriptValue.undefined])
     }
 
     func destroy() { context = nil }

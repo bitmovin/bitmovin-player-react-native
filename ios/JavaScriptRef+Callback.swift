@@ -40,8 +40,7 @@ internal extension JavaScriptRef where T == JavaScriptWeakObject {
         return reply.wait(until: Date(timeIntervalSinceNow: 0.25))
     }
 
-    /// The completion overload matches the Apple SDK's asynchronous HTTP callback contract.
-    @discardableResult
+    /// Matches the Apple SDK's asynchronous HTTP completion contract.
     func callAsync<R>(
         _ context: AppContext,
         arguments: [Any],
@@ -53,19 +52,8 @@ internal extension JavaScriptRef where T == JavaScriptWeakObject {
         return reply
     }
 
-    func callAsync<R: Sendable>(
-        _ context: AppContext,
-        arguments: [Any],
-        convert: @escaping @JavaScriptActor (JavaScriptValue) throws -> R?
-    ) async throws -> R? {
-        guard let runtime = try? context.runtime,
-              let value = try await awaitValue(context, arguments: arguments) else { return nil }
-        try Task.checkCancellation()
-        return try await runtime.execute { try convert(value) }
-    }
-
     /// Notifications ignore their return value, consuming a rejected Promise without awaiting it.
-    func notify(_ context: AppContext, arguments: [Any]) {
+    func emit(_ context: AppContext, arguments: [Any]) {
         guard let runtime = try? context.runtime else { return }
         runtime.schedule {
             guard let result = try? self.invoke(context, arguments: arguments), result.isObject(),
@@ -154,7 +142,6 @@ internal extension JavaScriptRef where T == JavaScriptWeakObject {
 
 /// One SDK completion; cancellation and duplicate/late JS replies all settle it at most once.
 internal protocol CancellableCallback: AnyObject {
-    var isComplete: Bool { get }
     func cancel()
     func didComplete(_ completion: @escaping () -> Void)
 }

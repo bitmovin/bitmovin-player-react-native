@@ -7,8 +7,8 @@ import Foundation
 public final class SharedPlayer: SharedObject {
     private let factory: () -> Player
     private let events = SharedObjectEvents()
-    private let callbackLock = NSLock()
-    private var pendingCallbacks: [CancellableCallback]? = []
+    // Outstanding SDK HTTP completions must receive their fallback when this owner is destroyed.
+    private let pendingCallbacks = Mutex<[CancellableCallback]?>([])
     private var isDestroyed = false
     // Cleanup must not evaluate the lazy property for an unused player.
     private weak var initializedPlayer: Player?
@@ -79,23 +79,22 @@ public final class SharedPlayer: SharedObject {
         return owner
     }
     private func track(_ request: CancellableCallback) {
-        callbackLock.lock()
-        guard pendingCallbacks != nil else { callbackLock.unlock(); request.cancel(); return }
-        pendingCallbacks?.append(request)
-        callbackLock.unlock()
+        let active = pendingCallbacks.withLock { pending in
+            guard pending != nil else { return false }
+            pending?.append(request)
+            return true
+        }
+        guard active else { request.cancel(); return }
         request.didComplete { [weak self, weak request] in
-            guard let self else { return }
-            self.callbackLock.lock()
-            self.pendingCallbacks?.removeAll { $0 === request }
-            self.callbackLock.unlock()
+            self?.pendingCallbacks.withLock { $0?.removeAll { $0 === request } }
         }
     }
 
     private func closeCallbacks() {
-        callbackLock.lock()
-        let pending = pendingCallbacks ?? []
-        pendingCallbacks = nil
-        callbackLock.unlock()
+        let pending = pendingCallbacks.withLock { pending in
+            defer { pending = nil }
+            return pending ?? []
+        }
         pending.forEach { $0.cancel() }
     }
 
