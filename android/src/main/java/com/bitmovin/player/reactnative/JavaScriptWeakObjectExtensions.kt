@@ -1,5 +1,6 @@
 package com.bitmovin.player.reactnative
 
+import android.util.Log
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.defaultmodules.NativeModulesProxyModule
 import expo.modules.kotlin.jni.JavaScriptObject
@@ -27,7 +28,8 @@ internal fun <T> JavaScriptWeakObject.callBlocking(
         callOnJs(appContext, arguments, convert)
     } else {
         runBlocking {
-            withTimeoutOrNull(timeout) {
+            var completed = false
+            val result = withTimeoutOrNull(timeout) {
                 suspendCancellableCoroutine<T?> { continuation ->
                     try {
                         appContext.runtime.schedule {
@@ -42,8 +44,10 @@ internal fun <T> JavaScriptWeakObject.callBlocking(
                     } catch (error: Exception) {
                         continuation.resumeWithException(error)
                     }
-                }
+                }.also { completed = true }
             }
+            if (!completed) Log.e("BitmovinPlayer", "Synchronous JavaScript callback timed out after $timeout")
+            result
         }
     }
 }
