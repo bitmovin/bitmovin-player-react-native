@@ -73,7 +73,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private var pictureInPictureConfig: PictureInPictureConfig = PictureInPictureConfig()
 
     private var playerInMediaSessionService: Player? = null
-    private var configuredPlayer: Player? = null
+    private var sharedPlayer: SharedPlayer? = null
     private var playerInfo: Map<String, Any>? = null
 
     // Setting this flag to `true` in order for React Native to re-render our view when [requestLayout] is triggered
@@ -118,7 +118,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
             if (!enableBackgroundPlayback) {
                 return
             }
-            if (appContext.registry.getModule<PlayerModule>()?.mediaSessionPlaybackManager?.player != player) {
+            if (sharedPlayer?.mediaSessionPlaybackManager?.player != player) {
                 return
             }
 
@@ -149,7 +149,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     fun dispose() {
-        configuredPlayer = null
+        sharedPlayer = null
         playerInMediaSessionService = null
         releasePlayerView()
 
@@ -242,25 +242,26 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     fun attachBindings(
-        player: Player,
+        owner: SharedPlayer,
         fullscreen: FullscreenHandlerBridge?,
         messages: CustomMessageHandlerBridge?,
         config: Map<String, Any>?,
     ) {
+        val player = owner.player
         check(!player.isDestroyed) { "Cannot attach a destroyed player" }
         configure(config ?: emptyMap())
         attachFullscreenHandler(fullscreen)
         attachCustomMessageHandler(messages)
-        bindConfiguredPlayer(player)
+        bindSharedPlayer(owner)
         attachConfiguredPlayer()
     }
 
-    fun bindConfiguredPlayer(player: Player?) {
-        if (configuredPlayer !== player) {
+    fun bindSharedPlayer(owner: SharedPlayer?) {
+        if (sharedPlayer !== owner) {
             playerInMediaSessionService = null
         }
-        configuredPlayer = player
-        if (player == null) dispose()
+        sharedPlayer = owner
+        if (owner == null) dispose()
     }
 
     fun configure(config: Map<String, Any>?) {
@@ -268,7 +269,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     fun attachConfiguredPlayer() {
-        val player = configuredPlayer ?: return
+        val player = sharedPlayer?.player ?: return
         val config = playerInfo ?: return
         val viewConfig = config.getMap("playerViewConfig")
         attachPlayer(

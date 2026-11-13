@@ -1,287 +1,248 @@
+import { Player, Source } from 'bitmovin-player-react-native';
+import type { SourceUnloadedEvent } from 'bitmovin-player-react-native';
+import type { EventSubscription } from 'expo-modules-core';
+import { receiveEvent as receiving } from '../playertesting/receiveEvent';
 import { TestScope } from 'cavy';
 import {
-  Event,
-  Player,
-  Source,
-  SourceLoadedEvent,
-  SourceUnloadedEvent,
-} from 'bitmovin-player-react-native';
-import {
-  createPlayer,
-  delay,
-  playWhenReady,
-  waitUntil,
-  withPlayer,
+  callPlayer,
+  callPlayerAndExpectEvent,
+  EventType,
+  startPlayerTest,
 } from '../playertesting';
-import { Sources } from './helper/Sources';
+import PlayerTestWorld from '../playertesting/PlayerTestWorld';
 import { expect } from './helper/Expect';
-
-/**
- * Runs `fn` with a new player using `nativeId` and destroys it afterwards.
- */
-const withPlayerWithNativeId = async (
-  nativeId: string,
-  fn: (player: Player) => Promise<void>
-) => {
-  const player = createPlayer({ nativeId });
-  try {
-    await player.initialize();
-    await fn(player);
-  } finally {
-    void player.destroy();
-  }
-};
+import { Sources } from './helper/Sources';
 
 export default (spec: TestScope) => {
-  spec.describe('player events without a PlayerView', () => {
+  spec.describe('native object events', () => {
     spec.it(
-      'delivers PlayerActive to listeners registered before loading',
+      'keeps a replacement compatibility ID alive during old destruction',
       async () => {
-        await withPlayer(async (player) => {
-          const received: Event[] = [];
-          const record = (event: Event) => received.push(event);
-          player.on('playerActive', record);
-          player.on('ready', record);
-          await player.initialize();
-
-          const source = new Source(Sources.artOfMotionHls);
-          void player.loadSource(source);
-
-          const isReady = await waitUntil(() =>
-            received.some((event) => event.name === 'onReady')
-          );
-          expect(isReady, 'Ready should be received').toBeTruthy();
-          expect(received[0].name).toBe('onPlayerActive');
-        });
-      }
-    );
-
-    spec.it(
-      'delivers events to the other listeners when a listener throws',
-      async () => {
-        await withPlayer(async (player) => {
-          let isReceived = false;
-          player.on('ready', () => {
-            throw new Error('Expected test error');
-          });
-          player.on('ready', () => {
-            isReceived = true;
-          });
-          await player.initialize();
-          void player.load(Sources.artOfMotionHls);
-
-          expect(
-            await waitUntil(() => isReceived),
-            'Ready after a throwing listener'
-          ).toBeTruthy();
-        });
-      }
-    );
-
-    spec.it('stops delivering events after off', async () => {
-      await withPlayer(async (player) => {
-        let offCount = 0;
-        let keptCount = 0;
-        const offListener = () => offCount++;
-        player.on('timeChanged', offListener);
-        player.on('timeChanged', () => keptCount++);
-        await player.initialize();
-        await playWhenReady(player, () => player.load(Sources.artOfMotionHls));
-
-        const isPlaying = await waitUntil(
-          () => offCount > 0 && keptCount > 0,
-          20000
-        );
-        expect(isPlaying, 'TimeChanged should be received').toBeTruthy();
-
-        player.off('timeChanged', offListener);
-        const offCountAfterOff = offCount;
-        const keptCountAfterOff = keptCount;
-        await delay(2000);
-
-        expect(offCount, 'Listener removed via off').toBe(offCountAfterOff);
-        expect(keptCount, 'Remaining listener').toBeGreaterThan(
-          keptCountAfterOff
-        );
-      });
-    });
-
-    spec.it(
-      'keeps delivering events when another Player with the same nativeId unsubscribes',
-      async () => {
-        const nativeId = `shared-player-${Date.now()}`;
-        const player = createPlayer({ nativeId });
-        const samePlayer = createPlayer({ nativeId });
+        const config = {
+          nativeId: `replacement-${Date.now()}`,
+          licenseKey: PlayerTestWorld.defaultLicenseKey,
+        };
+        const original = new Player(config);
+        let replacement: Player | undefined;
+        let replacementDestroyed = false;
+        let replacementSubscription: EventSubscription | undefined;
         try {
-          let isMuted = false;
-          player.on('muted', () => {
-            isMuted = true;
-          });
-          await player.initialize();
-          await samePlayer.initialize();
-          const noop = () => {};
-          samePlayer.on('muted', noop);
-          samePlayer.off('muted', noop);
-          await playWhenReady(player, () =>
-            player.load(Sources.artOfMotionHls)
+          await original.getDuration();
+          await receiving(
+            (listener) => original.on('destroy', listener),
+            async () => {
+              const destroyed = original.destroy();
+              replacement = new Player(config);
+              replacementSubscription = await replacement.on('destroy', () => {
+                replacementDestroyed = true;
+              });
+              await destroyed;
+            }
           );
-
-          void player.mute();
-          expect(
-            await waitUntil(() => isMuted),
-            'Muted after the other Player unsubscribed'
-          ).toBeTruthy();
+          const next = replacement;
+          if (!next)
+            throw new Error('The replacement Player was not constructed');
+          expect(next).toNotBe(original);
+          expect(replacementDestroyed).toBe(false);
+          await receiving(
+            (listener) => next.on('ready', listener),
+            () => next.loadSource(new Source(Sources.artOfMotionHls))
+          );
+          expect(next.isDestroyed).toBe(false);
         } finally {
-          void player.destroy();
-          void samePlayer.destroy();
+          replacementSubscription?.remove();
+          try {
+            await original.destroy();
+          } finally {
+            await replacement?.destroy();
+          }
         }
       }
     );
 
     spec.it(
-      'removes the listeners of another Player with the same nativeId when the player is destroyed',
+      'includes the owning Source metadata in its unload event',
       async () => {
-        const nativeId = `destroyed-player-${Date.now()}`;
-        const player = createPlayer({ nativeId });
-        const samePlayer = createPlayer({ nativeId });
-        let isDestroyed = false;
-        let samePlayerReadyCount = 0;
-        player.on('destroy', () => {
-          isDestroyed = true;
-        });
-        samePlayer.on('ready', () => samePlayerReadyCount++);
-        await player.initialize();
-        void player.destroy();
-        expect(
-          await waitUntil(() => isDestroyed),
-          'Destroy should be received'
-        ).toBeTruthy();
-
-        // A new player reusing the nativeId must not reach the listeners of the destroyed one. Its initialization
-        // runs on the native main queue after the destroy, so the listeners are removed by then.
-        await withPlayerWithNativeId(nativeId, async (newPlayer) => {
-          await playWhenReady(newPlayer, () =>
-            newPlayer.load(Sources.artOfMotionHls)
-          );
-        });
-        expect(samePlayerReadyCount, 'Ready of the new player').toBe(0);
-      }
-    );
-
-    spec.it('removes all listeners when the player is destroyed', async () => {
-      const player = createPlayer();
-      const received: Event[] = [];
-      const record = (event: Event) => received.push(event);
-      player.on('timeChanged', record);
-      player.on('destroy', record);
-      const source = new Source(Sources.artOfMotionHls);
-      await player.initialize();
-      await playWhenReady(player, () => player.loadSource(source));
-
-      const isPlaying = await waitUntil(
-        () => received.some((event) => event.name === 'onTimeChanged'),
-        20000
-      );
-      expect(isPlaying, 'TimeChanged should be received').toBeTruthy();
-
-      void player.destroy();
-      const isDestroyed = await waitUntil(() =>
-        received.some((event) => event.name === 'onDestroy')
-      );
-      expect(isDestroyed, 'Destroy should be received').toBeTruthy();
-      const countAfterDestroy = received.length;
-      await delay(1000);
-      expect(received.length, 'Events after destroy').toBe(countAfterDestroy);
-    });
-
-    spec.it(
-      'delivers source events via Source.on until the listener is removed',
-      async () => {
-        await withPlayer(async (player) => {
-          const source = new Source(Sources.artOfMotionHls);
-          const loaded: SourceLoadedEvent[] = [];
-          let removedCount = 0;
-          let isUnloaded = false;
-          const removedListener = () => removedCount++;
-          // Registered before the source is initialized.
-          source.on('sourceLoaded', (event) => loaded.push(event));
-          source.on('sourceUnloaded', removedListener);
-          source.on('sourceUnloaded', () => {
-            isUnloaded = true;
+        await startPlayerTest({}, async () => {
+          const source = new Source({
+            ...Sources.artOfMotionHls,
+            metadata: { item: 'unloaded' },
           });
-          await player.initialize();
-          void player.loadSource(source);
-
-          expect(
-            await waitUntil(() => loaded.length > 0),
-            'SourceLoaded should be received'
-          ).toBeTruthy();
-          expect(loaded[0].source.nativeId, 'Source of SourceLoaded').toBe(
-            source.nativeId
+          await callPlayerAndExpectEvent(
+            (player) => player.loadSource(source),
+            EventType.Ready
           );
-
-          source.off('sourceUnloaded', removedListener);
-          void player.unload();
-
-          expect(
-            await waitUntil(() => isUnloaded),
-            'SourceUnloaded should be received'
-          ).toBeTruthy();
-          expect(removedCount, 'Listener removed via off').toBe(0);
+          const event = (await receiving(
+            (listener) => source.on('sourceUnloaded', listener),
+            () => callPlayer((player) => player.unload())
+          )) as SourceUnloadedEvent;
+          expect(event.source?.metadata).toEqual({ item: 'unloaded' });
         });
       }
     );
 
-    spec.it('warns when registering a listener after destroying', async () => {
-      const player = createPlayer();
-      const source = new Source(Sources.artOfMotionHls);
-      await player.initialize();
-      void player.destroy();
-      source.destroy();
-      const warnings: string[] = [];
-      const warn = console.warn;
-      console.warn = (...args: unknown[]) => warnings.push(args.join(' '));
-      try {
-        player.on('ready', () => {});
-        source.on('sourceLoaded', () => {});
-      } finally {
-        console.warn = warn;
+    spec.it(
+      'keeps source listeners after removing and adding it again',
+      async () => {
+        await startPlayerTest({}, async () => {
+          const first = new Source(Sources.artOfMotionHls);
+          const second = new Source(Sources.sintel);
+          await callPlayerAndExpectEvent(
+            (player) =>
+              player.loadPlaylist({
+                sources: [first, second],
+                options: { preloadAllSources: false },
+              }),
+            EventType.Ready
+          );
+          await receiving(
+            (listener) => second.on('sourceLoaded', listener),
+            () =>
+              callPlayer(async (player) => {
+                await player.playlist.remove(second);
+                await player.playlist.add(second);
+                await player.playlist.seek(second, 0);
+              })
+          );
+        });
       }
-      expect(
-        warnings.some((warning) => warning.includes('player was destroyed')),
-        'Warning for the destroyed player'
-      ).toBeTruthy();
-      expect(
-        warnings.some((warning) => warning.includes('source was destroyed')),
-        'Warning for the destroyed source'
-      ).toBeTruthy();
-    });
+    );
 
     spec.it(
-      'provides the unloaded source in sourceUnloaded via Source.on',
+      'keeps retained sources usable after their player is destroyed',
       async () => {
-        await withPlayer(async (player) => {
-          const unloaded: SourceUnloadedEvent[] = [];
-          let isReady = false;
-          player.on('ready', () => {
-            isReady = true;
+        const player = new Player({
+          licenseKey: PlayerTestWorld.defaultLicenseKey,
+        });
+        const replacement = new Player({
+          licenseKey: PlayerTestWorld.defaultLicenseKey,
+        });
+        const first = new Source(Sources.artOfMotionHls);
+        const removed = new Source(Sources.sintel);
+        try {
+          await receiving(
+            (listener) => player.on('ready', listener),
+            () => player.loadPlaylist({ sources: [first, removed] })
+          );
+          await player.playlist.remove(removed);
+          await receiving(
+            (listener) => first.on('sourceUnloaded', listener),
+            () => player.destroy()
+          );
+          await receiving(
+            (listener) => replacement.on('ready', listener),
+            () => replacement.loadPlaylist({ sources: [first, removed] })
+          );
+          const sources = await replacement.playlist.getSources();
+          expect(sources).toHaveLength(2);
+          expect(sources[0]).toBe(first);
+          expect(sources[1]).toBe(removed);
+        } finally {
+          try {
+            await player.destroy();
+          } finally {
+            await replacement.destroy();
+          }
+        }
+      }
+    );
+
+    spec.it(
+      'delivers headless events only to the owning player and source',
+      async () => {
+        await startPlayerTest({}, async () => {
+          await callPlayer(async (viewPlayer) => {
+            const player = new Player({
+              licenseKey: PlayerTestWorld.defaultLicenseKey,
+            });
+            const source = new Source(Sources.artOfMotionHls);
+            const idleSource = new Source(Sources.artOfMotionHls);
+            let wrongPlayerEvents = 0;
+            let wrongSourceEvents = 0;
+            let sourceLoads = 0;
+            let playerLoads = 0;
+            let removedPlayerEvents = 0;
+            const removedPlayerListener = () => removedPlayerEvents++;
+            const subscriptions = await Promise.all([
+              viewPlayer.on('sourceLoaded', () => wrongPlayerEvents++),
+              idleSource.on('sourceLoaded', () => wrongSourceEvents++),
+              source.on('sourceLoaded', () => sourceLoads++),
+              player.on('sourceLoaded', () => playerLoads++),
+              player.on('sourceLoaded', removedPlayerListener),
+            ]);
+            player.off('sourceLoaded', removedPlayerListener);
+            try {
+              // Readiness is a barrier for checking load delivery and isolation.
+              await receiving(
+                (listener) => player.on('ready', listener),
+                () => player.loadSource(source)
+              );
+              expect(sourceLoads, 'Owning source receives its load').toBe(1);
+              expect(
+                removedPlayerEvents,
+                'Removed Player listener stays silent'
+              ).toBe(0);
+              expect(
+                playerLoads,
+                'Owning player forwards its source load'
+              ).toBe(1);
+              expect(wrongSourceEvents, 'Other source remains isolated').toBe(
+                0
+              );
+              expect(wrongPlayerEvents, 'Other player remains isolated').toBe(
+                0
+              );
+              await receiving(
+                (listener) => player.on('destroy', listener),
+                () => player.destroy()
+              );
+            } finally {
+              subscriptions.forEach((subscription) => subscription.remove());
+              await player.destroy();
+            }
           });
-          await player.initialize();
+        });
+      }
+    );
+
+    spec.it(
+      'forwards view callbacks and preserves source listeners across players',
+      async () => {
+        await startPlayerTest({}, async () => {
           const source = new Source(Sources.artOfMotionHls);
-          source.on('sourceUnloaded', (event) => unloaded.push(event));
-          void player.loadSource(source);
-          expect(
-            await waitUntil(() => isReady),
-            'Ready should be received'
-          ).toBeTruthy();
-
-          void player.unload();
-
-          expect(
-            await waitUntil(() => unloaded.length > 0),
-            'SourceUnloaded should be received'
-          ).toBeTruthy();
-          expect(unloaded[0].source?.nativeId).toBe(source.nativeId);
+          let loads = 0;
+          let removedCalls = 0;
+          const subscription = await source.on('sourceLoaded', () => loads++);
+          // A removed subscription must stay silent during both attachments.
+          const removedListener = () => removedCalls++;
+          await source.on('sourceLoaded', removedListener);
+          source.off('sourceLoaded', removedListener);
+          try {
+            await callPlayerAndExpectEvent(async (player) => {
+              await player.loadSource(source);
+            }, EventType.Ready);
+            await callPlayerAndExpectEvent(async (player) => {
+              await player.play();
+            }, EventType.Playing);
+            await callPlayerAndExpectEvent(async (player) => {
+              await player.unload();
+            }, EventType.SourceUnloaded);
+            const replacement = new Player({
+              licenseKey: PlayerTestWorld.defaultLicenseKey,
+            });
+            try {
+              await receiving(
+                (listener) => replacement.on('ready', listener),
+                () => replacement.loadSource(source)
+              );
+              expect(loads, 'Source emits for each native attachment').toBe(2);
+              expect(removedCalls, 'Removed subscription stays silent').toBe(0);
+            } finally {
+              await replacement.destroy();
+            }
+          } finally {
+            subscription.remove();
+          }
         });
       }
     );

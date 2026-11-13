@@ -97,12 +97,10 @@ function fixture(t) {
 }
 
 function player(nativeId) {
-  let initialize;
-  const pending = new Promise((resolve) => (initialize = resolve));
-  return { nativeId, initialize: () => pending, complete: initialize };
+  return { nativeId, native: { nativeId } };
 }
 
-test('a retired initialization cannot replace the current native view bindings', async (t) => {
+test('Player replacement keeps fullscreen handling scoped to the mounted view', async (t) => {
   const f = fixture(t);
   const first = player('first');
   const second = player('second');
@@ -110,10 +108,10 @@ test('a retired initialization cannot replace the current native view bindings',
   await f.render({ player: first, fullscreenHandler });
   await f.attach();
   await f.render({ player: second, fullscreenHandler });
-  await act(() => second.complete());
-  assert.deepEqual(f.attached, ['second']);
-  await act(() => first.complete());
-  assert.deepEqual(f.attached, ['second']);
+
+  assert.deepEqual(f.attached, [first.native, second.native]);
+
+  assert.deepEqual(f.attached, [first.native, second.native]);
   assert.equal(
     f.closed,
     0,
@@ -123,24 +121,13 @@ test('a retired initialization cannot replace the current native view bindings',
   assert.equal(f.closed, 1);
 });
 
-test('unmount cancels pending attachment and closes the fullscreen callback scope', async (t) => {
-  const f = fixture(t);
-  const first = player('first');
-  await f.render({ player: first, fullscreenHandler: {} });
-  await f.attach();
-  await f.unmount();
-  await act(() => first.complete());
-  assert.deepEqual(f.attached, []);
-  assert.equal(f.closed, 1);
-});
-
 test('a replacement view ref receives the existing native host', async (t) => {
   const f = fixture(t);
   const first = player('first');
   const previous = { current: null };
   await f.render({ player: first, viewRef: previous });
   await f.attach();
-  await act(() => first.complete());
+
   const next = { current: null };
   await f.render({ player: first, viewRef: next });
   assert.equal(next.current, f.view);
@@ -151,6 +138,5 @@ test('attaches a valid empty compatibility ID', async (t) => {
   const first = player('');
   await f.render({ player: first });
   await f.attach();
-  await act(() => first.complete());
-  assert.deepEqual(f.attached, ['']);
+  assert.deepEqual(f.attached, [first.native]);
 });

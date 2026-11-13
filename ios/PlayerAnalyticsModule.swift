@@ -10,11 +10,9 @@ public class PlayerAnalyticsModule: Module {
     public func definition() -> ModuleDefinition {
         Name("PlayerAnalyticsModule")
 
-        AsyncFunction("sendCustomDataEvent") { [weak self] (playerId: String, json: [String: Any]) in
+        AsyncFunction("sendCustomDataEvent") { (owner: SharedPlayer, json: [String: Any]) in
+            let player = try owner.player
             guard
-                let playerExpoModule = self?.appContext?.moduleRegistry.get(PlayerModule.self)
-                    as? PlayerModule,
-                let player = playerExpoModule.retrieve(playerId),
                 let playerAnalytics = player.analytics,
                 let customData = RCTConvert.analyticsCustomData(json)
             else {
@@ -23,11 +21,9 @@ public class PlayerAnalyticsModule: Module {
             playerAnalytics.sendCustomDataEvent(customData: customData)
         }.runOnQueue(.main)
 
-        AsyncFunction("getUserId") { [weak self] (playerId: String) -> String? in
+        AsyncFunction("getUserId") { (owner: SharedPlayer) -> String? in
+            let player = try owner.player
             guard
-                let playerExpoModule = self?.appContext?.moduleRegistry.get(PlayerModule.self)
-                    as? PlayerModule,
-                let player = playerExpoModule.retrieve(playerId),
                 let playerAnalytics = player.analytics
             else {
                 return nil

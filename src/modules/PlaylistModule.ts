@@ -1,3 +1,5 @@
+import type { SharedPlayer } from './playerModule';
+import type { SharedSource } from './sourceModule';
 import type { NativeModule } from 'expo-modules-core';
 import { requireNativeModule } from 'expo-modules-core';
 
@@ -7,31 +9,35 @@ declare class PlaylistModule extends NativeModule<PlaylistModuleEvents> {
   /**
    * Get the native ids of the sources in the playback session, or an empty list if there is none.
    */
-  sources(nativeId: string): Promise<string[]>;
+  sources(player: SharedPlayer, known: SharedSource[]): Promise<SharedSource[]>;
 
   /**
    * Add a source to the playback session, optionally at `index`.
    */
-  add(nativeId: string, sourceNativeId: string, index?: number): Promise<void>;
+  add(
+    player: SharedPlayer,
+    source: SharedSource,
+    index?: number
+  ): Promise<void>;
 
   /**
    * Remove a source from the playback session.
    *
    * @returns whether the source was removed.
    */
-  remove(nativeId: string, sourceNativeId: string): Promise<boolean>;
+  remove(player: SharedPlayer, source: SharedSource): Promise<boolean>;
 
   /**
    * Remove the source at `index` from the playback session.
    *
    * @returns the native id of the removed source, or `null` if none was removed.
    */
-  removeAt(nativeId: string, index: number): Promise<string | null>;
+  removeAt(player: SharedPlayer, index: number): Promise<void>;
 
   /**
    * Seek to `time` in a source of the playback session.
    */
-  seek(nativeId: string, sourceNativeId: string, time: number): Promise<void>;
+  seek(player: SharedPlayer, source: SharedSource, time: number): Promise<void>;
 }
 
 export default requireNativeModule<PlaylistModule>('PlaylistModule');

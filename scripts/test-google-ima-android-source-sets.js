@@ -49,13 +49,13 @@ test('keeps Google IMA types out of the common Android source set', () => {
 
 test('keeps typed IMA conversion in the enabled source set only', () => {
   const enabledConfigurator = readRequired(
-    'android/src/withGoogleIma/java/com/bitmovin/player/reactnative/ImaBeforeInitializationConfigurator.kt'
+    'android/src/withGoogleIma/java/com/bitmovin/player/reactnative/converter/ImaAdvertisingConfigConverter.kt'
   );
   const enabledConverter = readRequired(
     'android/src/withGoogleIma/java/com/bitmovin/player/reactnative/converter/ImaSettingsConverter.kt'
   );
   const disabledConfigurator = readRequired(
-    'android/src/withoutGoogleIma/java/com/bitmovin/player/reactnative/ImaBeforeInitializationConfigurator.kt'
+    'android/src/withoutGoogleIma/java/com/bitmovin/player/reactnative/converter/ImaAdvertisingConfigConverter.kt'
   );
 
   assert.match(enabledConfigurator, /BeforeInitializationCallback/);

@@ -94,7 +94,7 @@ export function PlayerView({
     [player, config]
   );
 
-  const nativePlayer = player.nativeId;
+  const nativePlayer = player.native;
   const didNotifyPlayerViewReady = useRef<
     | {
         player: typeof player;
@@ -132,27 +132,18 @@ export function PlayerView({
 
   useEffect(() => {
     const target = nativeView.current;
-    if (!target || mountedView !== target) return;
+    if (!nativePlayer || !target || mountedView !== target) return;
     let cancelled = false;
     // Method arguments cross Expo directly; public objects never become Fabric host props.
-    void player
-      .initialize()
-      .then(() => {
-        if (
-          cancelled ||
-          nativeView.current !== target ||
-          currentPlayer.current !== player
-        )
-          return;
-        return target.attachBindings(
-          nativePlayer,
-          fullscreenHandler && fullscreenBridge.current
-            ? fullscreenBridge.current.nativeId
-            : undefined,
-          customMessageHandlerBridge.current?.nativeId,
-          nativePlayerViewConfig
-        );
-      })
+    void target
+      .attachBindings(
+        nativePlayer,
+        fullscreenHandler && fullscreenBridge.current
+          ? fullscreenBridge.current.nativeId
+          : undefined,
+        customMessageHandlerBridge.current?.nativeId,
+        nativePlayerViewConfig
+      )
       .then(
         () => {
           if (

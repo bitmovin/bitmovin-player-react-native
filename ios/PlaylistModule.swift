@@ -5,28 +5,25 @@ public class PlaylistModule: Module {
     public func definition() -> ModuleDefinition {
         Name("PlaylistModule")
 
-        AsyncFunction("sources") { (nativeId: NativeId) -> [NativeId] in
-            // A destroyed player has no playback session, for which native returns no sources.
-            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId) else { return [] }
-            return player.playlist.sources.compactMap { SourceRegistry.nativeId(of: $0) }
+        AsyncFunction("sources") { (owner: SharedPlayer, known: [SharedSource]) -> [SharedSource] in
+            try owner.player.playlist.sources.map { source in
+                known.first { $0.source === source } ?? SharedSource(source: source)
+            }
         }.runOnQueue(.main)
 
-        AsyncFunction("add") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId, index: Int?) in
-            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId) else { return }
-            guard let source = self?.retrieveSource(sourceNativeId) else {
-                throw Exception(
-                    name: "SOURCE_NOT_INITIALIZED",
-                    description: "Source \(sourceNativeId) is not initialized"
-                )
-            }
+        AsyncFunction("add") { (owner: SharedPlayer, peer: SharedSource, index: Int?) in
+            let player = try owner.player
+            let source = peer.source
             // `load(playlistConfig:)` rejects these sources, but `add` does not check the source type.
-            try PlayerModule.validatePlaylistSourceType(source, sourceNativeId: sourceNativeId)
+            guard [.hls, .progressive, .movpkg].contains(source.sourceConfig.type) else {
+                throw Exception(name: "UnsupportedPlaylistSource", description: "Unsupported playlist source type")
+            }
             // The SDK raises a `fatalError` for a source attached to another player and only logs a warning for a
             // source that is already part of this playlist.
             guard !source.isAttachedToPlayer else {
                 throw Exception(
                     name: "SOURCE_ALREADY_ATTACHED",
-                    description: "Source \(sourceNativeId) is already attached to a player"
+                    description: "Source is already attached to a player"
                 )
             }
             if let index {
@@ -36,9 +33,9 @@ public class PlaylistModule: Module {
             }
         }.runOnQueue(.main)
 
-        AsyncFunction("remove") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId) -> Bool in
-            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
-                  let source = self?.retrieveSource(sourceNativeId) else { return false }
+        AsyncFunction("remove") { (owner: SharedPlayer, peer: SharedSource) -> Bool in
+            let player = try owner.player
+            let source = peer.source
             // The SDK can only remove sources by index.
             let index = player.playlist.sources.firstIndex { ($0 as AnyObject) === (source as AnyObject) }
             guard let index else { return false }
@@ -47,26 +44,19 @@ public class PlaylistModule: Module {
             return !Self.contains(player.playlist.sources, source)
         }.runOnQueue(.main)
 
-        AsyncFunction("removeAt") { (nativeId: NativeId, index: Int) -> NativeId? in
-            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
-                  player.playlist.sources.indices.contains(index) else { return nil }
-            let source = player.playlist.sources[index]
-            player.playlist.remove(sourceAt: index)
-            return Self.contains(player.playlist.sources, source) ? nil : SourceRegistry.nativeId(of: source)
+        AsyncFunction("removeAt") { (owner: SharedPlayer, index: Int) in
+            let player = try owner.player
+            if player.playlist.sources.indices.contains(index) { player.playlist.remove(sourceAt: index) }
         }.runOnQueue(.main)
 
-        AsyncFunction("seek") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId, time: Double) in
-            guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
-                  let source = self?.retrieveSource(sourceNativeId) else { return }
+        AsyncFunction("seek") { (owner: SharedPlayer, peer: SharedSource, time: Double) in
+            let player = try owner.player
+            let source = peer.source
             player.playlist.seek(source: source, time: time)
         }.runOnQueue(.main)
     }
 
     private static func contains(_ sources: [Source], _ source: Source) -> Bool {
         sources.contains { ($0 as AnyObject) === (source as AnyObject) }
-    }
-
-    private func retrieveSource(_ nativeId: NativeId) -> Source? {
-        appContext?.moduleRegistry.get(SourceModule.self)?.retrieve(nativeId)
     }
 }

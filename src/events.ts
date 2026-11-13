@@ -154,11 +154,6 @@ export type PlaybackFinishedEvent = Event;
  */
 export interface EventSource {
   /**
-   * The {@link Source.nativeId} of this event's source.
-   * Not set for sources that were not created through a {@link Source} instance (e.g. offline content).
-   */
-  nativeId?: string;
-  /**
    * Event's source duration in seconds.
    */
   duration: number;

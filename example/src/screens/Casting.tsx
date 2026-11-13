@@ -7,7 +7,6 @@ import {
   PlayerView,
   SourceType,
   BitmovinCastManager,
-  Source,
 } from 'bitmovin-player-react-native';
 
 function prettyPrint(header: string, obj: any) {
@@ -20,11 +19,20 @@ export default function Casting() {
     void BitmovinCastManager.updateContext().catch(console.error);
   }
 
-  const player = usePlayer();
+  const player = usePlayer({
+    remoteControlConfig: {
+      // Play DASH on Chromecast, even when casting from iOS.
+      prepareSource: () => ({
+        url: 'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
+        type: SourceType.DASH,
+        title: 'Art of Motion',
+      }),
+    },
+  });
 
   useFocusEffect(
     useCallback(() => {
-      const source = new Source({
+      void player.load({
         url:
           Platform.OS === 'ios'
             ? 'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8'
@@ -37,16 +45,6 @@ export default function Casting() {
           'https://cdn.bitmovin.com/content/internal/assets/art-of-motion-dash-hls-progressive/thumbnails/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.vtt',
         metadata: { platform: Platform.OS },
       });
-
-      // Configure playing DASH source on Chromecast, even when casting from iOS.
-      source.remoteControl = {
-        castSourceConfig: {
-          url: 'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
-          type: SourceType.DASH,
-          title: 'Art of Motion',
-        },
-      };
-      void player.loadSource(source);
       return () => {
         void player.destroy();
       };

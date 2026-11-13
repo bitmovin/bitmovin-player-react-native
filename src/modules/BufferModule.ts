@@ -1,3 +1,4 @@
+import type { SharedPlayer } from './playerModule';
 import type { NativeModule } from 'expo-modules-core';
 import { requireNativeModule } from 'expo-modules-core';
 import type { BufferLevels } from '../bufferApi';
@@ -8,12 +9,16 @@ declare class BufferModule extends NativeModule<BufferModuleEvents> {
   /**
    * Get buffer level for the specified player and buffer type.
    */
-  getLevel(playerId: string, type: string): Promise<BufferLevels>;
+  getLevel(player: SharedPlayer, type: string): Promise<BufferLevels>;
 
   /**
    * Set target level for the specified player and buffer type.
    */
-  setTargetLevel(playerId: string, type: string, value: number): Promise<void>;
+  setTargetLevel(
+    player: SharedPlayer,
+    type: string,
+    value: number
+  ): Promise<void>;
 }
 
 export default requireNativeModule<BufferModule>('BufferModule');
