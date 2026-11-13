@@ -105,6 +105,9 @@ jobs:
       - name: Test network preprocessing
         run: node --test scripts/test-network-preprocessing.js
 
+      - name: Test player command completion
+        run: node --test scripts/test-player-command-completion.js
+
       - name: Test event listeners
         run: node --test scripts/test-event-listeners.js
 

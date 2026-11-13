@@ -34,19 +34,19 @@ export default (spec: TestScope) => {
             onDestroy = resolve;
             destroyed.on('destroy', onDestroy);
           });
-          destroyed.destroy();
+          void destroyed.destroy();
           await finished;
         } finally {
           clearTimeout(deadline);
           destroyed.off('destroy', onDestroy);
-          destroyed.destroy();
+          void destroyed.destroy();
         }
         await startPlayerTest(
           { mediaControlConfig: { isEnabled: false } },
           async () => {
             await loadSourceConfig(Sources.artOfMotionHls);
             await callPlayerAndExpectEvent((player) => {
-              player.play();
+              return player.play();
             }, EventType.Playing);
           }
         );

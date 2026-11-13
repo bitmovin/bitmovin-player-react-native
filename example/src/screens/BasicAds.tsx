@@ -154,7 +154,7 @@ function BasicAdsPlayer({
 
   useFocusEffect(
     useCallback(() => {
-      player.load({
+      void player.load({
         url:
           Platform.OS === 'ios'
             ? 'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8'
@@ -165,7 +165,7 @@ function BasicAdsPlayer({
           'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/poster.jpg',
       });
       return () => {
-        player.destroy();
+        void player.destroy();
       };
     }, [player])
   );
@@ -175,10 +175,10 @@ function BasicAdsPlayer({
   }, []);
 
   const onSourceLoaded = useCallback(
-    (event: Event) => {
+    async (event: Event) => {
       onEvent(event);
       // Dinamically schedule an ad to play after the video
-      player.scheduleAd({
+      await player.scheduleAd({
         position: 'post',
         sources: [
           {
@@ -192,12 +192,11 @@ function BasicAdsPlayer({
   );
 
   const onAdStarted = useCallback(
-    (event: Event) => {
+    async (event: Event) => {
       onEvent(event);
       // Check if an ad is playing right now
-      void player.isAd().then((isAd) => {
-        prettyPrint('is Ad playing?', isAd);
-      });
+      const isAd = await player.isAd();
+      prettyPrint('is Ad playing?', isAd);
     },
     [player, onEvent]
   );

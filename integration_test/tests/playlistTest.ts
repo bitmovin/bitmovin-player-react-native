@@ -37,7 +37,7 @@ export default (spec: TestScope) => {
 
           const events = await callPlayerAndExpectEvents(
             (player) => {
-              player.loadPlaylist({ sources: [first, second] });
+              return player.loadPlaylist({ sources: [first, second] });
             },
             EventSequence(
               FilteredEvent<SourceAddedEvent>(
@@ -65,7 +65,7 @@ export default (spec: TestScope) => {
         const second = new Source(Sources.sintel);
 
         await callPlayerAndExpectEvent((player) => {
-          player.loadPlaylist({ sources: [first, second] });
+          return player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         await callPlayer(async (player) => {
@@ -84,7 +84,7 @@ export default (spec: TestScope) => {
         await startPlayerTest({}, async () => {
           const source = new Source(Sources.artOfMotionHls);
           await callPlayerAndExpectEvent((player) => {
-            player.loadPlaylist({ sources: [source] });
+            return player.loadPlaylist({ sources: [source] });
           }, EventType.Ready);
 
           await callPlayer(async (player) => {
@@ -179,13 +179,13 @@ export default (spec: TestScope) => {
           const source = new Source(Sources.artOfMotionHls);
 
           await callPlayerAndExpectEvent((player) => {
-            player.loadPlaylist({ sources: [source] });
+            return player.loadPlaylist({ sources: [source] });
           }, EventType.Ready);
 
           const otherPlayer = createPlayer();
           try {
             await otherPlayer.initialize();
-            otherPlayer.loadPlaylist({ sources: [source] });
+            void otherPlayer.loadPlaylist({ sources: [source] });
             await untilPlaylistLoadIsSent(source);
             // Native handles calls in order, so this reflects the rejected load.
             expect(
@@ -198,7 +198,7 @@ export default (spec: TestScope) => {
               expect(await source.isActive(), 'Source is active').toBeTruthy();
             });
           } finally {
-            otherPlayer.destroy();
+            void otherPlayer.destroy();
           }
           expect(
             source.isDestroyed,
@@ -214,8 +214,8 @@ export default (spec: TestScope) => {
         const second = new Source(Sources.sintel);
 
         await callPlayer(async (player) => {
-          player.loadPlaylist({ sources: [first] });
-          player.loadPlaylist({ sources: [second] });
+          void player.loadPlaylist({ sources: [first] });
+          void player.loadPlaylist({ sources: [second] });
           // The loads are sent in call order, so the second one ends up active.
           const isSecondActive = await waitUntil(
             async () => (await player.getSource()) === second
@@ -236,7 +236,7 @@ export default (spec: TestScope) => {
         const second = new Source(Sources.sintel);
 
         await callPlayerAndExpectEvent((player) => {
-          player.loadPlaylist({
+          return player.loadPlaylist({
             sources: [first, second],
             options: { preloadAllSources: true },
           });
@@ -263,7 +263,7 @@ export default (spec: TestScope) => {
           player.on('sourceLoaded', (event) => playerLoaded.push(event));
           await player.initialize();
 
-          player.loadPlaylist({
+          void player.loadPlaylist({
             sources: [first, second],
             options: { preloadAllSources: true },
           });
@@ -279,7 +279,7 @@ export default (spec: TestScope) => {
             'Player SourceLoaded of the inactive source'
           ).toBeFalsy();
         } finally {
-          player.destroy();
+          void player.destroy();
         }
       }
     );
@@ -294,7 +294,7 @@ export default (spec: TestScope) => {
           const second = new Source(Sources.sintel);
 
           await callPlayerAndExpectEvent((player) => {
-            player.loadPlaylist({ sources: [first, second] });
+            return player.loadPlaylist({ sources: [first, second] });
           }, EventType.Ready);
 
           const transition =
@@ -320,7 +320,7 @@ export default (spec: TestScope) => {
         const second = new Source(Sources.sintel);
 
         await callPlayerAndExpectEvent((player) => {
-          player.loadPlaylist({ sources: [first, second] });
+          return player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         const seek = await callPlayerAndExpectEvent<SeekEvent>(
@@ -342,14 +342,14 @@ export default (spec: TestScope) => {
           const second = new Source(Sources.sintel);
 
           await callPlayerAndExpectEvent((player) => {
-            player.loadPlaylist({ sources: [first, second] });
+            return player.loadPlaylist({ sources: [first, second] });
           }, EventType.Ready);
 
           const duration = await first.duration();
           await callPlayerAndExpectEvent<PlaylistTransitionEvent>(
             (player) => {
-              player.seek(duration - 2);
-              player.play();
+              void player.seek(duration - 2);
+              void player.play();
             },
             FilteredEvent<PlaylistTransitionEvent>(
               EventType.PlaylistTransition,
@@ -370,7 +370,7 @@ export default (spec: TestScope) => {
         const third = new Source(Sources.artOfMotionHls);
 
         await callPlayerAndExpectEvent((player) => {
-          player.loadPlaylist({ sources: [first, second] });
+          return player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         const added = await callPlayerAndExpectEvent<SourceAddedEvent>(
@@ -421,7 +421,7 @@ export default (spec: TestScope) => {
         const second = new Source(Sources.sintel);
 
         await callPlayerAndExpectEvent((player) => {
-          player.loadPlaylist({ sources: [first, second] });
+          return player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         // Both SDKs keep the active source, but they report the rejected removal differently:
@@ -455,7 +455,7 @@ export default (spec: TestScope) => {
           second.on('sourceLoaded', (event) => secondLoaded.push(event));
 
           await callPlayerAndExpectEvent((player) => {
-            player.loadPlaylist({ sources: [first, second] });
+            return player.loadPlaylist({ sources: [first, second] });
           }, EventType.Ready);
 
           await callPlayerAndExpectEvent(async (player) => {
@@ -489,7 +489,7 @@ export default (spec: TestScope) => {
           const first = new Source(Sources.artOfMotionHls);
           const second = new Source(Sources.sintel);
           await callPlayerAndExpectEvent((player) => {
-            player.loadPlaylist({ sources: [first, second] });
+            return player.loadPlaylist({ sources: [first, second] });
           }, EventType.Ready);
 
           await callPlayer(async (player) => {
@@ -517,11 +517,11 @@ export default (spec: TestScope) => {
           await player.initialize();
           const first = new Source(Sources.artOfMotionHls);
           const second = new Source(Sources.sintel);
-          player.loadPlaylist({ sources: [first, second] });
+          void player.loadPlaylist({ sources: [first, second] });
           expect(await untilActive(player, first), 'Loaded').toBeTruthy();
 
           const removal = player.playlist.remove(second);
-          player.loadPlaylist({ sources: [second] });
+          void player.loadPlaylist({ sources: [second] });
           await removal;
 
           expect(
@@ -531,10 +531,10 @@ export default (spec: TestScope) => {
           const sources = await player.playlist.getSources();
           expect(sources, 'Sources of the playlist').toHaveLength(1);
           expect(sources[0], 'Source of the playlist').toBe(second);
-          player.destroy();
+          void player.destroy();
           expect(second.isDestroyed, 'Loaded source destroyed').toBeTruthy();
         } finally {
-          player.destroy();
+          void player.destroy();
         }
       }
     );
@@ -547,21 +547,21 @@ export default (spec: TestScope) => {
           await player.initialize();
           const first = new Source(Sources.artOfMotionHls);
           const second = new Source(Sources.sintel);
-          player.loadPlaylist({ sources: [first, second] });
+          void player.loadPlaylist({ sources: [first, second] });
           expect(await untilActive(player, first), 'Loaded').toBeTruthy();
 
           const removal = player.playlist.removeAt(1);
-          player.loadSource(second);
+          void player.loadSource(second);
           await removal;
 
           expect(
             await untilActive(player, second),
             'Loaded source resolved'
           ).toBeTruthy();
-          player.destroy();
+          void player.destroy();
           expect(second.isDestroyed, 'Loaded source destroyed').toBeTruthy();
         } finally {
-          player.destroy();
+          void player.destroy();
         }
       }
     );
@@ -579,7 +579,7 @@ export default (spec: TestScope) => {
         const second = new Source(Sources.sintel);
 
         await callPlayerAndExpectEvent((player) => {
-          player.loadPlaylist({ sources: [first, second] });
+          return player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         await callPlayer(async (player) => {
@@ -611,7 +611,7 @@ export default (spec: TestScope) => {
         const second = new Source(Sources.sintel);
 
         await callPlayerAndExpectEvent((player) => {
-          player.loadPlaylist({ sources: [first, second] });
+          return player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         await callPlayer(async (player) => {
@@ -638,12 +638,12 @@ export default (spec: TestScope) => {
         const second = new Source(Sources.sintel);
 
         await callPlayerAndExpectEvent((player) => {
-          player.loadPlaylist({ sources: [first, second] });
+          return player.loadPlaylist({ sources: [first, second] });
         }, EventType.Ready);
 
         await callPlayerAndExpectEvents(
           (player) => {
-            player.unload();
+            return player.unload();
           },
           EventSequence(
             EventType.SourceRemoved,
@@ -671,23 +671,23 @@ export default (spec: TestScope) => {
           await playerB.initialize();
           const kept = new Source(Sources.artOfMotionHls);
           const removed = new Source(Sources.sintel);
-          playerA.loadPlaylist({ sources: [kept, removed] });
+          void playerA.loadPlaylist({ sources: [kept, removed] });
           expect(await untilActive(playerA, kept), 'Loaded in A').toBeTruthy();
           await playerA.playlist.remove(removed);
 
-          playerA.destroy();
+          void playerA.destroy();
 
           expect(kept.isDestroyed, 'Source of A').toBeTruthy();
           expect(removed.isDestroyed, 'Source removed from A').toBeFalsy();
-          playerB.loadPlaylist({ sources: [removed] });
+          void playerB.loadPlaylist({ sources: [removed] });
           expect(
             await untilActive(playerB, removed),
             'Removed source loaded into B'
           ).toBeTruthy();
           expect(await removed.isActive(), 'Removed source').toBeTruthy();
         } finally {
-          playerA.destroy();
-          playerB.destroy();
+          void playerA.destroy();
+          void playerB.destroy();
         }
       }
     );
@@ -702,24 +702,24 @@ export default (spec: TestScope) => {
           await playerB.initialize();
           const moved = new Source(Sources.artOfMotionHls);
           const next = new Source(Sources.sintel);
-          playerA.loadSource(moved);
+          void playerA.loadSource(moved);
           expect(await untilActive(playerA, moved), 'Loaded in A').toBeTruthy();
-          playerA.loadSource(next);
+          void playerA.loadSource(next);
           expect(
             await untilActive(playerA, next),
             'Next source loaded in A'
           ).toBeTruthy();
-          playerB.loadSource(moved);
+          void playerB.loadSource(moved);
           expect(await untilActive(playerB, moved), 'Moved to B').toBeTruthy();
 
-          playerA.destroy();
+          void playerA.destroy();
 
           expect(next.isDestroyed, 'Source of A').toBeTruthy();
           expect(moved.isDestroyed, 'Source moved to B').toBeFalsy();
           expect(await moved.isActive(), 'Source moved to B').toBeTruthy();
         } finally {
-          playerA.destroy();
-          playerB.destroy();
+          void playerA.destroy();
+          void playerB.destroy();
         }
       }
     );
@@ -733,13 +733,13 @@ export default (spec: TestScope) => {
           await playerA.initialize();
           await playerB.initialize();
           const shared = new Source(Sources.artOfMotionHls);
-          playerA.loadPlaylist({ sources: [shared] });
+          void playerA.loadPlaylist({ sources: [shared] });
           expect(
             await untilActive(playerA, shared),
             'Loaded in A'
           ).toBeTruthy();
           const own = new Source(Sources.sintel);
-          playerB.loadPlaylist({ sources: [own] });
+          void playerB.loadPlaylist({ sources: [own] });
           expect(await untilActive(playerB, own), 'Loaded in B').toBeTruthy();
 
           let addError: unknown;
@@ -749,25 +749,25 @@ export default (spec: TestScope) => {
             addError = error;
           }
           expect(addError, 'Adding the source of A to B').toBeDefined();
-          playerB.loadSource(shared);
-          playerB.loadPlaylist({ sources: [shared] });
+          void playerB.loadSource(shared);
+          void playerB.loadPlaylist({ sources: [shared] });
           // Native runs the loads in call order, so once this one is active, the rejected loads completed. It
           // also checks that the rejected loads left B able to load.
           const later = new Source(Sources.sintel);
-          playerB.loadPlaylist({ sources: [later] });
+          void playerB.loadPlaylist({ sources: [later] });
           expect(
             await untilActive(playerB, later),
             'Later source loaded in B'
           ).toBeTruthy();
 
-          playerB.destroy();
+          void playerB.destroy();
 
           expect(own.isDestroyed, 'Source of B').toBeTruthy();
           expect(shared.isDestroyed, 'Source of A').toBeFalsy();
           expect(await shared.isActive(), 'Source of A').toBeTruthy();
         } finally {
-          playerA.destroy();
-          playerB.destroy();
+          void playerA.destroy();
+          void playerB.destroy();
         }
       }
     );
@@ -778,9 +778,9 @@ export default (spec: TestScope) => {
         const player = createPlayer();
         await player.initialize();
         const source = new Source(Sources.artOfMotionHls);
-        player.loadSource(source);
+        void player.loadSource(source);
 
-        player.destroy();
+        void player.destroy();
 
         expect(
           await waitUntil(() => source.isDestroyed),
