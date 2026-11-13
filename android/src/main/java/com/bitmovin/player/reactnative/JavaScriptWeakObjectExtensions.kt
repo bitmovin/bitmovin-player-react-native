@@ -28,7 +28,6 @@ internal fun <T> JavaScriptWeakObject.callBlocking(
         callOnJs(appContext, arguments, convert)
     } else {
         runBlocking {
-            var completed = false
             val result = withTimeoutOrNull(timeout) {
                 suspendCancellableCoroutine<T?> { continuation ->
                     try {
@@ -44,10 +43,10 @@ internal fun <T> JavaScriptWeakObject.callBlocking(
                     } catch (error: Exception) {
                         continuation.resumeWithException(error)
                     }
-                }.also { completed = true }
+                }.let { Result.success(it) }
             }
-            if (!completed) Log.e("BitmovinPlayer", "Synchronous JavaScript callback timed out after $timeout")
-            result
+            if (result == null) Log.e("BitmovinPlayer", "Synchronous JavaScript callback timed out after $timeout")
+            result?.getOrThrow()
         }
     }
 }
