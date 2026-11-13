@@ -566,6 +566,28 @@ export default (spec: TestScope) => {
       }
     );
 
+    spec.it('warns when a source is not removed', async () => {
+      await startPlayerTest({}, async () => {
+        const first = new Source(Sources.artOfMotionHls);
+        const second = new Source(Sources.sintel);
+        await callPlayerAndExpectEvent((player) => {
+          player.loadPlaylist({ sources: [first, second] });
+        }, EventType.Ready);
+
+        await callPlayer(async (player) => {
+          const warnings = await captureWarnings(async () => {
+            await player.playlist.remove(first);
+            await player.playlist.removeAt(0);
+          });
+          expect(
+            warnings.filter((warning) => warning.includes('was not removed')),
+            'Warnings for removing the active source'
+          ).toHaveLength(2);
+          expect(await player.playlist.getSources()).toHaveLength(2);
+        });
+      });
+    });
+
     spec.it('rejects adding a DASH source on iOS', async () => {
       // The iOS SDK only supports HLS, progressive and movpkg sources in a playlist.
       if (Platform.OS !== 'ios') {
@@ -749,16 +771,22 @@ export default (spec: TestScope) => {
             addError = error;
           }
           expect(addError, 'Adding the source of A to B').toBeDefined();
-          playerB.loadSource(shared);
-          playerB.loadPlaylist({ sources: [shared] });
-          // Native runs the loads in call order, so once this one is active, the rejected loads completed. It
-          // also checks that the rejected loads left B able to load.
-          const later = new Source(Sources.sintel);
-          playerB.loadPlaylist({ sources: [later] });
+          const warnings = await captureWarnings(async () => {
+            playerB.loadSource(shared);
+            playerB.loadPlaylist({ sources: [shared] });
+            // Native runs the loads in call order, so once this one is active, the rejected loads completed. It
+            // also checks that the rejected loads left B able to load.
+            const later = new Source(Sources.sintel);
+            playerB.loadPlaylist({ sources: [later] });
+            expect(
+              await untilActive(playerB, later),
+              'Later source loaded in B'
+            ).toBeTruthy();
+          });
           expect(
-            await untilActive(playerB, later),
-            'Later source loaded in B'
-          ).toBeTruthy();
+            warnings.filter((warning) => warning.includes('The load failed')),
+            'Warnings of the rejected loads'
+          ).toHaveLength(2);
 
           playerB.destroy();
 
@@ -807,6 +835,24 @@ const getError = (fn: () => void): unknown => {
 const untilPlaylistLoadIsSent = async (source: Source) => {
   await source.initialize();
   await new Promise((resolve) => setTimeout(resolve, 0));
+};
+
+/**
+ * Collects the `console.warn` messages logged while `action` runs, and still logs them.
+ */
+const captureWarnings = async (action: () => Promise<void>) => {
+  const warnings: string[] = [];
+  const warn = console.warn;
+  console.warn = (...args: unknown[]) => {
+    warnings.push(args.map(String).join(' '));
+    warn(...args);
+  };
+  try {
+    await action();
+  } finally {
+    console.warn = warn;
+  }
+  return warnings;
 };
 
 /**
