@@ -343,7 +343,11 @@ export function PlayerView({
   );
 
   useEffect(() => {
-    if (!nativePlayer || !nativeView.current) {
+    if (
+      !nativeView.current ||
+      didNotifyPlayerViewReady.current?.player !== player ||
+      didNotifyPlayerViewReady.current.view !== nativeView.current
+    ) {
       return;
     }
 
@@ -352,7 +356,7 @@ export function PlayerView({
     if (viewRef) {
       viewRef.current = nativeView.current;
     }
-  }, [nativePlayer, viewRef, nativeView]);
+  }, [player, viewRef, nativeView]);
 
   // Compare the actions by content, so passing a new array with the same actions on every render
   // does not trigger a native update each time.
