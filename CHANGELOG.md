@@ -41,7 +41,7 @@
 
 - Player commands such as `play()`, `load()`, and `destroy()`, and `Source.setMetadata()` now return `Promise<void>`, allowing callers to await the native call and catch failures. Playback readiness still uses events. Fire-and-forget calls remain supported; strict Promise linting may require an explicit `await` or `void`
 - Player, Source, and OfflineContentManager constructors create their native SharedObjects synchronously. SDK resources are created on the first native operation and reused after successful creation. `new Player()` remains valid and uses native SDK defaults
-- Preserve five-second waits for Android synchronous DRM and custom-message callbacks. Other synchronous callbacks, including iOS, keep their 250 ms bound. Reaching a deadline logs an error and retains the existing result fallback
+- Preserve five-second waits for Android synchronous DRM and custom-message callbacks. Other synchronous callbacks, including iOS, keep their 250 ms bound; asynchronous HTTP preprocessing has no bridge deadline. Reaching a deadline logs an error and retains the existing result fallback
 - iOS: Bitmovin Advertising Module ad subtitles now follow the subtitle selected for the main content and remain off when main-content subtitles are off, instead of using the ad manifest's default subtitle track
 - Offline download requests accepted by the native SDK are no longer rejected by extra bitrate or download-state checks
 - Android: Source creation and analytics failures now expose the original SDK error instead of a generic binding error
