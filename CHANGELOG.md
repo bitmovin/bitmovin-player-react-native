@@ -60,6 +60,8 @@
 
 ### Fixed
 
+- Android: Rebind subtitles and picture-in-picture controls when replacing the Player of a mounted PlayerView.
+
 - iOS: Reset `setMaxSelectableBitrate(null)` to the SDK's unlimited value without an unsigned-integer trap.
 - Preserve `ReplayMode.Playlist` and `ReplayMode.LastSource` as deprecated aliases for `PLAYLIST` and `LAST_SOURCE`.
 

@@ -296,6 +296,10 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
         if (playerView != null) {
             playerView?.player = player
+            subtitleView?.setPlayer(player)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                pictureInPictureHandler?.setPlayer(player)
+            }
         } else {
             createAndAttachPlayerView(
                 player,
