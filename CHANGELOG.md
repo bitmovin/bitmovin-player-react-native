@@ -60,6 +60,8 @@
 
 ### Fixed
 
+- Publish replacement PlayerView refs only after the current native attachment succeeds.
+
 - Android: Fix `Player.getSource()` after loading offline content before constructing a `Source`.
 
 - Android: Rebind subtitles and picture-in-picture controls when replacing the Player of a mounted PlayerView.
