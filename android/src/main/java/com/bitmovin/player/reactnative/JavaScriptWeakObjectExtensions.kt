@@ -6,11 +6,10 @@ import expo.modules.kotlin.jni.JavaScriptObject
 import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.jni.JavaScriptWeakObject
 import expo.modules.kotlin.objects.Object
-import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.time.Duration
@@ -48,49 +47,52 @@ internal fun <T> JavaScriptWeakObject.callBlocking(
     }
 }
 
-/** Awaits only the returned value/Promise; cancellation drops the per-call continuation and late replies. */
+/** Awaits only the returned value/Promise; owner cancellation ignores late replies. */
 internal suspend fun <T> JavaScriptWeakObject.callSuspending(
     appContext: AppContext,
     vararg arguments: Any?,
     convert: (JavaScriptValue) -> T,
 ): T? = suspendCancellableCoroutine { continuation ->
-    val waiting = AtomicReference(continuation)
-    continuation.invokeOnCancellation { waiting.set(null) }
-    fun complete(value: T? = null, error: Exception? = null) {
-        val pending = waiting.getAndSet(null) ?: return
-        if (error is CancellationException) pending.cancel(error) else pending.resume(value)
-    }
-    try {
-        appContext.runtime.schedule {
-            if (waiting.get() == null) return@schedule
+    appContext.runtime.schedule {
+        if (continuation.isActive) {
             try {
-                val function: JavaScriptObject? = lock()
-                if (function == null) return@schedule complete()
-                // Expo installs this framework module for every AppContext. Its Object factory creates
-                // anonymous completion functions without another module or global callback table.
-                val factory = checkNotNull(appContext.registry.getModule<NativeModulesProxyModule>())
-                val handlers = factory.Object {
-                    Function("resolve") { value: JavaScriptValue ->
-                        if (waiting.get() != null) {
-                            try {
-                                complete(convert(value))
-                            } catch (error: Exception) {
-                                complete(error = error)
-                            }
-                        }
-                    }
-                    Function("reject") { _: JavaScriptValue -> complete() }
-                }
-                appContext.runtime.eval(
-                    "(function(args, sink) { Promise.resolve(this(...args)).then(sink.resolve, sink.reject); })",
-                ).getFunction<Unit?>()(arguments.toList(), handlers, thisValue = function, appContext = appContext)
+                invokeAndAwaitOnJs(appContext, arguments, continuation, convert)
             } catch (error: Exception) {
-                complete(error = error)
+                if (continuation.isActive) continuation.resumeWithException(error)
             }
         }
-    } catch (error: Exception) {
-        complete(error = error)
     }
+}
+
+private fun <T> JavaScriptWeakObject.invokeAndAwaitOnJs(
+    appContext: AppContext,
+    arguments: Array<out Any?>,
+    continuation: CancellableContinuation<T?>,
+    convert: (JavaScriptValue) -> T,
+) {
+    val function: JavaScriptObject? = lock()
+    if (function == null) throw InvalidRnArgumentException("Configured JavaScript callback is no longer available")
+    // Expo installs this framework module for every AppContext. Its Object factory creates
+    // anonymous completion functions without another module or global callback table.
+    val factory = checkNotNull(appContext.registry.getModule<NativeModulesProxyModule>())
+    val handlers = factory.Object {
+        Function("resolve") { value: JavaScriptValue ->
+            if (continuation.isActive) continuation.resumeWith(runCatching { convert(value) })
+        }
+        Function("reject") { reason: JavaScriptValue ->
+            if (continuation.isActive) {
+                continuation.resumeWith(
+                    runCatching {
+                        val message = if (reason.isString()) reason.getString() else "JavaScript callback rejected"
+                        throw IllegalStateException(message)
+                    },
+                )
+            }
+        }
+    }
+    appContext.runtime.eval(
+        "(function(args, sink) { Promise.resolve(this(...args)).then(sink.resolve, sink.reject); })",
+    ).getFunction<Unit?>()(arguments.toList(), handlers, thisValue = function, appContext = appContext)
 }
 
 /** Recover a callable wrapper transiently: Expo exposes getFunction on values, not on weak object locks. */
@@ -101,6 +103,9 @@ private fun <T> JavaScriptWeakObject.callOnJs(
 ): T? {
     val function: JavaScriptObject? = lock()
     val holder = appContext.runtime.jsiContext.createObject()
-    holder.setProperty("callback", function ?: return null)
+    holder.setProperty(
+        "callback",
+        function ?: throw InvalidRnArgumentException("Configured JavaScript callback is no longer available"),
+    )
     return convert(holder.getProperty("callback").getFunction<JavaScriptValue>()(*arguments, appContext = appContext))
 }

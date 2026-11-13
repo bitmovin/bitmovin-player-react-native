@@ -654,7 +654,7 @@ fun Map<String, Any?>.toWidevineConfig(appContext: AppContext): WidevineConfig? 
 
 private fun JavaScriptWeakObject.prepare(appContext: AppContext, data: ByteArray): ByteArray =
     callBlocking(appContext, Base64.encodeToString(data, Base64.NO_WRAP)) {
-        if (it.isString()) Base64.decode(it.getString(), Base64.NO_WRAP) else null
+        Base64.decode(it.getString(), Base64.NO_WRAP)
     } ?: ByteArray(0)
 
 fun String.toThumbnailTrack(): ThumbnailTrack = ThumbnailTrack(this)

@@ -4,7 +4,6 @@ import com.bitmovin.player.reactnative.converter.toOfflineDownloadRequest
 import com.bitmovin.player.reactnative.converter.toSourceConfig
 import com.bitmovin.player.reactnative.extensions.getMap
 import com.bitmovin.player.reactnative.offline.SharedOfflineContentManager
-import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.jni.JavaScriptObject
 import expo.modules.kotlin.jni.JavaScriptValue
@@ -19,9 +18,9 @@ class OfflineModule : Module() {
         val nativeConfig = config?.toNativeConfig()
         val identifier = nativeConfig?.get("identifier") as? String
         return SharedOfflineContentManager(appContext, identifier ?: "", events) { listener ->
-            if (identifier == null) throw CodedException("ERR_INVALID_ARGUMENT", "Invalid offline identifier", null)
+            if (identifier == null) throw InvalidRnArgumentException("Invalid offline identifier")
             val sourceConfig = nativeConfig?.getMap("sourceConfig")?.toSourceConfig(appContext)
-                ?: throw CodedException("ERR_INVALID_ARGUMENT", "Invalid source configuration", null)
+                ?: throw InvalidRnArgumentException("Invalid source configuration")
             val context = checkNotNull(appContext.reactContext) { "ReactApplicationContext is not available" }
             com.bitmovin.player.api.offline.OfflineContentManager.getOfflineContentManager(
                 sourceConfig,

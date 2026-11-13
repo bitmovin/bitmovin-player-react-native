@@ -16,14 +16,12 @@ internal fun JavaScriptValue.toNativeValue(): Any? = when {
     isBool() -> getBool()
     isNumber() -> getDouble()
     isString() -> getString()
-    isFunction() -> createWeak()
+    // Keep configured callbacks weak: their closures can capture the JS owner and its native peer.
+    isFunction() -> getObject().createWeak()
     isArray() -> getArray().map { it.toNativeValue() }
     isObject() -> getObject().toNativeConfig()
     else -> null
 }
 
-internal fun JavaScriptObject.getWeakCallback(key: String): JavaScriptWeakObject? = getProperty(key).createWeak()
-
-/** Keep configured callbacks weak: their closures can capture the JS owner and its native peer. */
-private fun JavaScriptValue.createWeak(): JavaScriptWeakObject? =
-    takeIf { it.isFunction() }?.getObject()?.createWeak()
+internal fun JavaScriptObject.getWeakCallback(key: String): JavaScriptWeakObject? =
+    getProperty(key).takeIf { it.isFunction() }?.getObject()?.createWeak()

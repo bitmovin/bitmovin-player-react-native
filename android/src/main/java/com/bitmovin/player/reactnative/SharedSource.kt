@@ -4,9 +4,7 @@ import com.bitmovin.player.api.analytics.create
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.reactnative.converter.toAnalyticsSourceMetadata
 import com.bitmovin.player.reactnative.converter.toSourceConfig
-import expo.modules.core.interfaces.DoNotStrip
 import expo.modules.kotlin.AppContext
-import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.jni.JavaScriptObject
 import expo.modules.kotlin.sharedobjects.SharedObject
 
@@ -38,7 +36,7 @@ class SharedSource private constructor(
             val nativeConfig = config?.toNativeConfig()
             return SharedSource(appContext) {
                 val sourceConfig = nativeConfig?.toSourceConfig(appContext)
-                    ?: throw InvalidArgumentException("Invalid source configuration")
+                    ?: throw InvalidRnArgumentException("Invalid source configuration")
                 val source = analyticsSourceMetadata?.toAnalyticsSourceMetadata()?.let {
                     Source.create(sourceConfig, it)
                 } ?: Source.create(sourceConfig)
@@ -57,6 +55,3 @@ class SharedSource private constructor(
         }
     }
 }
-
-@DoNotStrip
-private class InvalidArgumentException(message: String) : CodedException(message)
