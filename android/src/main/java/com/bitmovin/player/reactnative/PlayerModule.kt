@@ -60,7 +60,11 @@ class PlayerModule : Module() {
                 // Clean up all players when module is destroyed
                 PlayerRegistry.getAllPlayers().forEach { player ->
                     try {
-                        player.destroy()
+                        try {
+                            mediaSessionPlaybackManager.destroy(player)
+                        } finally {
+                            player.destroy()
+                        }
                     } catch (e: Exception) {
                         // Log but don't crash on cleanup
                     }
@@ -118,10 +122,12 @@ class PlayerModule : Module() {
         AsyncFunction("destroy") { nativeId: NativeId ->
             val player = PlayerRegistry.getPlayer(nativeId)
             if (player != null) {
-                // Note: MediaSession cleanup would need to be handled here
-                // For now, just destroy the player and remove from registry
-                player.destroy()
-                PlayerRegistry.unregister(nativeId)
+                try {
+                    mediaSessionPlaybackManager.destroy(player)
+                } finally {
+                    player.destroy()
+                    PlayerRegistry.unregister(nativeId)
+                }
             }
             eventRelay.offAll(nativeId, player)
         }.runOnQueue(Queues.MAIN)
@@ -445,7 +451,7 @@ class PlayerModule : Module() {
         PlayerRegistry.register(player, nativeId)
 
         if (enableMediaSession) {
-            mediaSessionPlaybackManager.setupMediaSessionPlayback(nativeId)
+            mediaSessionPlaybackManager.setupMediaSessionPlayback(player)
         }
     }
 
