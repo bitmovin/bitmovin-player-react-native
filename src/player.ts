@@ -222,13 +222,26 @@ export class Player extends NativeInstance<PlayerConfig> {
   /**
    * Loads the given {@link Source} into the player.
    * The player destroys the source when it is destroyed, see {@link Player.destroy}.
+   *
+   * Logs a warning if the load fails before it starts, e.g. because the source is attached to another player.
    */
   loadSource = (source: Source) => {
     this.knownSources.set(source.nativeId, source);
     void source
       .initialize()
       .then(() => PlayerModule.loadSource(this.nativeId, source.nativeId))
-      .then(() => this.takeOwnership([source]));
+      .then(() => this.takeOwnership([source]))
+      .catch(this.warnLoadFailed);
+  };
+
+  /**
+   * The loads return nothing, so a failed one would otherwise only show up as an uncaught promise rejection.
+   */
+  private warnLoadFailed = (error: unknown) => {
+    const reason = error instanceof Error ? error.message : String(error);
+    console.warn(
+      `[Player ${this.nativeId}] The load failed and has no effect: ${reason}`
+    );
   };
 
   /**
@@ -278,7 +291,8 @@ export class Player extends NativeInstance<PlayerConfig> {
    * removed via {@link PlaylistApi.remove} or {@link PlaylistApi.removeAt}; see {@link Player.destroy}.
    *
    * Throws if `sources` is empty or contains a source more than once, `options.replayMode` is unknown, a source
-   * was destroyed, or (on iOS and tvOS) a source has an unsupported type.
+   * was destroyed, or (on iOS and tvOS) a source has an unsupported type. Logs a warning if the load fails before
+   * it starts for a reason only known natively, e.g. because a source is attached to another player.
    *
    * Known limitations:
    * - Sources that left the player through {@link Player.unload} or a later load stay allocated until the player
@@ -305,7 +319,8 @@ export class Player extends NativeInstance<PlayerConfig> {
           playlistConfig.options
         )
       )
-      .then(() => this.takeOwnership(playlistConfig.sources));
+      .then(() => this.takeOwnership(playlistConfig.sources))
+      .catch(this.warnLoadFailed);
   };
 
   /**

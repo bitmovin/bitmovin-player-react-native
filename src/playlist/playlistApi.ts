@@ -87,11 +87,14 @@ export class PlaylistApi {
    * Has no effect if the `source` is not part of the playback session. Has no effect and emits a `PlayerWarning`
    * if there is no active playback session or if the `source` is the active source.
    * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
+   * In all these cases, a warning is logged, e.g. to Metro.
    */
   remove = async (source: Source): Promise<void> => {
     if (await PlaylistModule.remove(this.nativeId, source.nativeId)) {
       this.knownSources.delete(source.nativeId);
       releaseSourceOwner(source, this.nativeId);
+    } else {
+      this.warnNotRemoved(`Source ${source.nativeId}`);
     }
   };
 
@@ -101,6 +104,7 @@ export class PlaylistApi {
    * Has no effect if `index` is < 0 or >= the number of sources. Has no effect and emits a `PlayerWarning` if
    * there is no active playback session or if the source at `index` is the active source.
    * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
+   * In all these cases, a warning is logged, e.g. to Metro.
    */
   removeAt = async (index: number): Promise<void> => {
     const removedNativeId = await PlaylistModule.removeAt(this.nativeId, index);
@@ -110,7 +114,19 @@ export class PlaylistApi {
       if (removed) {
         releaseSourceOwner(removed, this.nativeId);
       }
+    } else {
+      this.warnNotRemoved(`The source at index ${index}`);
     }
+  };
+
+  /**
+   * Native only logs the reason, which does not reach Metro on iOS, and Android only emits a `PlayerWarning`.
+   */
+  private warnNotRemoved = (subject: string) => {
+    console.warn(
+      `[Player ${this.nativeId}] ${subject} was not removed: it is not part of the playback session, it is the ` +
+        'active source, or there is no active playback session.'
+    );
   };
 
   /**
