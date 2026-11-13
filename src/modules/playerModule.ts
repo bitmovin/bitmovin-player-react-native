@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-redeclare -- Native constructor values share their instance type names. */
+// Register the Source class before native queries can return an SDK-created peer.
+import './sourceModule';
 import type { NativeModule } from 'expo-modules-core';
 import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';

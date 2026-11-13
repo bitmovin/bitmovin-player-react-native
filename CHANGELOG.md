@@ -60,6 +60,8 @@
 
 ### Fixed
 
+- Android: Fix `Player.getSource()` after loading offline content before constructing a `Source`.
+
 - Android: Rebind subtitles and picture-in-picture controls when replacing the Player of a mounted PlayerView.
 
 - iOS: Reset `setMaxSelectableBitrate(null)` to the SDK's unlimited value without an unsigned-integer trap.
