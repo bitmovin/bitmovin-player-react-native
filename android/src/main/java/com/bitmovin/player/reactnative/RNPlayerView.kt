@@ -25,8 +25,6 @@ import com.bitmovin.player.reactnative.converter.toUserInterfaceType
 import com.bitmovin.player.reactnative.extensions.getBooleanOrNull
 import com.bitmovin.player.reactnative.extensions.getMap
 import com.bitmovin.player.reactnative.extensions.getString
-import com.bitmovin.player.reactnative.ui.CustomMessageHandlerBridge
-import com.bitmovin.player.reactnative.ui.FullscreenHandlerBridge
 import com.bitmovin.player.reactnative.ui.RNPictureInPictureHandler
 import com.facebook.react.ReactRootView
 import com.facebook.react.views.view.ReactViewGroup
@@ -49,8 +47,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     private var requestedPictureInPictureValue: Boolean? = null
 
     // Expo props can arrive before the SDK view is created. Reapply them on attachment.
-    private var fullscreenHandler: FullscreenHandlerBridge? = null
-    private var customMessageHandler: CustomMessageHandlerBridge? = null
+    private var fullscreenHandler: SharedFullscreenHandler? = null
+    private var customMessageHandler: SharedCustomMessageHandler? = null
 
     private val onBmpPlayerViewReady by EventDispatcher()
     private val onBmpViewAttached by EventDispatcher()
@@ -243,8 +241,8 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
 
     fun attachBindings(
         owner: SharedPlayer,
-        fullscreen: FullscreenHandlerBridge?,
-        messages: CustomMessageHandlerBridge?,
+        fullscreen: SharedFullscreenHandler?,
+        messages: SharedCustomMessageHandler?,
         config: Map<String, Any>?,
     ) {
         val player = owner.player
@@ -548,7 +546,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         playerView?.scalingMode = this.scalingMode ?: ScalingMode.Fit
     }
 
-    fun attachFullscreenHandler(handler: FullscreenHandlerBridge?) {
+    fun attachFullscreenHandler(handler: SharedFullscreenHandler?) {
         if (fullscreenHandler === handler) return
         fullscreenHandler = handler
         playerView?.let { view ->
@@ -564,7 +562,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         }
     }
 
-    fun attachCustomMessageHandler(handler: CustomMessageHandlerBridge?) {
+    fun attachCustomMessageHandler(handler: SharedCustomMessageHandler?) {
         if (customMessageHandler === handler) return
         customMessageHandler = handler
         playerView?.setCustomMessageHandler(handler?.customMessageHandler)

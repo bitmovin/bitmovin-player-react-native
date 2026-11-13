@@ -19,7 +19,7 @@ public class RNPlayerView: ExpoView {
             }
             addSubview(playerView)
             maybeFixAVPlayerViewControllerVisibility()
-            playerView.fullscreenHandler = fullscreenHandler
+            playerView.fullscreenHandler = fullscreenHandler?.handler
             if let scalingMode {
                 playerView.scalingMode = scalingMode
             }
@@ -38,10 +38,10 @@ public class RNPlayerView: ExpoView {
         }
     }
 
-    private var customMessageHandler: CustomMessageHandlerBridge?
+    private var customMessageHandler: SharedCustomMessageHandler?
     private var sharedPlayer: SharedPlayer?
     private var playerViewConfigWrapper: RNPlayerViewConfig?
-    private var fullscreenHandler: FullscreenHandlerBridge?
+    private var fullscreenHandler: SharedFullscreenHandler?
     private var scalingMode: ScalingMode?
     private var requestedFullscreenValue: Bool?
     private var requestedPictureInPictureValue: Bool?
@@ -85,8 +85,8 @@ public class RNPlayerView: ExpoView {
 
     internal func attachBindings(
         owner: SharedPlayer,
-        fullscreen: FullscreenHandlerBridge?,
-        messages: CustomMessageHandlerBridge?,
+        fullscreen: SharedFullscreenHandler?,
+        messages: SharedCustomMessageHandler?,
         config: [String: Any]?
     ) throws {
         let player = try owner.player
@@ -155,12 +155,12 @@ public class RNPlayerView: ExpoView {
         onBmpPlayerViewReady([:])
     }
 
-    internal func setFullscreenHandler(_ handler: FullscreenHandlerBridge?) {
+    internal func setFullscreenHandler(_ handler: SharedFullscreenHandler?) {
         fullscreenHandler = handler
-        playerView?.fullscreenHandler = handler
+        playerView?.fullscreenHandler = handler?.handler
     }
 
-    internal func setCustomMessageHandler(_ handler: CustomMessageHandlerBridge?) {
+    internal func setCustomMessageHandler(_ handler: SharedCustomMessageHandler?) {
         customMessageHandler = handler
     }
 

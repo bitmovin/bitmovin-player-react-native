@@ -5,8 +5,7 @@ import { useKeepAwake } from 'expo-keep-awake';
 import type { NativePlayerViewConfig, NativePlayerViewRef } from './native';
 import { NativePlayerView } from './native';
 import { useProxy } from '../../hooks/useProxy';
-import { FullscreenHandlerBridge } from '../../ui/fullscreenhandlerbridge';
-import { CustomMessageHandlerBridge } from '../../ui/custommessagehandlerbridge';
+import { FullscreenHandlerBridge } from '../../ui/fullscreenHandlerBridge';
 import { usePlayerEventProps } from './usePlayerEventProps';
 import type { PlayerViewProps } from './properties';
 import type { PictureInPictureAction } from './pictureInPictureAction';
@@ -65,18 +64,6 @@ export function PlayerView({
   }
   if (fullscreenBridge.current) {
     fullscreenBridge.current.setFullscreenHandler(fullscreenHandler);
-  }
-
-  const customMessageHandlerBridge: RefObject<
-    CustomMessageHandlerBridge | undefined
-  > = useRef(undefined);
-  if (customMessageHandler && !customMessageHandlerBridge.current) {
-    customMessageHandlerBridge.current = new CustomMessageHandlerBridge();
-  }
-  if (customMessageHandlerBridge.current && customMessageHandler) {
-    customMessageHandlerBridge.current.setCustomMessageHandler(
-      customMessageHandler
-    );
   }
 
   const nativePlayerViewConfig: NativePlayerViewConfig = useMemo(
@@ -139,9 +126,9 @@ export function PlayerView({
       .attachBindings(
         nativePlayer,
         fullscreenHandler && fullscreenBridge.current
-          ? fullscreenBridge.current.nativeId
+          ? fullscreenBridge.current.native
           : undefined,
-        customMessageHandlerBridge.current?.nativeId,
+        customMessageHandler ? customMessageHandler.native : undefined,
         nativePlayerViewConfig
       )
       .then(
@@ -182,8 +169,6 @@ export function PlayerView({
     () => () => {
       void fullscreenBridge.current?.destroy();
       fullscreenBridge.current = undefined;
-      customMessageHandlerBridge.current?.destroy();
-      customMessageHandlerBridge.current = undefined;
     },
     []
   );
