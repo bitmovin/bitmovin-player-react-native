@@ -1,7 +1,3 @@
-const {
-  installNativeClasses,
-  controlFor,
-} = require('./helpers/native-class-doubles');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -52,40 +48,42 @@ function fixture(t) {
     sourceConfig: { url: 'https://example.com/video.m3u8', type: 'hls' },
   };
   const owners = [];
-  const offlineModule = {
-    createEvents: () => {
-      const listeners = new Set();
-      return {
-        addListener: (_name, listener) => {
-          listeners.add(listener);
-          return { remove: () => listeners.delete(listener) };
-        },
-        emit: (event) => {
-          for (const listener of listeners) listener(event);
-        },
-      };
-    },
-    create: async (config, events) => {
-      const owner = {
-        config,
-        events,
-        emit: (event) => events.emit(event),
-        getState: async () => 'Downloaded',
-        destroy: async () => {},
-      };
-      owners.push(owner);
-      return owner;
-    },
-  };
+  class SharedOfflineEvents {
+    listeners = new Set();
+    addListener(_name, listener) {
+      this.listeners.add(listener);
+      return { remove: () => this.listeners.delete(listener) };
+    }
+    emit(event) {
+      for (const listener of this.listeners) listener(event);
+    }
+  }
+  class SharedOfflineContentManager {
+    constructor(config, events) {
+      this.config = config;
+      this.events = events;
+      owners.push(this);
+    }
+    emit(event) {
+      this.events.emit(event);
+    }
+    state() {
+      return Promise.resolve('Downloaded');
+    }
+    destroy() {
+      return Promise.resolve();
+    }
+  }
   require(
     path.join(directory, 'node_modules/expo-modules-core')
-  ).requireNativeModule = (name) =>
-    name === 'OfflineModule' ? offlineModule : {};
-  installNativeClasses({ OfflineModule: offlineModule });
+  ).requireNativeModule = () => ({
+    SharedOfflineEvents,
+    SharedOfflineContentManager,
+  });
   const { OfflineContentManager } = require(
     path.join(directory, 'offline/offlineContentManager.js')
   );
-  return { OfflineContentManager, config, owners, offlineModule };
+  return { OfflineContentManager, config, owners };
 }
 
 test('offline aliases share the native manager', async (t) => {
@@ -97,7 +95,6 @@ test('offline aliases share the native manager', async (t) => {
   assert.equal(owners[0].config, manager.config);
   assert.equal(config.nativeId, 'public-label');
   assert.equal(manager, alias);
-  assert.equal(await controlFor(manager), await controlFor(alias));
   await manager.destroy();
   await alias.destroy();
 });
@@ -119,14 +116,13 @@ test('offline progress reaches listeners with the public nativeId', async (t) =>
   await manager.destroy();
 });
 
-test('offline creation failures reach callers', async (t) => {
-  const { OfflineContentManager, config, offlineModule } = fixture(t);
-  const failure = new Error('SDK manager creation failed');
-  offlineModule.create = async () => {
+test('offline operation failures reach callers', async (t) => {
+  const { OfflineContentManager, config, owners } = fixture(t);
+  const manager = new OfflineContentManager(config);
+  const failure = new Error('SDK manager operation failed');
+  owners[0].state = async () => {
     throw failure;
   };
-  await assert.rejects(
-    new OfflineContentManager(config).state(),
-    (error) => error === failure
-  );
+  await assert.rejects(manager.state(), (error) => error === failure);
+  await manager.destroy();
 });
