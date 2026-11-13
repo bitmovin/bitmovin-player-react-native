@@ -6,7 +6,6 @@ import expo.modules.kotlin.jni.JavaScriptObject
 import expo.modules.kotlin.jni.JavaScriptValue
 import expo.modules.kotlin.jni.JavaScriptWeakObject
 import expo.modules.kotlin.objects.Object
-import expo.modules.kotlin.types.obtainTypeConverter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -53,17 +52,6 @@ internal fun <T> JavaScriptWeakObject.callBlocking(
     }
 }
 
-/** Maps Expo's detached JS types, including Double for numbers, without implicit numeric coercion. */
-@JvmName("callBlockingTyped")
-internal inline fun <reified Input : Any, Output> JavaScriptWeakObject.callBlocking(
-    appContext: AppContext,
-    vararg arguments: Any?,
-    timeout: Duration = 250.milliseconds,
-    crossinline convert: (Input) -> Output,
-): Output? = callBlocking<Output?>(appContext, *arguments, timeout = timeout) { value ->
-    obtainTypeConverter<Input>().convert(value.toNativeValue(), appContext, forceConversion = true)?.let { convert(it) }
-}
-
 /** Awaits only the returned value/Promise; cancellation drops the per-call continuation and late replies. */
 internal suspend fun <T> JavaScriptWeakObject.callSuspending(
     appContext: AppContext,
@@ -107,16 +95,6 @@ internal suspend fun <T> JavaScriptWeakObject.callSuspending(
     } catch (error: Exception) {
         complete(error = error)
     }
-}
-
-/** Maps fulfilled or immediate detached values through Expo; numbers remain Double, without numeric coercion. */
-@JvmName("callSuspendingTyped")
-internal suspend inline fun <reified Input : Any, Output> JavaScriptWeakObject.callSuspending(
-    appContext: AppContext,
-    vararg arguments: Any?,
-    crossinline convert: (Input) -> Output,
-): Output? = callSuspending<Output?>(appContext, *arguments) { value ->
-    obtainTypeConverter<Input>().convert(value.toNativeValue(), appContext, forceConversion = true)?.let { convert(it) }
 }
 
 /** Recover a callable wrapper transiently: Expo exposes getFunction on values, not on weak object locks. */
