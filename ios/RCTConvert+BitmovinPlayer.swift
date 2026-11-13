@@ -1216,13 +1216,6 @@ extension RCTConvert {
         ]
     }
 
-    static func toJson(bufferLevels: RNBufferLevels) -> [String: Any] {
-        [
-            "audio": toJson(bufferLevel: bufferLevels.audio, mediaType: "audio"),
-            "video": toJson(bufferLevel: bufferLevels.video, mediaType: "video"),
-        ]
-    }
-
     static func toJson(httpRequestType: HttpRequestType) -> String {
         httpRequestType.rawValue
     }
@@ -1511,78 +1504,4 @@ extension RCTConvert {
         }
         return json
     }
-}
-/**
- * React native specific PlayerViewConfig.
- */
-internal struct RNPlayerViewConfig {
-    /**
-     * The react native specific ui configuration.
-     */
-    let uiConfig: RNUiConfig?
-
-    /**
-     * React Native specific picture in picture config.
-     */
-    let pictureInPictureConfig: RNPictureInPictureConfig?
-
-    /**
-     * PlayerView config considering all properties
-     */
-    var playerViewConfig: PlayerViewConfig {
-        let config = PlayerViewConfig()
-        if let nativePictureInPictureConfig = pictureInPictureConfig?.nativeConfig {
-            config.pictureInPictureConfig = nativePictureInPictureConfig
-        }
-        return config
-    }
-
-    /**
-     * When set to `true` the first frame of the main content will not be rendered before playback starts.
-     * Default is `false`.
-     *
-     * To reliably hide the first frame before a pre-roll ad, please ensure that you are using the
-     * `AdvertisingConfig` to schedule ads and not the `scheduleAd` API call.
-     */
-    var hideFirstFrame: Bool?
-}
-
-/**
- * React native specific UiConfig.
- */
-internal struct RNUiConfig {
-    let playbackSpeedSelectionEnabled: Bool
-    let enableWebViewInspecting: Bool
-    let uiManagerFactoryFunction: String
-}
-
-/**
- * React Native specific PictureInPictureConfig.
- */
-internal struct RNPictureInPictureConfig {
-    /**
-     * Native SDK PiP configuration.
-     */
-    let nativeConfig: PictureInPictureConfig?
-
-    /**
-     * Whether PiP should exit automatically when the app comes to the foreground.
-     */
-    let shouldExitOnForeground: Bool
-}
-
-/**
- * Representation of the React Native API `BufferLevels` object.
- * This is necessary as we need a unified representation of the different APIs from both Android and iOS.
- * - Parameter audio: `BufferLevel` for `MediaType.Audio`.
- * - Parameter video: `BufferLevel` for `MediaType.Video`.
- */
-internal struct RNBufferLevels {
-    let audio: BufferLevel
-    let video: BufferLevel
-}
-
-internal enum RNPictureInPictureAction: String {
-    case togglePlayback = "TogglePlayback"
-    case seek = "Seek"
 }
