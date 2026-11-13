@@ -81,8 +81,8 @@ describe('test suite manifest', () => {
       const names = loaded.map((filename) =>
         require('node:path').basename(filename)
       );
-      assert.ok(!names.includes('mediaSessionTeardownTest.ts'));
       assert.ok(!names.includes('drmCallbacksTest.ts'));
+      assert.ok(!names.includes('mediaSessionTeardownTest.ts'));
       assert.ok(!names.includes('decoderConfigTest.ts'));
       assert.ok(names.includes('mediaControlsTest.ts'));
     } finally {

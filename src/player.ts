@@ -114,11 +114,10 @@ export class Player {
     manager: OfflineContentManager,
     options?: OfflineSourceOptions
   ): Promise<void> => {
-    await manager.initialize();
     if (
       (await PlayerModule.loadOfflineContent(
         this.native,
-        manager.nativeId,
+        manager.native,
         options
       )) !== false
     ) {

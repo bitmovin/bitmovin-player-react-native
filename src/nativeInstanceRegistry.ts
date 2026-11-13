@@ -1,5 +1,6 @@
 import * as Crypto from 'expo-crypto';
 import type { Player } from './player';
+import type { OfflineContentManager } from './offline/offlineContentManager';
 
 export interface NativeInstanceConfig {
   /**
@@ -30,3 +31,6 @@ export class NativeInstanceRegistry<T extends object> {
 }
 /** @internal */
 export const legacyPlayerRegistry = new NativeInstanceRegistry<Player>();
+/** @internal */
+export const legacyOfflineRegistry =
+  new NativeInstanceRegistry<OfflineContentManager>();
