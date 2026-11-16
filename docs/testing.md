@@ -57,30 +57,17 @@ Run commands from the repository root after the documented development setup.
 ### JS and repository tooling
 
 ```sh
-node --test scripts/test-network-preprocessing.js
-node --test scripts/test-event-listeners.js
 node --test scripts/test-player-command-completion.js
 node --test scripts/test-player-event-props.js
 yarn test:plugin
 python3 -m unittest discover -s .github/scripts -p 'test_*.py'
 ```
 
-The [network preprocessing tests](../scripts/test-network-preprocessing.js)
-use Node's test runner, TypeScript transpilation, and a mocked Expo module.
-They need installed root dependencies, including TypeScript, but no native
-build or Player license. They exercise the real JS handlers for request and
-response routing, callback success/failure, absent callbacks, and mocked
-completion rejection. They do not run a native decoder or completer.
-
-The [event listener tests](../scripts/test-event-listeners.js) use the same
-setup for the JS listeners behind `Player.on` and `Source.on`. They cover which
-native `on`/`off` and initialization calls JS submits, including for overlapping
-`Source.initialize` calls, and how payloads are routed to listeners. They do not
-prove that native attaches a listener or emits an event.
+Native configuration callbacks and named owner events now cross Expo directly. Their Cavy suites exercise real request conversion, playback, per-owner event delivery and Source identity; the former JS ID dispatcher fixtures no longer apply.
 
 The [command completion tests](../scripts/test-player-command-completion.js)
 verify that public command promises stay pending until the mocked native call
-settles, expose its rejection, and preserve source initialization before load.
+settles and expose the original native command rejection.
 They prove JS promise forwarding; playback readiness still requires SDK events.
 
 The [PlayerView event prop tests](../scripts/test-player-event-props.js) render

@@ -14,9 +14,8 @@ extension Source {
         ]
         if let metadata {
             json["metadata"] = metadata
-        }
-        if let nativeId = SourceRegistry.nativeId(of: self) {
-            json["nativeId"] = nativeId
+        } else if !sourceConfig.metadata.isEmpty {
+            json["metadata"] = sourceConfig.metadata
         }
         return json
     }
@@ -47,22 +46,6 @@ extension DeficiencyData: JsonConvertible {
     }
 }
 
-extension Event {
-    /// The JSON payload sent to JS, with non-finite numbers sanitized. Empty if the event is not `JsonConvertible`.
-    func eventPayload() -> [String: Any] {
-        guard let jsonConvertible = self as? JsonConvertible else {
-            return [:]
-        }
-        let anyHashableKeyedPayload = jsonConvertible.toJSON()
-        let stringKeyedPayload = anyHashableKeyedPayload.reduce(into: [String: Any]()) { result, pair in
-            if let key = pair.key as? String {
-                result[key] = pair.value
-            }
-        }
-        return NonFiniteSanitizer.sanitizeEventData(stringKeyedPayload)
-    }
-}
-
 extension Event where Self: JsonConvertible {
     func toEventJSON(_ eventPayloadBuilder: () -> [AnyHashable: Any]) -> [AnyHashable: Any] {
         var json: [AnyHashable: Any] = [
@@ -86,43 +69,6 @@ extension SeekEvent: JsonConvertible {
                     "time": to.time,
                     "source": to.source.toJSON()
                 ]
-            ]
-        }
-    }
-}
-
-// The iOS SDK names of `SourceAddedEvent` and `SourceRemovedEvent` end in `Event`. They are replaced with the names
-// used on Android because apps and the integration tests compare `Event.name`.
-extension SourceAddedEvent: JsonConvertible {
-    func toJSON() -> [AnyHashable: Any] {
-        toEventJSON {
-            [
-                "name": "onSourceAdded",
-                "source": source.toJSON(),
-                "index": index
-            ]
-        }
-    }
-}
-
-extension SourceRemovedEvent: JsonConvertible {
-    func toJSON() -> [AnyHashable: Any] {
-        toEventJSON {
-            [
-                "name": "onSourceRemoved",
-                "source": source.toJSON(),
-                "index": index
-            ]
-        }
-    }
-}
-
-extension PlaylistTransitionEvent: JsonConvertible {
-    func toJSON() -> [AnyHashable: Any] {
-        toEventJSON {
-            [
-                "from": from.toJSON(),
-                "to": to.toJSON()
             ]
         }
     }
@@ -765,3 +711,21 @@ extension FullscreenEnterEvent: DefaultJsonConvertibleEvent {}
 extension FullscreenExitEvent: DefaultJsonConvertibleEvent {}
 extension FullscreenEnabledEvent: DefaultJsonConvertibleEvent {}
 extension FullscreenDisabledEvent: DefaultJsonConvertibleEvent {}
+
+extension SourceAddedEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        toEventJSON { ["name": "onSourceAdded", "source": source.toJSON(), "index": index] }
+    }
+}
+
+extension SourceRemovedEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        toEventJSON { ["name": "onSourceRemoved", "source": source.toJSON(), "index": index] }
+    }
+}
+
+extension PlaylistTransitionEvent: JsonConvertible {
+    func toJSON() -> [AnyHashable: Any] {
+        toEventJSON { ["from": from.toJSON(), "to": to.toJSON()] }
+    }
+}

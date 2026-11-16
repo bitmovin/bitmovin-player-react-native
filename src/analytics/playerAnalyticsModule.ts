@@ -1,3 +1,4 @@
+import type { SharedPlayer } from '../modules/playerModule';
 import type { NativeModule } from 'expo-modules-core';
 import { requireNativeModule } from 'expo-modules-core';
 
@@ -9,10 +10,10 @@ export type PlayerAnalyticsModuleEvents = Record<string, any>;
  */
 declare class PlayerAnalyticsModule extends NativeModule<PlayerAnalyticsModuleEvents> {
   sendCustomDataEvent(
-    playerId: string,
+    player: SharedPlayer,
     customData: Record<string, any>
   ): Promise<void>;
-  getUserId(playerId: string): Promise<string | null>;
+  getUserId(player: SharedPlayer): Promise<string | null>;
 }
 
 export default requireNativeModule<PlayerAnalyticsModule>(

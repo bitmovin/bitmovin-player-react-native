@@ -15,12 +15,9 @@ public class PlayerViewModule: Module {
                 view.setPictureInPicture(enterPictureInPicture: isPictureInPictureRequested)
             }
             // swiftlint:disable:next line_length
-            AsyncFunction("attachBindings") { (view: RNPlayerView, playerId: String, fullscreenId: String?, messagesId: String?, config: [String: Any]?) in
-                guard let player = PlayerRegistry.getPlayer(nativeId: playerId) else {
-                    throw Exception(name: "PlayerNotInitialized", description: "Cannot attach an uninitialized player")
-                }
+            AsyncFunction("attachBindings") { (view: RNPlayerView, owner: SharedPlayer, fullscreenId: String?, messagesId: String?, config: [String: Any]?) in
                 try view.attachBindings(
-                    player: player,
+                    owner: owner,
                     fullscreen: fullscreenId.flatMap {
                         self.appContext?.moduleRegistry.get(FullscreenHandlerModule.self)?.retrieve($0)
                     },

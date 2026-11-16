@@ -17,9 +17,9 @@ class PlayerAnalyticsModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("PlayerAnalyticsModule")
 
-        AsyncFunction("sendCustomDataEvent") { playerId: String, json: Map<String, Any?>, promise: Promise ->
+        AsyncFunction("sendCustomDataEvent") { owner: SharedPlayer, json: Map<String, Any?>, promise: Promise ->
             try {
-                val analytics = getAnalyticsForPlayer(playerId)
+                val analytics = getAnalyticsForPlayer(owner)
                 analytics.sendCustomDataEvent(json.toAnalyticsCustomData())
                 promise.resolve(null)
             } catch (e: Exception) {
@@ -27,9 +27,9 @@ class PlayerAnalyticsModule : Module() {
             }
         }.runOnQueue(Queues.MAIN)
 
-        AsyncFunction("getUserId") { playerId: String, promise: Promise ->
+        AsyncFunction("getUserId") { owner: SharedPlayer, promise: Promise ->
             try {
-                val analytics = getAnalyticsForPlayer(playerId)
+                val analytics = getAnalyticsForPlayer(owner)
                 promise.resolve(analytics.userId)
             } catch (e: Exception) {
                 promise.reject("PlayerAnalyticsError", "Failed to get user ID", e)
@@ -40,12 +40,8 @@ class PlayerAnalyticsModule : Module() {
     /**
      * Helper method to get analytics for a player instance.
      */
-    private fun getAnalyticsForPlayer(playerId: String): AnalyticsApi {
-        // Get the player from PlayerModule
-        val playerModule = appContext.registry.getModule<PlayerModule>()
-        val player = playerModule?.getPlayerOrNull(playerId) ?: throw IllegalStateException(
-            "Could not find player with ID $playerId",
-        )
+    private fun getAnalyticsForPlayer(owner: SharedPlayer): AnalyticsApi {
+        val player = owner.player
         return player.analytics ?: throw IllegalStateException("Analytics is disabled")
     }
 }

@@ -148,18 +148,17 @@ export default function BasicDrmPlayback() {
     []
   );
 
-  const onRenewExpiringLicense = useCallback(() => {
+  const onRenewExpiringLicense = useCallback(async () => {
     console.log('RenewExpiringLicense called');
     if (fairplayContentKeyRequest) {
       console.log(
         'RenewExpiringLicense skdUri=[' + fairplayContentKeyRequest.skdUri + ']'
       );
 
-      void player
-        .getSource()
-        .then((source) =>
-          source?.drm?.fairplay.renewExpiringLicense(fairplayContentKeyRequest)
-        );
+      const activeSource = await player.getSource();
+      await activeSource?.drm.fairplay.renewExpiringLicense(
+        fairplayContentKeyRequest
+      );
     }
   }, [player, fairplayContentKeyRequest]);
 

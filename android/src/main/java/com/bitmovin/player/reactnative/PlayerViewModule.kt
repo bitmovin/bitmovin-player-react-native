@@ -43,14 +43,11 @@ class PlayerViewModule : Module() {
                 view.setPictureInPicture(isPictureInPicture)
             }
 
-            AsyncFunction("attachBindings") { view: RNPlayerView, playerId: String,
+            AsyncFunction("attachBindings") { view: RNPlayerView, owner: SharedPlayer,
                 fullscreenId: String?, messagesId: String?,
                 config: Map<String, Any>?, ->
-                val player = checkNotNull(PlayerRegistry.getPlayer(playerId)) {
-                    "Cannot attach an uninitialized player"
-                }
                 view.attachBindings(
-                    player,
+                    owner,
                     fullscreenId?.let { appContext.registry.getModule<FullscreenHandlerModule>()?.getInstance(it) },
                     messagesId?.let { appContext.registry.getModule<CustomMessageHandlerModule>()?.getInstance(it) },
                     config,

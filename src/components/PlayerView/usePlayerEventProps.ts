@@ -162,7 +162,7 @@ export function usePlayerEventProps(player: Player, props: PlayerViewEvents) {
         }
         propsRef.current.onEvent?.(event);
       };
-      player.on(eventName, listener);
+      void player.on(eventName, listener);
       listeners.set(eventName, listener);
     });
   }, [player, subscribedEventNames]);

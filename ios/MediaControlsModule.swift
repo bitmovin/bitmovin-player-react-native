@@ -5,20 +5,14 @@ public class MediaControlsModule: Module {
     public func definition() -> ModuleDefinition {
         Name("MediaControlsModule")
 
-        AsyncFunction("isEnabled") { (playerId: String) -> Bool? in
-            guard let playerModule = appContext?.moduleRegistry.get(PlayerModule.self),
-                  let player = playerModule.retrieve(playerId) else {
-                return nil
-            }
+        AsyncFunction("isEnabled") { (owner: SharedPlayer) -> Bool? in
+            let player = try owner.player
 
             return player.nowPlaying.isEnabled
         }.runOnQueue(.main)
 
-        AsyncFunction("setEnabled") { (playerId: String, enabled: Bool) in
-            guard let playerModule = appContext?.moduleRegistry.get(PlayerModule.self),
-                  let player = playerModule.retrieve(playerId) else {
-                return
-            }
+        AsyncFunction("setEnabled") { (owner: SharedPlayer, enabled: Bool) in
+            let player = try owner.player
 
             player.nowPlaying.isEnabled = enabled
         }.runOnQueue(.main)

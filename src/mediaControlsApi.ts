@@ -1,3 +1,5 @@
+import type { Player } from './player';
+import type { SharedPlayer } from './modules/playerModule';
 import { Platform } from 'react-native';
 import MediaControlsModule from './modules/MediaControlsModule';
 
@@ -9,13 +11,15 @@ import MediaControlsModule from './modules/MediaControlsModule';
  * @platform iOS, tvOS
  */
 export class MediaControlsApi {
+  private readonly player: SharedPlayer;
   /**
    * The native player id that this media controls api is attached to.
    */
   readonly nativeId: string;
 
-  constructor(playerId: string) {
-    this.nativeId = playerId;
+  constructor(player: Player) {
+    this.nativeId = player.nativeId;
+    this.player = player.native;
   }
 
   /**
@@ -40,7 +44,7 @@ export class MediaControlsApi {
       );
       return false;
     }
-    return (await MediaControlsModule?.isEnabled(this.nativeId)) ?? false;
+    return (await MediaControlsModule?.isEnabled(this.player)) ?? false;
   };
 
   /**
@@ -56,6 +60,6 @@ export class MediaControlsApi {
       );
       return;
     }
-    return MediaControlsModule?.setEnabled(this.nativeId, enabled);
+    return MediaControlsModule?.setEnabled(this.player, enabled);
   };
 }

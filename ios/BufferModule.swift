@@ -9,11 +9,8 @@ public class BufferModule: Module {
             // Module initialization
         }
 
-        AsyncFunction("getLevel") { (playerId: String, type: String) -> [String: Any]? in
-            guard let playerModule = appContext?.moduleRegistry.get(PlayerModule.self),
-                  let player = playerModule.retrieve(playerId) else {
-                return nil
-            }
+        AsyncFunction("getLevel") { (owner: SharedPlayer, type: String) -> [String: Any]? in
+            let player = try owner.player
 
             guard let bufferType = RCTConvert.bufferType(type) else {
                 return nil
@@ -24,11 +21,8 @@ public class BufferModule: Module {
             return RCTConvert.toJson(bufferLevels: bufferLevels)
         }.runOnQueue(.main)
 
-        AsyncFunction("setTargetLevel") { (playerId: String, type: String, value: Double) in
-            guard let playerModule = appContext?.moduleRegistry.get(PlayerModule.self),
-                  let player = playerModule.retrieve(playerId) else {
-                return
-            }
+        AsyncFunction("setTargetLevel") { (owner: SharedPlayer, type: String, value: Double) in
+            let player = try owner.player
 
             let bufferType = RCTConvert.bufferType(type)
 

@@ -1,11 +1,9 @@
-import type { NativeInstanceConfig } from '../nativeInstance';
-
 /**
  * Configures the playback behaviour of the player.
  *
  * @platform Android
  */
-export interface DecoderConfig extends NativeInstanceConfig {
+export interface DecoderConfig {
   /**
    * A callback interface for sorting and filtering decoders based on priority.
    *

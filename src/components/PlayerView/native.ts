@@ -4,6 +4,7 @@ import type { NativePlayerViewEvents } from './nativeEvents';
 import type { ScalingMode } from '../../styleConfig';
 import type { PlayerViewConfig } from './playerViewConfig';
 import type { RefObject } from 'react';
+import type { SharedPlayer } from '../../modules/playerModule';
 import type { PictureInPictureAction } from './pictureInPictureAction';
 
 export interface NativePlayerViewConfig {
@@ -34,7 +35,7 @@ export interface NativePlayerViewProps extends NativePlayerViewEvents {
 /** Expo view-ref methods target the mounted React Native host, not a SharedObject. */
 export interface NativePlayerViewRef {
   attachBindings(
-    playerId: string,
+    player: SharedPlayer,
     fullscreenHandlerId: string | undefined,
     customMessageHandlerId: string | undefined,
     config: NativePlayerViewConfig

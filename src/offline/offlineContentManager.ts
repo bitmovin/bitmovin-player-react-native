@@ -8,7 +8,7 @@ import { OfflineEventType } from './offlineContentManagerListener';
 import type { OfflineContentConfig } from './offlineContentConfig';
 import type { OfflineDownloadRequest } from './offlineDownloadRequest';
 import type { OfflineState } from './offlineState';
-import { Drm } from '../drm';
+import { LegacyDrm as Drm } from '../drm/legacyDrm';
 import OfflineModule from './offlineModule';
 
 const handleBitmovinNativeOfflineEvent = (

@@ -39,7 +39,7 @@ public class RNPlayerView: ExpoView {
     }
 
     private var customMessageHandler: CustomMessageHandlerBridge?
-    private var configuredPlayer: Player?
+    private var sharedPlayer: SharedPlayer?
     private var playerViewConfigWrapper: RNPlayerViewConfig?
     private var fullscreenHandler: FullscreenHandlerBridge?
     private var scalingMode: ScalingMode?
@@ -84,25 +84,26 @@ public class RNPlayerView: ExpoView {
     }
 
     internal func attachBindings(
-        player: Player,
+        owner: SharedPlayer,
         fullscreen: FullscreenHandlerBridge?,
         messages: CustomMessageHandlerBridge?,
         config: [String: Any]?
     ) throws {
+        let player = try owner.player
         guard !player.isDestroyed else {
             throw Exception(name: "DestroyedPlayer", description: "Cannot attach a destroyed player")
         }
-        setConfiguredPlayer(player)
+        setSharedPlayer(owner)
         configurePlayer(playerViewConfig: RCTConvert.rnPlayerViewConfig(config?["playerViewConfig"]))
         setFullscreenHandler(fullscreen)
         setCustomMessageHandler(messages)
         attachConfiguredPlayer()
     }
 
-    internal func setConfiguredPlayer(_ player: Player?) {
-        guard configuredPlayer !== player else { return }
+    internal func setSharedPlayer(_ owner: SharedPlayer?) {
+        guard sharedPlayer !== owner else { return }
         playerView?.player?.remove(listener: self)
-        configuredPlayer = player
+        sharedPlayer = owner
     }
 
     internal func configurePlayer(
@@ -111,13 +112,13 @@ public class RNPlayerView: ExpoView {
         playerViewConfigWrapper = playerViewConfig
     }
 
-    internal func detachConfiguredPlayer() {
+    internal func detachSharedPlayer() {
         detachCurrentPlayer()
-        configuredPlayer = nil
+        sharedPlayer = nil
     }
 
     internal func attachConfiguredPlayer() {
-        guard let player = configuredPlayer, !player.isDestroyed else { return }
+        guard let owner = sharedPlayer, let player = try? owner.player, !player.isDestroyed else { return }
         if let playerView, let currentPlayer = playerView.player, currentPlayer === player {
             // Player is already attached to the PlayerView
             return
@@ -263,7 +264,7 @@ private extension RNPlayerView {
 }
 
 extension RNPlayerView: PlayerListener {
-    public func onDestroy(_ event: DestroyEvent, player: Player) { detachConfiguredPlayer() }
+    public func onDestroy(_ event: DestroyEvent, player: Player) { detachSharedPlayer() }
 }
 
 extension RNPlayerView: UserInterfaceListener {

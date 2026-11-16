@@ -1,6 +1,6 @@
 import PlaylistModule from '../modules/PlaylistModule';
-import type { Source } from '../source';
-import { releaseSourceOwner } from '../utils/sourceOwners';
+import { Source } from '../source';
+import type { Player } from '../player';
 
 /**
  * Provides the means to manage multiple {@link Source}s inside a playback session.
@@ -11,14 +11,6 @@ import { releaseSourceOwner } from '../utils/sourceOwners';
  *
  * Accessible through {@link Player.playlist}.
  *
- * Known limitations:
- * - Sources that left the player through {@link Player.unload} or a later load stay allocated until the player
- *   is destroyed.
- * - Sources removed via {@link PlaylistApi.remove} or {@link PlaylistApi.removeAt} are not destroyed with the
- *   player and must be destroyed via {@link Source.destroy} once they are no longer needed.
- *
- * See {@link Player.destroy} for all known limitations of the source lifecycle.
- *
  * @experimental
  */
 export class PlaylistApi {
@@ -27,17 +19,8 @@ export class PlaylistApi {
    */
   readonly nativeId: string;
 
-  private readonly knownSources: Map<string, Source>;
-  private readonly takeOwnership: (sources: Source[]) => void;
-
-  constructor(
-    playerId: string,
-    knownSources: Map<string, Source>,
-    takeOwnership: (sources: Source[]) => void
-  ) {
-    this.nativeId = playerId;
-    this.knownSources = knownSources;
-    this.takeOwnership = takeOwnership;
+  constructor(private readonly player: Player) {
+    this.nativeId = player.nativeId;
   }
 
   /**
@@ -45,13 +28,16 @@ export class PlaylistApi {
    * playback session.
    *
    * @returns the sources of the playback session, or an empty list if there is no active playback session.
-   * Sources that were not created through a {@link Source} instance (e.g. offline content) are not included.
    */
   getSources = async (): Promise<Source[]> => {
-    const nativeIds = await PlaylistModule.sources(this.nativeId);
-    return nativeIds.flatMap((nativeId) => {
-      const source = this.knownSources.get(nativeId);
-      return source ? [source] : [];
+    const native = await PlaylistModule.sources(
+      this.player.native,
+      this.player.knownSources.map((source) => source.native)
+    );
+    return native.map((peer) => {
+      const source = Source.fromNative(peer);
+      this.player.retainSource(source);
+      return source;
     });
   };
 
@@ -64,30 +50,23 @@ export class PlaylistApi {
    *
    * On iOS and tvOS, only HLS, progressive and `movpkg` sources can be part of a playlist.
    *
-   * @returns a promise that rejects if the `source` is already attached to a player, was destroyed, or (on iOS
+   * @returns a promise that rejects if the `source` is already attached to a player, or (on iOS
    * and tvOS) has an unsupported type.
    */
   add = async (source: Source, index?: number): Promise<void> => {
-    this.knownSources.set(source.nativeId, source);
-    await source.initialize();
-    await PlaylistModule.add(this.nativeId, source.nativeId, index);
-    this.takeOwnership([source]);
+    await PlaylistModule.add(this.player.native, source.native, index);
+    this.player.retainSource(source);
   };
 
   /**
    * Removes the `source` from the active playback session.
-   * A removed `source` is not destroyed with the player. Destroy it via {@link Source.destroy} once it is no
-   * longer needed.
    *
    * Has no effect if the `source` is not part of the playback session. Has no effect and emits a `PlayerWarning`
    * if there is no active playback session or if the `source` is the active source.
    * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
    */
   remove = async (source: Source): Promise<void> => {
-    if (await PlaylistModule.remove(this.nativeId, source.nativeId)) {
-      this.knownSources.delete(source.nativeId);
-      releaseSourceOwner(source, this.nativeId);
-    }
+    await PlaylistModule.remove(this.player.native, source.native);
   };
 
   /**
@@ -98,14 +77,7 @@ export class PlaylistApi {
    * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
    */
   removeAt = async (index: number): Promise<void> => {
-    const removedNativeId = await PlaylistModule.removeAt(this.nativeId, index);
-    if (removedNativeId) {
-      const removed = this.knownSources.get(removedNativeId);
-      this.knownSources.delete(removedNativeId);
-      if (removed) {
-        releaseSourceOwner(removed, this.nativeId);
-      }
-    }
+    await PlaylistModule.removeAt(this.player.native, index);
   };
 
   /**
@@ -117,6 +89,6 @@ export class PlaylistApi {
    * On iOS and tvOS, no `PlayerWarning` is emitted.
    */
   seek = async (source: Source, time: number): Promise<void> => {
-    return PlaylistModule.seek(this.nativeId, source.nativeId, time);
+    return PlaylistModule.seek(this.player.native, source.native, time);
   };
 }

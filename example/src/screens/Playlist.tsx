@@ -48,9 +48,7 @@ export default function Playlist() {
   });
   const [sources, setSources] = useState<Source[]>([]);
   const [activeSource, setActiveSource] = useState<Source>();
-  const [loadedSourceIds, setLoadedSourceIds] = useState<Set<string>>(
-    new Set()
-  );
+  const [loadedSources, setLoadedSources] = useState<Set<Source>>(new Set());
 
   useFocusEffect(
     useCallback(() => {
@@ -105,17 +103,17 @@ export default function Playlist() {
   const createSource = useCallback((config: SourceConfig) => {
     const source = new Source(config);
     const setLoaded = (isLoaded: boolean) =>
-      setLoadedSourceIds((ids) => {
+      setLoadedSources((ids) => {
         const updated = new Set(ids);
         if (isLoaded) {
-          updated.add(source.nativeId);
+          updated.add(source);
         } else {
-          updated.delete(source.nativeId);
+          updated.delete(source);
         }
         return updated;
       });
-    source.on('sourceLoaded', () => setLoaded(true));
-    source.on('sourceUnloaded', () => setLoaded(false));
+    void source.on('sourceLoaded', () => setLoaded(true));
+    void source.on('sourceUnloaded', () => setLoaded(false));
     return source;
   }, []);
 
@@ -155,10 +153,10 @@ export default function Playlist() {
       />
       <View style={styles.controls}>
         {sources.map((source, index) => (
-          <Text key={source.nativeId} style={styles.sourceText}>
+          <Text key={index} style={styles.sourceText}>
             {index === activeIndex ? '▶ ' : '   '}
             {index + 1}. {source.config?.title}
-            {loadedSourceIds.has(source.nativeId) ? ' (loaded)' : ''}
+            {loadedSources.has(source) ? ' (loaded)' : ''}
           </Text>
         ))}
         <View style={styles.buttons}>

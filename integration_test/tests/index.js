@@ -7,6 +7,32 @@ function testSuite(name, platforms, load) {
 
 const testRegistrations = [
   testSuite(
+    'source',
+    androidAndIos,
+    () => require('./sourceMetadataTest').default
+  ),
+  testSuite(
+    'shared-object-lifecycle',
+    androidAndIos,
+    () => require('./sharedObjectLifecycleTest').default
+  ),
+  testSuite(
+    'decoder',
+    ['android'],
+    () => require('./decoderConfigTest').default
+  ),
+  testSuite(
+    'native-creation',
+    androidAndIos,
+    () => require('./nativeCreationTest').default
+  ),
+  testSuite(
+    'source-ownership',
+    androidAndIos,
+    () => require('./sourceOwnershipTest').default
+  ),
+  testSuite('drm', ['android'], () => require('./drmCallbacksTest').default),
+  testSuite(
     'media-session',
     ['android'],
     () => require('./mediaSessionTeardownTest').default

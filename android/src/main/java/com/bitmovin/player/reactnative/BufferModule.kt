@@ -1,9 +1,9 @@
 package com.bitmovin.player.reactnative
 
-import com.bitmovin.player.api.buffer.BufferType
 import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.reactnative.converter.toBufferTypeOrThrow
 import com.bitmovin.player.reactnative.converter.toJson
+import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
@@ -15,9 +15,8 @@ class BufferModule : Module() {
             // Module initialization
         }
 
-        AsyncFunction("getLevel") { playerId: String, type: String ->
-            val player = appContext.registry.getModule<PlayerModule>()?.getPlayerOrNull(playerId)
-                ?: return@AsyncFunction null
+        AsyncFunction("getLevel") { owner: SharedPlayer, type: String ->
+            val player = owner.player
 
             val bufferType = type.toBufferTypeOrThrow()
             val audioLevel = player.buffer.getLevel(bufferType, MediaType.Audio)
@@ -25,16 +24,15 @@ class BufferModule : Module() {
 
             return@AsyncFunction mapOf(
                 "audio" to audioLevel.toJson(),
-                "video" to videoLevel.toJson()
+                "video" to videoLevel.toJson(),
             )
-        }
+        }.runOnQueue(Queues.MAIN)
 
-        AsyncFunction("setTargetLevel") { playerId: String, type: String, value: Double ->
+        AsyncFunction("setTargetLevel") { owner: SharedPlayer, type: String, value: Double ->
             // Access PlayerModule to retrieve player
-            val player = appContext.registry.getModule<PlayerModule>()?.getPlayerOrNull(playerId)
-                ?: return@AsyncFunction
+            val player = owner.player
 
             player.buffer.setTargetLevel(type.toBufferTypeOrThrow(), value)
-        }
+        }.runOnQueue(Queues.MAIN)
     }
 }

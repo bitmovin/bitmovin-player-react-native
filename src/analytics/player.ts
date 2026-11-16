@@ -1,3 +1,5 @@
+import type { Player } from '../player';
+import type { SharedPlayer } from '../modules/playerModule';
 import type { CustomDataConfig } from './config';
 import PlayerAnalyticsModule from './playerAnalyticsModule';
 
@@ -6,13 +8,15 @@ import PlayerAnalyticsModule from './playerAnalyticsModule';
  * Use the `Player.analytics` property to access a `Player`'s `AnalyticsApi`.
  */
 export class AnalyticsApi {
+  private readonly player: SharedPlayer;
   /**
    * The native player id that this analytics api is attached to.
    */
   playerId: string;
 
-  constructor(playerId: string) {
-    this.playerId = playerId;
+  constructor(player: Player) {
+    this.playerId = player.nativeId;
+    this.player = player.native;
   }
 
   /**
@@ -20,7 +24,7 @@ export class AnalyticsApi {
    * Does not change the configured custom data of the collector or source.
    */
   sendCustomDataEvent = async (customData: CustomDataConfig) => {
-    await PlayerAnalyticsModule.sendCustomDataEvent(this.playerId, customData);
+    await PlayerAnalyticsModule.sendCustomDataEvent(this.player, customData);
   };
 
   /**
@@ -29,6 +33,6 @@ export class AnalyticsApi {
    * @returns The current user id.
    */
   getUserId = async (): Promise<string | null> => {
-    return PlayerAnalyticsModule.getUserId(this.playerId);
+    return PlayerAnalyticsModule.getUserId(this.player);
   };
 }
