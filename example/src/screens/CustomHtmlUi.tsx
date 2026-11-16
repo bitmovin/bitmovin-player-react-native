@@ -110,7 +110,7 @@ export default function CustomHtmlUi({ navigation }: CustomHtmlUiProps) {
         containerStyle={styles.buttonContainer}
         title="Toggle Close Button State"
         onPress={() => {
-          customMessageHandler.sendMessage('toggleCloseButton', undefined);
+          void customMessageHandler.sendMessage('toggleCloseButton', undefined);
         }}
       />
     </View>

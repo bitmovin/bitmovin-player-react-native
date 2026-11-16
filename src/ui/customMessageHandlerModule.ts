@@ -1,47 +1,25 @@
+/* eslint-disable @typescript-eslint/no-redeclare -- Native constructor values intentionally share their instance interface names. */
 import type { NativeModule } from 'expo-modules-core';
+import type { SharedObject } from 'expo-modules-core/types';
 import { requireNativeModule } from 'expo-modules-core';
+import type {
+  CustomMessageHandler,
+  CustomMessageHandlerProps,
+} from './customMessageHandler';
 
-export type CustomMessageHandlerModuleEvents = {
-  onReceivedSynchronousMessage: ({
-    nativeId,
-    id,
-    message,
-    data,
-  }: {
-    nativeId: string;
-    id: number;
-    message: string;
-    data: string | undefined;
-  }) => void;
-  onReceivedAsynchronousMessage: ({
-    nativeId,
-    message,
-    data,
-  }: {
-    nativeId: string;
-    message: string;
-    data: string | undefined;
-  }) => void;
-};
+/** @internal */
+export type SharedCustomMessageHandler = SharedObject &
+  Pick<CustomMessageHandler, 'sendMessage' | 'destroy'>;
 
-/**
- * Native CustomMessageHandlerModule using Expo modules API.
- * Provides modern async/await interface while maintaining backward compatibility.
- */
-declare class CustomMessageHandlerModule extends NativeModule<CustomMessageHandlerModuleEvents> {
-  registerHandler(nativeId: string): Promise<void>;
-  destroy(nativeId: string): Promise<void>;
-  onReceivedSynchronousMessageResult(
-    id: number,
-    result: string | undefined
-  ): Promise<void>;
-  sendMessage(
-    nativeId: string,
-    message: string,
-    data: string | undefined
-  ): Promise<void>;
+declare class CustomMessageHandlerModule extends NativeModule {
+  readonly SharedCustomMessageHandler: new (
+    config: CustomMessageHandlerProps
+  ) => SharedCustomMessageHandler;
 }
-
-export default requireNativeModule<CustomMessageHandlerModule>(
+const nativeModule = requireNativeModule<CustomMessageHandlerModule>(
   'CustomMessageHandlerModule'
 );
+/** @internal */
+export const SharedCustomMessageHandler =
+  nativeModule.SharedCustomMessageHandler;
+export default nativeModule;

@@ -44,14 +44,9 @@ class PlayerViewModule : Module() {
             }
 
             AsyncFunction("attachBindings") { view: RNPlayerView, owner: SharedPlayer,
-                fullscreenId: String?, messagesId: String?,
+                fullscreen: SharedFullscreenHandler?, messages: SharedCustomMessageHandler?,
                 config: Map<String, Any>?, ->
-                view.attachBindings(
-                    owner,
-                    fullscreenId?.let { appContext.registry.getModule<FullscreenHandlerModule>()?.getInstance(it) },
-                    messagesId?.let { appContext.registry.getModule<CustomMessageHandlerModule>()?.getInstance(it) },
-                    config,
-                )
+                view.attachBindings(owner, fullscreen, messages, config)
                 updateAutoPictureInPictureRegistration(view)
             }
 

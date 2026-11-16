@@ -6,13 +6,15 @@
 
 - Keep `Player.off(event, listener)` and `Source.off(event, listener)` for removing object-event listeners. The subscription returned by `on` can also be removed directly.
 
-- Keep native SharedObject ownership behind the public Player and Source APIs. Their methods remain bound when passed as callbacks.
+- Keep native SharedObject ownership behind the public Player, Source, OfflineContentManager, CustomMessageHandler and runtime helper APIs. Their methods remain bound when passed as callbacks.
 - Reuse the original Player and OfflineContentManager instances when constructing aliases with the same `nativeId`.
+- Return a native-submission Promise from `CustomMessageHandler.sendMessage`.
 - Source queries preserve the original Source object and configuration while it remains reachable. SDK-created sources are adopted on their first query
 
 #### Breaking changes
 
-- Configure callback functions before constructing a Player or Source. Callbacks are captured once and invoked as standalone functions; use closures or bound functions for application state. Return the processed value; `ImaAdvertisingConfig.beforeInitialization` can return a settings patch, while returning `void` is not supported
+- Configure callback functions before constructing a Player, Source, OfflineContentManager or custom message handler. Callbacks are captured once and invoked as standalone functions; use closures or bound functions for application state. Return the processed value; `ImaAdvertisingConfig.beforeInitialization` can return a settings patch, while returning `void` is not supported
+- Remove the callback-forwarding methods `CustomMessageHandler.receivedSynchronousMessage` and `receivedAsynchronousMessage`. Provide the callbacks through `CustomMessageHandlerProps` instead
 - Remove `Player.initialize()`, `Source.initialize()`, `OfflineContentManager.initialize()` and their `isInitialized` flags. Constructors create the native SharedObject immediately; the first SDK operation or PlayerView attachment creates SDK resources automatically. SDK creation failures reject that operation
 - Guard the optional `SourceUnloadedEvent.source` field. Android Player subscriptions and PlayerView events do not identify the unloaded Source; Source subscriptions include its snapshot. iOS provides it on all subscription paths
 - Pass `NetworkConfig` and `DrmConfig` objects directly; the configuration-only `Network` and `Drm` wrapper classes have been removed
@@ -75,6 +77,7 @@
 
 - iOS: Invalid source, analytics, and offline configuration now throws from the constructor. Failed offline manager creation rejects the native operation
 - iOS: Avoid inconsistent HTTP preprocessing results when the native SDK processes requests and responses concurrently
+- Allow abandoned offline managers and custom UI handlers to be collected even when native code retains their callback forwarders
 - iOS: Preserve metadata set before loading a Source and return it from `Source.metadata()`
 - Catch missing Source or OfflineContentManager configuration and missing `SourceConfig.type` during TypeScript checking. These inputs were already invalid at runtime; valid configurations are unchanged
 - Android: `Source.loadingState()` now returns a `LoadingState` value instead of a state name
@@ -87,6 +90,7 @@
 
 - Pass original configuration functions to native code without callback tokens or a JavaScript dispatcher
 - Use Expo SharedObjects for native ownership and callbacks, with weak TypeScript registries only for legacy ID-based construction
+- Configuration wrappers and API helpers no longer need separate initialization, destruction, or binding IDs. Runtime helpers remain available through `player.buffer`, `player.analytics`, `player.mediaControls`, and `source.drm`; their constructors are internal
 - Repeated destruction and calls after destruction now follow native SDK behavior instead of wrapper no-ops or placeholder values
 
 ## [1.31.0] - 2026-11-12

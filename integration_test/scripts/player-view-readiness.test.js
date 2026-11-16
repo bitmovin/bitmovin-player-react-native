@@ -132,19 +132,19 @@ const playerViewContext = vm.createContext({
     if (name.endsWith('/useProxy')) return { useProxy: () => (x) => x };
     if (name === '../../player')
       return { getNativePlayer: (player) => player.native };
-    if (name.endsWith('/fullscreenhandlerbridge'))
+    if (name.endsWith('/fullscreenHandlerBridge'))
       return {
         FullscreenHandlerBridge: class {
-          nativeId = `fullscreen`;
+          native = {};
           setFullscreenHandler(handler) {
             this.handler = handler;
           }
           async destroy() {
             this.destroyed = true;
+            this.native.destroyed = true;
           }
         },
       };
-    if (name.endsWith('/custommessagehandlerbridge')) return {};
     if (name.endsWith('/metadataPlatform')) return {};
     if (name === './usePlayerEventProps') return { usePlayerEventProps() {} };
     throw new Error('Unexpected PlayerView dependency: ' + name);
@@ -302,7 +302,7 @@ test('A to B to A keeps the host and ignores superseded native acknowledgments',
   );
   assert.equal(current.player, first.native);
   assert.equal(current.fullscreen, bridge);
-  assert.equal(typeof bridge, 'string');
+  assert.equal(bridge.destroyed, undefined);
 
   acknowledge(obsoleteFirst);
   acknowledge(obsoleteSecond);

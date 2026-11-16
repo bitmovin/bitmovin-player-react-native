@@ -37,13 +37,7 @@ function fixture(t) {
     './native': { NativePlayerView },
     '../../hooks/useProxy': { useProxy: () => (callback) => callback },
     './usePlayerEventProps': { usePlayerEventProps() {} },
-    '../../ui/custommessagehandlerbridge': {
-      CustomMessageHandlerBridge: class {
-        setCustomMessageHandler() {}
-        destroy() {}
-      },
-    },
-    '../../ui/fullscreenhandlerbridge': {
+    '../../ui/fullscreenHandlerBridge': {
       FullscreenHandlerBridge,
     },
   };
