@@ -32,7 +32,7 @@ export default function EnableDisableMediaControls() {
 
   useFocusEffect(
     useCallback(() => {
-      player.load({
+      void player.load({
         url: 'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8',
         type: SourceType.HLS,
         title: 'Art of Motion',
@@ -40,7 +40,7 @@ export default function EnableDisableMediaControls() {
           'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/poster.jpg',
       });
       return () => {
-        player.destroy();
+        void player.destroy();
       };
     }, [player])
   );

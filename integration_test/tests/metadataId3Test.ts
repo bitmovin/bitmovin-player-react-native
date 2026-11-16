@@ -170,7 +170,7 @@ export default (spec: TestScope) => {
         await startPlayerTest({}, async () => {
           await loadSourceConfig(Sources.id3MetadataHls, 30);
           await callPlayer(async (player) => {
-            player.play();
+            await player.play();
           });
 
           const metadataParsed = await expectEvent<MetadataParsedEvent>(
@@ -208,7 +208,7 @@ export default (spec: TestScope) => {
         await startPlayerTest({}, async () => {
           await loadSourceConfig(Sources.id3MetadataHls, 30);
           await callPlayer(async (player) => {
-            player.play();
+            await player.play();
           });
 
           const metadataParsed = await expectEvent<MetadataParsedEvent>(

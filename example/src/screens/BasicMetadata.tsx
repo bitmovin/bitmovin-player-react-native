@@ -32,13 +32,13 @@ export default function BasicMetadata() {
 
   useFocusEffect(
     useCallback(() => {
-      player.load({
+      void player.load({
         url: 'https://cdn.bitmovin.com/content/internal/assets/metadata/media.m3u8',
         type: SourceType.HLS,
         title: 'ID3 Metadata Sample',
       });
       return () => {
-        player.destroy();
+        void player.destroy();
       };
     }, [player])
   );

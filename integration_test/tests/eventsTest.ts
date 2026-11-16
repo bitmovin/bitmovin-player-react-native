@@ -28,7 +28,7 @@ const withPlayerWithNativeId = async (
     await player.initialize();
     await fn(player);
   } finally {
-    player.destroy();
+    void player.destroy();
   }
 };
 
@@ -45,7 +45,7 @@ export default (spec: TestScope) => {
           await player.initialize();
 
           const source = new Source(Sources.artOfMotionHls);
-          player.loadSource(source);
+          void player.loadSource(source);
 
           const isReady = await waitUntil(() =>
             received.some((event) => event.name === 'onReady')
@@ -68,7 +68,7 @@ export default (spec: TestScope) => {
             isReceived = true;
           });
           await player.initialize();
-          player.load(Sources.artOfMotionHls);
+          void player.load(Sources.artOfMotionHls);
 
           expect(
             await waitUntil(() => isReceived),
@@ -126,14 +126,14 @@ export default (spec: TestScope) => {
             player.load(Sources.artOfMotionHls)
           );
 
-          player.mute();
+          void player.mute();
           expect(
             await waitUntil(() => isMuted),
             'Muted after the other Player unsubscribed'
           ).toBeTruthy();
         } finally {
-          player.destroy();
-          samePlayer.destroy();
+          void player.destroy();
+          void samePlayer.destroy();
         }
       }
     );
@@ -151,7 +151,7 @@ export default (spec: TestScope) => {
         });
         samePlayer.on('ready', () => samePlayerReadyCount++);
         await player.initialize();
-        player.destroy();
+        void player.destroy();
         expect(
           await waitUntil(() => isDestroyed),
           'Destroy should be received'
@@ -184,7 +184,7 @@ export default (spec: TestScope) => {
       );
       expect(isPlaying, 'TimeChanged should be received').toBeTruthy();
 
-      player.destroy();
+      void player.destroy();
       const isDestroyed = await waitUntil(() =>
         received.some((event) => event.name === 'onDestroy')
       );
@@ -210,7 +210,7 @@ export default (spec: TestScope) => {
             isUnloaded = true;
           });
           await player.initialize();
-          player.loadSource(source);
+          void player.loadSource(source);
 
           expect(
             await waitUntil(() => loaded.length > 0),
@@ -221,7 +221,7 @@ export default (spec: TestScope) => {
           );
 
           source.off('sourceUnloaded', removedListener);
-          player.unload();
+          void player.unload();
 
           expect(
             await waitUntil(() => isUnloaded),
@@ -236,7 +236,7 @@ export default (spec: TestScope) => {
       const player = createPlayer();
       const source = new Source(Sources.artOfMotionHls);
       await player.initialize();
-      player.destroy();
+      void player.destroy();
       source.destroy();
       const warnings: string[] = [];
       const warn = console.warn;
@@ -269,13 +269,13 @@ export default (spec: TestScope) => {
           await player.initialize();
           const source = new Source(Sources.artOfMotionHls);
           source.on('sourceUnloaded', (event) => unloaded.push(event));
-          player.loadSource(source);
+          void player.loadSource(source);
           expect(
             await waitUntil(() => isReady),
             'Ready should be received'
           ).toBeTruthy();
 
-          player.unload();
+          void player.unload();
 
           expect(
             await waitUntil(() => unloaded.length > 0),

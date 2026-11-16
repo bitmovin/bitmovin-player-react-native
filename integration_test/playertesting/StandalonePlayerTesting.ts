@@ -45,7 +45,7 @@ export const playWhenReady = async (player: Player, load: () => void) => {
   if (!ready) {
     throw new Error('Ready should be received');
   }
-  player.play();
+  void player.play();
 };
 
 /**
@@ -62,6 +62,6 @@ export const withPlayer = async (fn: (player: Player) => Promise<void>) => {
   try {
     await fn(player);
   } finally {
-    player.destroy();
+    void player.destroy();
   }
 };

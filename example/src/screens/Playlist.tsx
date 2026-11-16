@@ -55,7 +55,7 @@ export default function Playlist() {
   useFocusEffect(
     useCallback(() => {
       return () => {
-        player.destroy();
+        void player.destroy();
       };
     }, [player])
   );
@@ -120,7 +120,7 @@ export default function Playlist() {
   }, []);
 
   const onPlayerViewReady = useCallback(() => {
-    player.loadPlaylist({
+    void player.loadPlaylist({
       sources: [createSource(artOfMotion), createSource(sintel)],
       options: {
         preloadAllSources: true,

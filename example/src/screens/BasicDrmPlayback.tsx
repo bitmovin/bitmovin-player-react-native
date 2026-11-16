@@ -125,9 +125,9 @@ export default function BasicDrmPlayback() {
 
   useFocusEffect(
     useCallback(() => {
-      player.load(source);
+      void player.load(source);
       return () => {
-        player.destroy();
+        void player.destroy();
       };
     }, [player])
   );

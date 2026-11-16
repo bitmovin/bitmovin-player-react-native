@@ -211,7 +211,7 @@ export default function OfflinePlayback() {
               onPress={() => {
                 if (offlineContentManager != null) {
                   onEvent('Loading the offline video');
-                  player.loadOfflineContent(offlineContentManager);
+                  void player.loadOfflineContent(offlineContentManager);
                   setIsLoadedSourceOffline(true);
                 }
               }}

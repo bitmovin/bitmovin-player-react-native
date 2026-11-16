@@ -26,7 +26,7 @@ export default (spec: TestScope) => {
         await loadSourceConfig(Sources.artOfMotionHls);
         await callPlayerAndExpectEvents(
           (player) => {
-            player.play();
+            return player.play();
           },
           EventSequence(EventType.Play, EventType.Playing)
         );
@@ -39,7 +39,7 @@ export default (spec: TestScope) => {
         await loadSourceConfig(Sources.artOfMotionHls);
         await playFor(1);
         await callPlayerAndExpectEvent((player) => {
-          player.pause();
+          return player.pause();
         }, EventType.Paused);
       });
     });
@@ -51,7 +51,7 @@ export default (spec: TestScope) => {
         await playFor(1);
         const event = await callPlayerAndExpectEvent<PlaybackSpeedChangedEvent>(
           (player) => {
-            player.setPlaybackSpeed(2);
+            return player.setPlaybackSpeed(2);
           },
           EventType.PlaybackSpeedChanged
         );
@@ -66,7 +66,7 @@ export default (spec: TestScope) => {
         await loadSourceConfig(Sources.artOfMotionHls);
         await callPlayerAndExpectEvents(
           (player) => {
-            player.play();
+            return player.play();
           },
           EventSequence(EventType.Play, EventType.Playing)
         );
@@ -79,7 +79,7 @@ export default (spec: TestScope) => {
         await loadSourceConfig(Sources.artOfMotionHls);
         await callPlayerAndExpectEvents(
           (player) => {
-            player.play();
+            return player.play();
           },
           EventSequence(EventType.Play, EventType.Playing)
         );
@@ -109,9 +109,9 @@ export default (spec: TestScope) => {
       await startPlayerTest({}, async () => {
         await loadSourceConfig(Sources.artOfMotionHls);
         await callPlayerAndExpectEvent(async (player) => {
-          player.play();
+          void player.play();
           const duration = await player.getDuration();
-          player.seek(duration - 3);
+          void player.seek(duration - 3);
         }, EventType.PlaybackFinished);
       });
     });
@@ -121,9 +121,9 @@ export default (spec: TestScope) => {
         await loadSourceConfig(Sources.artOfMotionHls);
         const playbackFinishedEvent = (await callPlayerAndExpectEvent(
           async (player) => {
-            player.play();
+            void player.play();
             const duration = await player.getDuration();
-            player.seek(duration - 3);
+            void player.seek(duration - 3);
           },
           EventType.PlaybackFinished
         )) as PlaybackFinishedEvent;

@@ -32,8 +32,8 @@ export default (spec: TestScope) => {
         await startPlayerTest({}, async () => {
           const errorEvent: ErrorEvent =
             await callPlayerAndExpectEvent<ErrorEvent>(
-              (player) => {
-                player.load(source);
+              async (player) => {
+                await player.load(source);
               },
               // Android reports Widevine license failures as source errors.
               // Keep iOS PlayerError for device-only FairPlay coverage.

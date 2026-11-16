@@ -19,10 +19,10 @@ export default (spec: TestScope) => {
     spec.it('emits SourceUnloaded event', async () => {
       await startPlayerTest({}, async () => {
         await callPlayerAndExpectEvent((player) => {
-          player.load(Sources.artOfMotionHls);
+          return player.load(Sources.artOfMotionHls);
         }, EventType.Ready);
         await callPlayerAndExpectEvent((player) => {
-          player.unload();
+          return player.unload();
         }, EventType.SourceUnloaded);
       });
     });
@@ -30,11 +30,11 @@ export default (spec: TestScope) => {
     spec.it('validates SourceUnloaded event properties', async () => {
       await startPlayerTest({}, async () => {
         await callPlayerAndExpectEvent((player) => {
-          player.load(Sources.artOfMotionHls);
+          return player.load(Sources.artOfMotionHls);
         }, EventType.Ready);
 
         const sourceUnloadedEvent = await callPlayerAndExpectEvent((player) => {
-          player.unload();
+          return player.unload();
         }, EventType.SourceUnloaded);
 
         expect(
@@ -66,11 +66,11 @@ export default (spec: TestScope) => {
         Platform.OS !== 'android' ? true : false;
       await startPlayerTest({}, async () => {
         await callPlayerAndExpectEvent((player) => {
-          player.load(Sources.artOfMotionHls);
+          return player.load(Sources.artOfMotionHls);
         }, EventType.Ready);
 
         await callPlayerAndExpectEvent((player) => {
-          player.unload();
+          return player.unload();
         }, EventType.SourceUnloaded);
 
         await callPlayer(async (player) => {
@@ -99,7 +99,7 @@ export default (spec: TestScope) => {
         await startPlayerTest({}, async () => {
           await callPlayerAndExpectEvents(
             (player) => {
-              player.load(Sources.artOfMotionHls);
+              return player.load(Sources.artOfMotionHls);
             },
             EventBag(
               DedicatedPropEvent(EventType.PlayerActive),
@@ -107,7 +107,7 @@ export default (spec: TestScope) => {
             )
           );
           await callPlayerAndExpectEvent((player) => {
-            player.unload();
+            return player.unload();
           }, DedicatedPropEvent(EventType.PlayerInactive));
         });
       }
@@ -120,7 +120,7 @@ export default (spec: TestScope) => {
         await startPlayerTest({}, async () => {
           await callPlayerAndExpectEvents(
             (player) => {
-              player.load(Sources.artOfMotionHls);
+              return player.load(Sources.artOfMotionHls);
             },
             EventBag(
               CatchAllEvent(EventType.PlayerActive),
@@ -128,7 +128,7 @@ export default (spec: TestScope) => {
             )
           );
           await callPlayerAndExpectEvent((player) => {
-            player.unload();
+            return player.unload();
           }, CatchAllEvent(EventType.PlayerInactive));
         });
       }

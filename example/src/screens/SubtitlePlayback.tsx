@@ -25,7 +25,7 @@ export default function SubtitlePlayback() {
 
   useFocusEffect(
     useCallback(() => {
-      player.load({
+      void player.load({
         url:
           Platform.OS === 'ios'
             ? 'https://cdn.bitmovin.com/content/internal/assets/sintel/hls/playlist.m3u8'
@@ -52,7 +52,7 @@ export default function SubtitlePlayback() {
         ],
       });
       return () => {
-        player.destroy();
+        void player.destroy();
       };
     }, [player])
   );

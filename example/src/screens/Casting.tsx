@@ -46,9 +46,9 @@ export default function Casting() {
           title: 'Art of Motion',
         },
       };
-      player.loadSource(source);
+      void player.loadSource(source);
       return () => {
-        player.destroy();
+        void player.destroy();
       };
     }, [player])
   );

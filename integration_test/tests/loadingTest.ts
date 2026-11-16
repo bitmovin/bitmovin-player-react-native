@@ -31,7 +31,7 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
         const acknowledge = world.onPlayerViewReady;
         world.onPlayerViewReady = (player) => {
           acknowledge(player);
-          player.load(Sources.artOfMotionHls);
+          void player.load(Sources.artOfMotionHls);
         };
         try {
           await startPlayerTest({}, async () => {
@@ -75,7 +75,7 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
       spec.it('emits ReadyEvent event', async () => {
         await startPlayerTest({}, async () => {
           await callPlayerAndExpectEvent((player) => {
-            player.load(sourceConfig);
+            return player.load(sourceConfig);
           }, EventType.Ready);
           await callPlayer(async (player) => {
             const duration = await player.getDuration();
@@ -92,7 +92,7 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
         await startPlayerTest({}, async () => {
           await callPlayerAndExpectEvents(
             (player) => {
-              player.load(sourceConfig);
+              return player.load(sourceConfig);
             },
             EventSequence(EventType.SourceLoad, EventType.SourceLoaded)
           );
@@ -102,7 +102,7 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
         await startPlayerTest({}, async () => {
           await callPlayerAndExpectEvents(
             (player) => {
-              player.load(sourceConfig);
+              return player.load(sourceConfig);
             },
             EventBag(
               FilteredEvent<DownloadFinishedEvent>(
@@ -124,7 +124,7 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
         await startPlayerTest({}, async () => {
           const downloadEvent: DownloadFinishedEvent =
             await callPlayerAndExpectEvent((player) => {
-              player.load(sourceConfig);
+              return player.load(sourceConfig);
             }, EventType.DownloadFinished);
 
           expect(
@@ -183,14 +183,14 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
         await startPlayerTest({}, async () => {
           const source = new Source(Sources.artOfMotionHls);
           await callPlayerAndExpectEvent((player) => {
-            player.loadSource(source);
+            return player.loadSource(source);
           }, EventType.Ready);
           await callPlayer(async (player) => {
             expect(await player.getSource(), 'Active source').toBe(source);
           });
 
           await callPlayerAndExpectEvent((player) => {
-            player.unload();
+            return player.unload();
           }, EventType.SourceUnloaded);
           await callPlayer(async (player) => {
             expect(
@@ -230,7 +230,7 @@ function registerLoadingTests(spec: TestScope, vodOnly = false) {
 
             await callPlayer(async (player) => {
               void source.initialize();
-              player.loadSource(source);
+              void player.loadSource(source);
             });
 
             const deadline = Date.now() + 10000;

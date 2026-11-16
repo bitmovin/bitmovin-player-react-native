@@ -14,7 +14,7 @@ export default (spec: TestScope) => {
     spec.it('emits AudioAdded event', async () => {
       await startPlayerTest({}, async () => {
         await callPlayerAndExpectEvent((player) => {
-          player.load(Sources.artOfMotionHls);
+          return player.load(Sources.artOfMotionHls);
         }, EventType.AudioAdded);
       });
     });
@@ -23,7 +23,7 @@ export default (spec: TestScope) => {
         spec.it('AudioTrack contains qualities information', async () => {
           await startPlayerTest({}, async () => {
             await callPlayerAndExpectEvent((player) => {
-              player.load(Sources.artOfMotionHls);
+              return player.load(Sources.artOfMotionHls);
             }, EventType.AudioAdded);
             await callPlayer(async (player) => {
               const audioTrack = await player.getAudioTrack();
@@ -48,7 +48,7 @@ export default (spec: TestScope) => {
           async () => {
             await startPlayerTest({}, async () => {
               await callPlayerAndExpectEvent((player) => {
-                player.load(Sources.artOfMotionHls);
+                return player.load(Sources.artOfMotionHls);
               }, EventType.AudioAdded);
               await callPlayer(async (player) => {
                 const audioTrack = await player.getAudioTrack();

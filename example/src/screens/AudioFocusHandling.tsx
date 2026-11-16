@@ -26,7 +26,7 @@ function Player({ handleAudioFocus }: { handleAudioFocus: boolean }) {
 
   useFocusEffect(
     useCallback(() => {
-      player.load({
+      void player.load({
         url: 'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
         type: SourceType.DASH,
         title: 'Art of Motion',
@@ -34,7 +34,7 @@ function Player({ handleAudioFocus }: { handleAudioFocus: boolean }) {
           'https://cdn.bitmovin.com/content/internal/assets/MI201109210084/poster.jpg',
       });
       return () => {
-        player.destroy();
+        void player.destroy();
       };
     }, [player])
   );

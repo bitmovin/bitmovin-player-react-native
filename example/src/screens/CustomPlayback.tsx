@@ -25,13 +25,13 @@ const CustomPlayback: React.FC<CustomPlaybackProps> = ({ route }) => {
     useCallback(() => {
       const { streamURL, streamType } = route.params;
       if (streamURL && streamType) {
-        player.load({
+        void player.load({
           url: streamURL,
           type: streamType.value,
         });
       }
       return () => {
-        player.destroy();
+        void player.destroy();
       };
     }, [player, route.params])
   );

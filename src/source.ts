@@ -329,8 +329,8 @@ export class Source extends NativeInstance<SourceConfig> {
    *
    * @param metadata metadata to be set.
    */
-  setMetadata = (metadata: Record<string, any> | null): void => {
-    void SourceModule.setMetadata(this.nativeId, metadata);
+  setMetadata = (metadata: Record<string, any> | null): Promise<void> => {
+    return SourceModule.setMetadata(this.nativeId, metadata);
   };
 
   /**

@@ -59,6 +59,7 @@ Run commands from the repository root after the documented development setup.
 ```sh
 node --test scripts/test-network-preprocessing.js
 node --test scripts/test-event-listeners.js
+node --test scripts/test-player-command-completion.js
 node --test scripts/test-player-event-props.js
 yarn test:plugin
 python3 -m unittest discover -s .github/scripts -p 'test_*.py'
@@ -76,6 +77,11 @@ setup for the JS listeners behind `Player.on` and `Source.on`. They cover which
 native `on`/`off` and initialization calls JS submits, including for overlapping
 `Source.initialize` calls, and how payloads are routed to listeners. They do not
 prove that native attaches a listener or emits an event.
+
+The [command completion tests](../scripts/test-player-command-completion.js)
+verify that public command promises stay pending until the mocked native call
+settles, expose its rejection, and preserve source initialization before load.
+They prove JS promise forwarding; playback readiness still requires SDK events.
 
 The [PlayerView event prop tests](../scripts/test-player-event-props.js) render
 the real `usePlayerEventProps` hook with `react-test-renderer` and a player
