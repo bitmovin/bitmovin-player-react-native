@@ -325,6 +325,9 @@ async function runCiTests(config, dependencies = {}) {
       child.once('close', (code, signal) => {
         entry.closed = true;
         entry.result = { code, signal };
+        // --skipbuild and --no-screenshots leave no reporter subprocesses.
+        // Its completed PID must not become a later process-group target.
+        if (label === 'Cavy') forget(entry);
         if (watch && !(label === 'Cavy' && launched && code === 0)) {
           fail(
             new Error(`${label} exited early (code ${code}, signal ${signal})`)
@@ -379,8 +382,27 @@ async function runCiTests(config, dependencies = {}) {
     try {
       process.kill(-entry.child.pid, signal);
     } catch (error) {
-      if (error.code !== 'ESRCH') throw error;
+      if (error.code !== 'ESRCH')
+        throw new Error(
+          `${entry.label} process group ${entry.child.pid} ${signal} failed: ${error.message}`,
+          { cause: error }
+        );
     }
+  }
+
+  function forget(entry) {
+    const index = children.indexOf(entry);
+    if (index >= 0) children.splice(index, 1);
+  }
+
+  function verifyIosCleanup() {
+    const cleanup = JSON.parse(
+      fs.readFileSync(path.join(artifactsDir, 'ios-cleanup.json'), 'utf8')
+    );
+    if (cleanup.success !== true)
+      throw new Error(
+        `iOS cleanup failed: ${(cleanup.errors || []).join('; ')}`
+      );
   }
 
   async function stop(entry, graceful = false) {
@@ -389,6 +411,17 @@ async function runCiTests(config, dependencies = {}) {
         entry.child.kill('SIGTERM');
         await boundedWait(entry.done, config.stopTimeoutMs);
       }
+      if (graceful && entry.closed) {
+        // The launcher reaps its own children and disposes its private simulator.
+        // Do not signal its old group after it has verified that cleanup.
+        try {
+          verifyIosCleanup();
+          forget(entry);
+          return;
+        } catch {
+          // Missing/failed cleanup still requires the forced-stop fallback.
+        }
+      }
       // Even an exited group leader can leave live descendants.
       signalGroup(entry, 'SIGTERM');
       // Give descendants time to exit even if the group leader has already closed.
@@ -396,8 +429,7 @@ async function runCiTests(config, dependencies = {}) {
       signalGroup(entry, 'SIGKILL');
       await boundedWait(entry.done, 1000);
       // A later cleanup pass must not signal a process-group ID that was reused.
-      const index = children.indexOf(entry);
-      if (index >= 0) children.splice(index, 1);
+      forget(entry);
     } finally {
       // A failed signal must not keep the supervisor alive past its deadline.
       entry.child.unref();
@@ -460,13 +492,7 @@ async function runCiTests(config, dependencies = {}) {
     await stopAll(app);
     if (app) {
       try {
-        const cleanup = JSON.parse(
-          fs.readFileSync(path.join(artifactsDir, 'ios-cleanup.json'), 'utf8')
-        );
-        if (cleanup.success !== true)
-          throw new Error(
-            `iOS cleanup failed: ${(cleanup.errors || []).join('; ')}`
-          );
+        verifyIosCleanup();
       } catch (error) {
         failure ||= new Error(
           `iOS cleanup could not be verified: ${error.message}`

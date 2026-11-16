@@ -5,6 +5,9 @@ const withFixtureMiddleware = require('./scripts/fixture-middleware');
 
 const config = getDefaultConfig(__dirname);
 
+// Babel embeds checkout-specific absolute library aliases in transformed files.
+config.cacheVersion = __dirname;
+
 const enhanceMiddleware = config.server.enhanceMiddleware;
 config.server.enhanceMiddleware = (middleware, server) =>
   withFixtureMiddleware(
@@ -26,7 +29,7 @@ config.resolver.nodeModulesPaths = [
 ];
 
 config.resolver.extraNodeModules = {
-  'bitmovin-player-react-native': '..',
+  'bitmovin-player-react-native': path.resolve(__dirname, '..'),
 };
 
 config.watchFolders = [path.resolve(__dirname, '..')];
