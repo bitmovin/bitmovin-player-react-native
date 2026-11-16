@@ -37,6 +37,45 @@ public class PlayerModule: Module {
             }.runOnQueue(.main)
         }
 
+        Class(SharedBufferApi.self) {
+            Constructor { (owner: SharedPlayer) in SharedBufferApi(owner: owner) }
+            AsyncFunction("getLevel") { (owner: SharedBufferApi, type: String) -> [String: Any]? in
+                guard let bufferType = RCTConvert.bufferType(type) else { return nil }
+                let player = (try owner.player)
+                let level = player.buffer.getLevel(bufferType)
+                return [
+                    "audio": RCTConvert.toJson(bufferLevel: level, mediaType: "audio"),
+                    "video": RCTConvert.toJson(bufferLevel: level, mediaType: "video")
+                ]
+            }.runOnQueue(.main)
+            AsyncFunction("setTargetLevel") { (owner: SharedBufferApi, type: String, value: Double) in
+                guard RCTConvert.bufferType(type) == .forwardDuration else { return }
+                (try owner.player).buffer.setTargetLevel(value)
+            }.runOnQueue(.main)
+        }
+
+        Class(SharedAnalyticsApi.self) {
+            Constructor { (owner: SharedPlayer) in SharedAnalyticsApi(owner: owner) }
+            AsyncFunction("sendCustomDataEvent") { (owner: SharedAnalyticsApi, json: [String: Any]) in
+                guard let analytics = (try owner.player).analytics,
+                      let customData = RCTConvert.analyticsCustomData(json) else { return }
+                analytics.sendCustomDataEvent(customData: customData)
+            }.runOnQueue(.main)
+            AsyncFunction("getUserId") { (owner: SharedAnalyticsApi) -> String? in
+                (try owner.player).analytics?.userId
+            }.runOnQueue(.main)
+        }
+
+        Class(SharedMediaControlsApi.self) {
+            Constructor { (owner: SharedPlayer) in SharedMediaControlsApi(owner: owner) }
+            AsyncFunction("isEnabled") { (owner: SharedMediaControlsApi) -> Bool? in
+                (try owner.player).nowPlaying.isEnabled
+            }.runOnQueue(.main)
+            AsyncFunction("setEnabled") { (owner: SharedMediaControlsApi, enabled: Bool) in
+                (try owner.player).nowPlaying.isEnabled = enabled
+            }.runOnQueue(.main)
+        }
+
         AsyncFunction("play") { (owner: SharedPlayer) in
                     (try owner.player).play()
         }.runOnQueue(.main)

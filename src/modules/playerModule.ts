@@ -11,6 +11,9 @@ import type { PlayerEventMap, EventCallbacks } from '../native/eventMap';
 import type { SharedSource } from './sourceModule';
 import type { PlaylistOptions } from '../playlist';
 import type { OfflineSourceOptions } from '../offline';
+import type { BufferApi } from '../bufferApi';
+import type { AnalyticsApi } from '../analytics/analyticsApi';
+import type { MediaControlsApi } from '../mediaControlsApi';
 
 /** @internal */
 export type SharedPlayer = SharedObject<EventCallbacks<PlayerEventMap>> &
@@ -23,12 +26,25 @@ export type SharedPlayer = SharedObject<EventCallbacks<PlayerEventMap>> &
     getSource(known: SharedSource[]): Promise<SharedSource | null | undefined>;
   };
 
+/** @internal */
+export type SharedBufferApi = SharedObject & NativeMethods<BufferApi>;
+/** @internal */
+export type SharedAnalyticsApi = SharedObject & NativeMethods<AnalyticsApi>;
+/** @internal */
+export type SharedMediaControlsApi = SharedObject &
+  NativeMethods<MediaControlsApi>;
+
 declare class PlayerModule extends NativeModule {
   readonly isGoogleImaEnabled: boolean;
   readonly SharedPlayer: new (
     config: PlayerConfig,
     analytics: PlayerConfig['analyticsConfig']
   ) => SharedPlayer;
+  readonly SharedBufferApi: new (player: SharedPlayer) => SharedBufferApi;
+  readonly SharedAnalyticsApi: new (player: SharedPlayer) => SharedAnalyticsApi;
+  readonly SharedMediaControlsApi: new (
+    player: SharedPlayer
+  ) => SharedMediaControlsApi;
   canPlayAtPlaybackSpeed(
     player: SharedPlayer,
     ...args: Parameters<Player['canPlayAtPlaybackSpeed']>
@@ -202,4 +218,10 @@ declare class PlayerModule extends NativeModule {
 const nativeModule = requireNativeModule<PlayerModule>('PlayerModule');
 /** @internal */
 export const SharedPlayer = nativeModule.SharedPlayer;
+/** @internal */
+export const SharedBufferApi = nativeModule.SharedBufferApi;
+/** @internal */
+export const SharedAnalyticsApi = nativeModule.SharedAnalyticsApi;
+/** @internal */
+export const SharedMediaControlsApi = nativeModule.SharedMediaControlsApi;
 export default nativeModule;

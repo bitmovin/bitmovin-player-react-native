@@ -9,7 +9,7 @@ import type { AudioTrack } from './audioTrack';
 import type { SubtitleTrack } from './subtitleTrack';
 import type { OfflineContentManager, OfflineSourceOptions } from './offline';
 import type { Thumbnail } from './thumbnail';
-import { AnalyticsApi } from './analytics/player';
+import { AnalyticsApi } from './analytics/analyticsApi';
 import type { PlayerConfig } from './playerConfig';
 import type { AdItem } from './advertising';
 import { BufferApi } from './bufferApi';

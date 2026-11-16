@@ -54,6 +54,7 @@ function fixture(t, methods = {}) {
   require(
     path.join(directory, 'node_modules/expo-modules-core')
   ).nativeModules.PlayerModule = {
+    SharedBufferApi: class {},
     SharedPlayer: class {
       destroy = () => native.destroy();
     },
