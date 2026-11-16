@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed
+
+#### Other changes
+
+- Android: Release pending media-session service bindings and ignore stale connection callbacks after Player destruction
+
 ## [1.31.0] - 2026-11-12
 
 ### Added
