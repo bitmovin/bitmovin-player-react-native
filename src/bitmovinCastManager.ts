@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import BitmovinCastManagerModule from './modules/BitmovinCastManagerModule';
+import BitmovinCastManagerModule from './modules/bitmovinCastManagerModule';
 
 /**
  * The options to be used for initializing `BitmovinCastManager`
@@ -53,12 +53,11 @@ export const BitmovinCastManager = {
     options: BitmovinCastManagerOptions | null = null
   ): Promise<void> => {
     if (Platform.OS === 'ios' && Platform.isTV) {
-      return Promise.resolve();
+      return;
     }
     console.warn(
       'BitmovinCastManager.initialize is deprecated and will be removed in future versions. Please initialize BitmovinCastManager via ExpoConfig or Info.plist on iOS and AndroidManifest.xml on Android.'
     );
-    return Promise.resolve();
   },
 
   /**
@@ -70,9 +69,9 @@ export const BitmovinCastManager = {
    */
   updateContext: async (): Promise<void> => {
     if (Platform.OS === 'ios') {
-      return Promise.resolve();
+      return;
     }
-    return BitmovinCastManagerModule.updateContext?.() || Promise.resolve();
+    await BitmovinCastManagerModule.updateContext?.();
   },
 
   /**
@@ -82,11 +81,14 @@ export const BitmovinCastManager = {
    * @param messageNamespace The message namespace to be used, in case of null the default message namespace will be used
    * @returns A promise that resolves when the message was sent successfully
    */
-  sendMessage: (message: string, messageNamespace: string | null = null) => {
+  sendMessage: async (
+    message: string,
+    messageNamespace: string | null = null
+  ): Promise<void> => {
     if (Platform.OS === 'ios' && Platform.isTV) {
-      return Promise.resolve();
+      return;
     }
-    return BitmovinCastManagerModule.sendMessage(
+    await BitmovinCastManagerModule.sendMessage(
       message,
       messageNamespace || undefined
     );

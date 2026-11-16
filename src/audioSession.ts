@@ -1,4 +1,4 @@
-import AudioSessionModule from './modules/AudioSessionModule';
+import AudioSessionModule from './modules/audioSessionModule';
 
 /**
  * An audio session category defines a set of audio behaviors.

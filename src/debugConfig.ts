@@ -1,4 +1,4 @@
-import DebugModule from './modules/DebugModule';
+import DebugModule from './modules/debugModule';
 
 /**
  * Global debug configuration for all Bitmovin components.
