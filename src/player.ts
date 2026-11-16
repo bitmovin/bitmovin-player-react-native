@@ -16,7 +16,6 @@ import { BufferApi } from './bufferApi';
 import { MediaControlsApi } from './mediaControlsApi';
 import type { VideoQuality } from './media';
 import { PlaylistApi } from './playlist';
-import { validatePlaylistConfig } from './playlist/validatePlaylistConfig';
 import type { PlaylistConfig } from './playlist';
 
 /**
@@ -156,7 +155,6 @@ export class Player {
    * @experimental
    */
   loadPlaylist = async (config: PlaylistConfig): Promise<void> => {
-    validatePlaylistConfig(config);
     await this.native.loadPlaylist(
       config.sources.map((source) => source.native),
       config.options

@@ -9,3 +9,4 @@ open class SharedPlayerApi(val owner: SharedPlayer) : SharedObject(checkNotNull(
 }
 class SharedBufferApi(owner: SharedPlayer) : SharedPlayerApi(owner)
 class SharedAnalyticsApi(owner: SharedPlayer) : SharedPlayerApi(owner)
+class SharedPlaylistApi(owner: SharedPlayer) : SharedPlayerApi(owner)

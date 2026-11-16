@@ -454,6 +454,17 @@ extension RCTConvert {
         return sourceOptions
     }
 
+    static func toReplayMode(_ json: Any?) throws -> ReplayMode {
+        switch json as? String {
+        case nil, "playlist":
+            return .playlist
+        case "lastSource":
+            return .lastSource
+        default:
+            throw Exception(name: "InvalidReplayMode", description: "Unknown replay mode")
+        }
+    }
+
     static func timelineReferencePoint(_ json: Any?) -> TimelineReferencePoint {
         guard let stringValue = json as? String else { return .auto }
         switch stringValue {
@@ -1110,19 +1121,7 @@ extension RCTConvert {
             "type": castPayload.type,
         ]
     }
-
 #endif
-
-    static func toReplayMode(_ json: Any?) throws -> ReplayMode {
-        switch json as? String {
-        case nil, "playlist":
-            return .playlist
-        case "lastSource":
-            return .lastSource
-        default:
-            throw Exception(name: "InvalidReplayMode", description: "Unknown replay mode")
-        }
-    }
 
     static func pictureInPictureConfig(_ json: Any?) -> PictureInPictureConfig? {
         guard let json = json as? [String: Any?] else {
