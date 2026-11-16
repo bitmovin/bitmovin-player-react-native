@@ -89,8 +89,7 @@ public class RNPlayerView: ExpoView {
         messages: SharedCustomMessageHandler?,
         config: [String: Any]?
     ) throws {
-        let player = try owner.player
-        guard !player.isDestroyed else {
+        guard !(try owner.player).isDestroyed else {
             throw Exception(name: "DestroyedPlayer", description: "Cannot attach a destroyed player")
         }
         setSharedPlayer(owner)

@@ -245,8 +245,7 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         messages: SharedCustomMessageHandler?,
         config: Map<String, Any>?,
     ) {
-        val player = owner.player
-        check(!player.isDestroyed) { "Cannot attach a destroyed player" }
+        check(!owner.player.isDestroyed) { "Cannot attach a destroyed player" }
         configure(config ?: emptyMap())
         attachFullscreenHandler(fullscreen)
         attachCustomMessageHandler(messages)
@@ -254,12 +253,12 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
         attachConfiguredPlayer()
     }
 
-    fun bindSharedPlayer(owner: SharedPlayer?) {
-        if (sharedPlayer !== owner) {
+    fun bindSharedPlayer(shared: SharedPlayer?) {
+        if (sharedPlayer !== shared) {
             playerInMediaSessionService = null
         }
-        sharedPlayer = owner
-        if (owner == null) dispose()
+        sharedPlayer = shared
+        if (shared == null) dispose()
     }
 
     fun configure(config: Map<String, Any>?) {
@@ -267,11 +266,11 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     fun attachConfiguredPlayer() {
-        val player = sharedPlayer?.player ?: return
+        val shared = sharedPlayer ?: return
         val config = playerInfo ?: return
         val viewConfig = config.getMap("playerViewConfig")
         attachPlayer(
-            player,
+            shared,
             viewConfig?.toPlayerViewConfig(),
             viewConfig?.getMap("pictureInPictureConfig")?.toPictureInPictureConfig(),
             config.getBooleanOrNull("enableBackgroundPlayback") ?: false,
@@ -281,13 +280,15 @@ class RNPlayerView(context: Context, appContext: AppContext) : ExpoView(context,
     }
 
     private fun attachPlayer(
-        player: Player,
+        shared: SharedPlayer,
         configuredPlayerViewConfig: PlayerViewConfig?,
         pictureInPictureConfig: PictureInPictureConfig?,
         enableBackgroundPlayback: Boolean,
         isPictureInPictureEnabledOnPlayer: Boolean,
         userInterfaceTypeName: String?,
     ) {
+        val player = shared.player
+
         if (playerView?.player == player) {
             // Player is already attached to the PlayerView
             return

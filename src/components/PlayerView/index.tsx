@@ -69,10 +69,10 @@ export function PlayerView({
       Object.fromEntries(
         Object.entries({
           enableBackgroundPlayback:
-            player.config?.playbackConfig?.isBackgroundPlaybackEnabled,
+            player.config.playbackConfig?.isBackgroundPlaybackEnabled,
           isPictureInPictureEnabledOnPlayer:
-            player.config?.playbackConfig?.isPictureInPictureEnabled,
-          userInterfaceTypeName: player.config?.styleConfig?.userInterfaceType,
+            player.config.playbackConfig?.isPictureInPictureEnabled,
+          userInterfaceTypeName: player.config.styleConfig?.userInterfaceType,
           playerViewConfig: config,
         }).filter(([, value]) => value !== undefined)
       ),
