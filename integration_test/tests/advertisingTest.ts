@@ -289,8 +289,6 @@ export default (spec: TestScope) => {
           position: '15',
         },
         {
-          // Not vast2: IMA's request for it was rejected by CORS (ad error
-          // 1005) on CI. BITMOVIN VAST still covers vast2.
           sources: [{ tag: AdTags.vast1, type: AdSourceType.IMA }],
           position: 'post',
         },
@@ -328,15 +326,15 @@ export default (spec: TestScope) => {
       name: 'BITMOVIN VAST',
       adItems: [
         {
-          sources: [{ tag: AdTags.vastSkippable, type: AdSourceType.BITMOVIN }],
+          sources: [{ tag: AdTags.bitmovinVast, type: AdSourceType.BITMOVIN }],
           position: 'pre',
         },
         {
-          sources: [{ tag: AdTags.vast1, type: AdSourceType.BITMOVIN }],
+          sources: [{ tag: AdTags.bitmovinVast, type: AdSourceType.BITMOVIN }],
           position: '15',
         },
         {
-          sources: [{ tag: AdTags.vast2, type: AdSourceType.BITMOVIN }],
+          sources: [{ tag: AdTags.bitmovinVast, type: AdSourceType.BITMOVIN }],
           position: 'post',
         },
       ],
@@ -346,9 +344,7 @@ export default (spec: TestScope) => {
       name: 'BITMOVIN VMAP',
       adItems: [
         {
-          sources: [
-            { tag: AdTags.vmapPreMidPost, type: AdSourceType.BITMOVIN },
-          ],
+          sources: [{ tag: AdTags.bitmovinVmap, type: AdSourceType.BITMOVIN }],
         },
       ],
       expectManifestLoaded: false,
@@ -382,7 +378,7 @@ export default (spec: TestScope) => {
 
   const adErrorScenarios: AdErrorScenario[] = [
     {
-      adItem: { sources: [{ tag: AdTags.error, type: AdSourceType.IMA }] },
+      adItem: { sources: [{ tag: AdTags.imaError, type: AdSourceType.IMA }] },
       label: 'IMA',
       enabledOn: ['ios', 'android'],
     },

@@ -1,5 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const { linearXml, bamVmapXml } = require('../assets/fixtures/advertising');
 
 const subtitleFixture = path.join(
   __dirname,
@@ -19,12 +20,32 @@ const responses = new Map(
   ])
 );
 
+responses.set('/cavy-fixtures/advertising/vast.xml', {
+  body: Buffer.from(linearXml),
+  contentType: 'application/xml; charset=utf-8',
+});
+responses.set('/cavy-fixtures/advertising/vmap.xml', {
+  body: Buffer.from(bamVmapXml),
+  contentType: 'application/xml; charset=utf-8',
+});
+
 // These fixtures share Metro's address so emulators use the same reachable host.
 module.exports = function withFixtureMiddleware(middleware) {
   return (req, res, next) => {
     const pathname = req.url?.split('?')[0];
     const fixture = responses.get(pathname);
     if (fixture && (req.method === 'GET' || req.method === 'HEAD')) {
+      if (pathname.startsWith('/cavy-fixtures/advertising/')) {
+        console.info(
+          '[Cavy fixture]',
+          JSON.stringify({
+            method: req.method,
+            path: pathname,
+            status: 200,
+            bytes: fixture.body.length,
+          })
+        );
+      }
       res.writeHead(200, {
         'Content-Type': fixture.contentType,
         'Content-Length': fixture.body.length,
