@@ -50,7 +50,7 @@ export class Player {
       !PlayerModule.isGoogleImaEnabled
     )
       console.warn(
-        'advertisingConfig.ima.beforeInitialization is ignored because Google IMA is disabled. Set features.googleIMA to true in the Bitmovin config plugin and rebuild the native app. See the "Google IMA" section of the bitmovin-player-react-native README.'
+        'advertisingConfig.ima.beforeInitialization is ignored because Google IMA is unavailable in this native build. Enable features.googleIMA in the Bitmovin config plugin or configure the SDK in the host app, then rebuild. See the "Google IMA" section of the bitmovin-player-react-native README.'
       );
   }
 

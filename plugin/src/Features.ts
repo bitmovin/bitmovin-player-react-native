@@ -3,7 +3,8 @@ export default interface Features {
   backgroundPlayback?: boolean;
   /**
    * Includes the Google Interactive Media Ads SDK in native builds.
-   * Required for IMA ad sources.
+   * IMA ad sources require the SDK. On Android, a host-supplied SDK remains
+   * available when this automatic dependency flag is false.
    *
    * @defaultValue `false`
    */

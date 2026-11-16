@@ -42,10 +42,6 @@ version = packageVersion
 android {
   namespace "com.bitmovin.player.reactnative"
 
-  sourceSets {
-    main.java.srcDirs += googleImaEnabled ? "src/withGoogleIma/java" : "src/withoutGoogleIma/java"
-  }
-
   defaultConfig {
     versionCode 1
     versionName packageVersion
@@ -88,6 +84,7 @@ dependencies {
   implementation "androidx.concurrent:concurrent-futures:1.1.0"
   implementation "androidx.concurrent:concurrent-futures-ktx:1.1.0"
 
+  compileOnly 'com.google.ads.interactivemedia.v3:interactivemedia:3.38.0'
   if (googleImaEnabled) {
     implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.38.0'
   }

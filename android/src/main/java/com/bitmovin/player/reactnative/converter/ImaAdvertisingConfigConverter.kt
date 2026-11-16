@@ -8,13 +8,23 @@ import com.bitmovin.player.reactnative.extensions.withMap
 import com.bitmovin.player.reactnative.toNativeValue
 import expo.modules.kotlin.AppContext
 
-internal const val IS_GOOGLE_IMA_ENABLED = true
+internal val IS_GOOGLE_IMA_ENABLED = try {
+    Class.forName(
+        "com.google.ads.interactivemedia.v3.api.ImaSdkSettings",
+        false,
+        AdvertisingConfig::class.java.classLoader,
+    )
+    true
+} catch (_: ClassNotFoundException) {
+    false
+}
 
 /** Adds the IMA-only callback to the common toAdvertisingConfig conversion. */
 internal fun Map<String, Any?>.configureIma(
     advertising: AdvertisingConfig,
     appContext: AppContext,
 ): AdvertisingConfig {
+    if (!IS_GOOGLE_IMA_ENABLED) return advertising
     return withMap("ima") { config ->
         config.withCallback("beforeInitialization") { callback ->
             advertising.copy(

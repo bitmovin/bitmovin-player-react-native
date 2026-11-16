@@ -71,6 +71,9 @@
 
 - Android: Include the owning Source metadata in `Source.on('sourceUnloaded')` events
 - Android: Reject loading a Source attached to another Player before unloading the current session, leaving the Player usable for later loads
+- Android: Stop adding `com.google.android.gms.permission.AD_ID` when Google IMA is disabled. Apps that use the advertising ID, for example through analytics, may need to add `com.google.android.gms:play-services-ads-identifier` to their own dependencies
+
+- Android: Compile IMA callbacks from one common implementation and detect the optional SDK at runtime. The IMA feature flag controls adding its runtime dependency; an SDK supplied by the host app is also detected
 
 - iOS: Include configured Source metadata in playlist event payloads before the Source is prepared
 
