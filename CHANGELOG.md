@@ -8,11 +8,23 @@
 
 - Fix the Skip Ad and Suspend buttons in the examples
 
+- Attach PlayerView bindings after its native host is registered, avoiding early view-reference lookup failures
+
 - Android: Release pending media-session service bindings and ignore stale connection callbacks after Player destruction
 
 - Android: Use Expo 57's Gradle plugin. For apps without root-project SDK overrides, the library's compile SDK and target SDK defaults are now API 36, so install Android SDK Platform 36. The minimum SDK stays API 24, existing host overrides are honored, and the app keeps its own target SDK
 
 - Player commands such as `play()`, `load()`, and `destroy()`, and `Source.setMetadata()` now return `Promise<void>`, allowing callers to await the native call and catch failures. Playback readiness still uses events. Fire-and-forget calls remain supported; strict Promise linting may require an explicit `await` or `void`
+
+### Fixed
+
+- Publish replacement PlayerView refs only after the current native attachment succeeds.
+
+- Android: Rebind subtitles and picture-in-picture controls when replacing the Player of a mounted PlayerView.
+
+- Android: Apply initial fullscreen requests to custom handlers even when they already report the requested state
+
+- Keep PlayerView unmounted when Player creation fails without producing additional unhandled Promise rejections
 
 ## [1.31.0] - 2026-11-12
 

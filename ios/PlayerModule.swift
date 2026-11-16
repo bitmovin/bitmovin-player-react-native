@@ -71,8 +71,6 @@ public class PlayerModule: Module {
                 PlayerRegistry.unregister(nativeId: nativeId)
             }
             self?.eventRelay.offAll(nativeId: nativeId)
-            self?.appContext?.moduleRegistry.get(RNPlayerViewManager.self)?
-                .discardPendingPictureInPictureValues(playerId: nativeId)
         }.runOnQueue(.main)
         AsyncFunction("setVolume") { (nativeId: NativeId, volume: Int) in
             PlayerRegistry.getPlayer(nativeId: nativeId)?.volume = volume

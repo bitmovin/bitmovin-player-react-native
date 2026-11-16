@@ -11,6 +11,7 @@ import androidx.annotation.RequiresApi
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.on
+import com.bitmovin.player.api.ui.PictureInPictureHandler
 import com.bitmovin.player.reactnative.PictureInPictureAction
 import com.bitmovin.player.reactnative.PictureInPictureConfig
 import com.bitmovin.player.ui.DefaultPictureInPictureHandler
@@ -20,10 +21,14 @@ private const val TAG = "RNPiPHandler"
 @RequiresApi(Build.VERSION_CODES.O)
 class RNPictureInPictureHandler(
     private val activity: Activity,
-    private val player: Player,
+    private var player: Player,
     private val pictureInPictureConfig: PictureInPictureConfig,
     private val onPictureInPictureExited: () -> Unit = {},
-) : DefaultPictureInPictureHandler(activity, player) {
+) : PictureInPictureHandler {
+    private var platformHandler = DefaultPictureInPictureHandler(activity, player)
+    override val isPictureInPictureAvailable: Boolean
+        get() = platformHandler.isPictureInPictureAvailable
+
     private val pictureInPictureActionHandler = DefaultPictureInPictureActionHandler(
         activity,
         player,
@@ -69,6 +74,19 @@ class RNPictureInPictureHandler(
         player.on(onVideoPlaybackQualityChanged)
     }
 
+    fun setPlayer(player: Player) {
+        if (this.player === player) return
+        unsubscribeToPlayerPlaybackEvents()
+        this.player.off(onVideoPlaybackQualityChanged)
+        this.player = player
+        platformHandler = DefaultPictureInPictureHandler(activity, player)
+        pictureInPictureActionHandler.player = player
+        subscribeToPlayerPlaybackEvents()
+        player.on(onVideoPlaybackQualityChanged)
+        playerIsPlaying = player.isPlaying
+        updatePictureInPictureParams()
+    }
+
     private fun subscribeToPlayerPlaybackEvents() {
         player.on<PlayerEvent.Play>(setPlayerIsPlaying)
         player.on<PlayerEvent.Playing>(setPlayerIsPlaying)
@@ -79,7 +97,6 @@ class RNPictureInPictureHandler(
         player.on<PlayerEvent.Destroy>(setPlayerIsNotPlaying)
         player.on<PlayerEvent.Error>(setPlayerIsNotPlaying)
         player.on<PlayerEvent.AdBreakFinished>(setPlayerIsNotPlaying)
-
     }
 
     private fun unsubscribeToPlayerPlaybackEvents() {
@@ -121,7 +138,7 @@ class RNPictureInPictureHandler(
     }
 
     override fun exitPictureInPicture() {
-        super.exitPictureInPicture()
+        platformHandler.exitPictureInPicture()
         _isPictureInPicture = false
     }
 
@@ -226,6 +243,5 @@ class RNPictureInPictureHandler(
         }
     }
 }
-
 
 private val PictureInPictureConfig.isAutoPipEnabled get() = isEnabled && shouldEnterOnBackground

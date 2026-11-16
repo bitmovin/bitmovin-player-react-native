@@ -11,9 +11,19 @@ const React = req('react');
 const ts = req('typescript');
 const scheduler = req('scheduler/unstable_mock');
 let committedView;
+const bindings = new Map();
+let nextPlayer = 0;
+function playerWith() {
+  return {
+    config: {},
+    nativeId: `player-${++nextPlayer}`,
+    initialize: async () => {},
+    on: async () => mockEventSubscription(),
+  };
+}
 const viewConfig = {
   uiViewClassName: 'ProbePlayerView',
-  validAttributes: { config: true },
+  validAttributes: { style: true, isFullscreenRequested: true },
   directEventTypes: {},
   bubblingEventTypes: {},
 };
@@ -27,7 +37,22 @@ const privateInterface = {
   ReactFiberErrorDialog: { showErrorDialog: () => true },
   RawEventEmitter: { emit() {} },
   createPublicRootInstance: (tag) => ({ tag }),
-  createPublicInstance: (tag, config, handle) => ({ tag, handle }),
+  createPublicInstance: (tag, config, handle) => ({
+    tag,
+    handle,
+    attachBindings(player, fullscreen, custom, config) {
+      return new Promise((resolve, reject) =>
+        bindings.set(tag, {
+          player,
+          fullscreen,
+          custom,
+          config,
+          resolve,
+          reject,
+        })
+      );
+    },
+  }),
   createAttributePayload: (props) => props,
   diffAttributePayloads: (old, next) => next,
   deepFreezeAndThrowOnMutationInDev() {},
@@ -92,35 +117,59 @@ const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
 }).outputText;
 const playerViewModule = { exports: {} };
+const viewWarnings = [];
 const playerViewContext = vm.createContext({
+  console: { ...console, warn: (...values) => viewWarnings.push(values) },
   module: playerViewModule,
   exports: playerViewModule.exports,
   require(name) {
     if (name === 'react' || name === 'react/jsx-runtime') return req(name);
     if (name === 'react-native')
-      return { StyleSheet: { create: (x) => x, flatten: (x) => x } };
+      return {
+        Platform: { OS: 'ios' },
+        StyleSheet: { create: (x) => x, flatten: (x) => x },
+      };
     if (name === 'expo-keep-awake') return { useKeepAwake() {} };
     if (name === './native') return { NativePlayerView: 'ProbePlayerView' };
     if (name.endsWith('/useProxy')) return { useProxy: () => (x) => x };
-    if (name.endsWith('/fullscreenhandlerbridge')) return {};
+    if (name.endsWith('/fullscreenhandlerbridge'))
+      return {
+        FullscreenHandlerBridge: class {
+          nativeId = `fullscreen`;
+          setFullscreenHandler(handler) {
+            this.handler = handler;
+          }
+          async destroy() {
+            this.destroyed = true;
+          }
+        },
+      };
     if (name.endsWith('/custommessagehandlerbridge')) return {};
     if (name.endsWith('/metadataPlatform')) return {};
-    if (name.endsWith('/RNPlayerViewManagerModule')) return {};
-    if (name === './usePlayerEventProps') {
-      return { usePlayerEventProps() {} };
-    }
+    if (name === './usePlayerEventProps') return { usePlayerEventProps() {} };
     throw new Error('Unexpected PlayerView dependency: ' + name);
   },
 });
 vm.runInContext(compiled, playerViewContext);
 const { PlayerView } = playerViewModule.exports;
-// Use the installed Fabric renderer so effects, refs and asynchronous initialization
-// run as they do in the app. Only the native mount and acknowledgment are controlled.
-async function flush() {
+// Use the installed Fabric renderer for real effect/ref ordering.
+// Only native attachment acceptance and failure are controlled here.
+const attachedViews = new Set();
+async function flush(attach = true) {
   for (let i = 0; i < 6; i++) {
     scheduler.unstable_flushAllWithoutAsserting();
+    if (attach && committedView && !attachedViews.has(committedView.tag)) {
+      attachedViews.add(committedView.tag);
+      committedView.handle.memoizedProps.onBmpViewAttached?.({
+        nativeEvent: {},
+      });
+    }
     await new Promise(setImmediate);
   }
+}
+
+async function mockEventSubscription() {
+  return { remove() {} };
 }
 
 function render(props) {
@@ -137,14 +186,21 @@ function render(props) {
   );
 }
 
-function acknowledge(playerId, view = committedView) {
-  view.props.onBmpPlayerViewReady({ nativeEvent: { playerId } });
+function acknowledge(request = bindings.get(committedView.tag)) {
+  request?.resolve();
 }
 
-test('readiness waits for native listeners and follows the current player', async () => {
+test.afterEach(async () => {
+  rendererModule.exports.render(null, 11, null, true, {});
+  await flush();
+  bindings.clear();
+  viewWarnings.length = 0;
+});
+
+test('readiness waits for native attachment and is announced once', async () => {
   let notifications = 0;
   const viewRef = { current: null };
-  const player = { nativeId: 'first', config: {}, initialize: async () => {} };
+  const player = playerWith();
   const props = {
     player,
     viewRef,
@@ -154,134 +210,139 @@ test('readiness waits for native listeners and follows the current player', asyn
     },
   };
   render(props);
+  await flush(false);
+  assert.equal(
+    bindings.size,
+    0,
+    'layout/ref availability does not prove platform attachment'
+  );
   await flush();
-  assert.ok(committedView, 'initialized player renders a native view');
+  assert.ok(
+    committedView,
+    'the native host remains mounted while initialization and attachment finish'
+  );
+  assert.equal(bindings.get(committedView.tag).player, player.nativeId);
+  for (const prop of ['player', 'fullscreenHandler', 'customMessageHandler'])
+    assert.equal(Object.hasOwn(committedView.props, prop), false);
   assert.equal(
     notifications,
     0,
-    'JS effects must not announce native readiness'
+    'JS effects cannot announce native acceptance'
   );
-  acknowledge('other');
-  assert.equal(notifications, 0, 'stale native events are ignored');
-  acknowledge(player.nativeId);
-  assert.equal(notifications, 1);
-  acknowledge(player.nativeId);
+  acknowledge();
+  await flush();
+  acknowledge();
+  await flush();
   assert.equal(notifications, 1, 'duplicate acknowledgments are ignored');
+
   render({
     ...props,
-    onPlayerViewReady: () => {
-      notifications += 10;
-    },
+    config: {},
+    onPlayerViewReady: () => (notifications += 10),
   });
   await flush();
-  acknowledge(player.nativeId);
+  acknowledge();
+  await flush();
   assert.equal(
     notifications,
     1,
-    'callback identity changes do not repeat readiness'
+    'callback/config changes do not repeat readiness'
   );
 
-  const previousView = committedView;
-  let finishInitialization;
-  const replacement = {
-    nativeId: 'replacement',
-    config: {},
-    initialize: () =>
-      new Promise((resolve) => {
-        finishInitialization = resolve;
-      }),
-  };
-  render({ ...props, player: replacement });
+  const silent = playerWith();
+  render({ player: silent });
   await flush();
-  assert.equal(
-    committedView,
-    undefined,
-    'replacement waits for its own initialization'
-  );
-  acknowledge(player.nativeId, previousView);
-  assert.equal(notifications, 1, 'retired player cannot notify a replacement');
-  finishInitialization();
+  acknowledge();
   await flush();
-  acknowledge(player.nativeId);
-  assert.equal(notifications, 1);
-  acknowledge(replacement.nativeId);
+  render({ ...props, player: silent });
+  await flush();
+  acknowledge();
+  await flush();
   assert.equal(
     notifications,
-    2,
-    'replacement announces its own native readiness'
+    1,
+    'adding a callback after acceptance does not replay it'
   );
 
-  // An obsolete initialization must not mount the next player prematurely.
-  let finishObsolete;
-  let finishCurrent;
-  const obsolete = {
-    nativeId: 'obsolete',
-    config: {},
-    initialize: () =>
-      new Promise((resolve) => {
-        finishObsolete = resolve;
-      }),
-  };
-  const current = {
-    nativeId: 'current',
-    config: {},
-    initialize: () =>
-      new Promise((resolve) => {
-        finishCurrent = resolve;
-      }),
-  };
-  render({ ...props, player: obsolete });
+  render({ ...props, player: playerWith() });
   await flush();
-  render({ ...props, player: current });
-  await flush();
-  finishObsolete();
-  await flush();
-  assert.equal(committedView, undefined, 'obsolete initialization is ignored');
-  finishCurrent();
-  await flush();
-  assert.equal(committedView.props.config.playerId, current.nativeId);
-  acknowledge(current.nativeId);
-  assert.equal(notifications, 3);
-  const retiredView = committedView;
-  const silentPlayer = {
-    nativeId: 'silent',
-    config: {},
-    initialize: async () => {},
-  };
-  render({ player: silentPlayer });
-  await flush();
-  acknowledge(current.nativeId, retiredView);
-  assert.equal(notifications, 3, 'a retired handler cannot announce readiness');
-  acknowledge(silentPlayer.nativeId);
-  render({ ...props, player: silentPlayer });
-  await flush();
-  acknowledge(silentPlayer.nativeId);
-  assert.equal(
-    notifications,
-    3,
-    'adding a callback after readiness does not replay it'
-  );
-  const unmountedView = committedView;
+  const pending = bindings.get(committedView.tag);
   rendererModule.exports.render(null, 11, null, true, {});
   await flush();
-  acknowledge(silentPlayer.nativeId, unmountedView);
-  assert.equal(notifications, 3, 'unmounted views cannot announce readiness');
+  acknowledge(pending);
+  await flush();
+  assert.equal(notifications, 1, 'unmounted views cannot announce readiness');
 });
 
-test('switching A to B to A announces each attachment once', async () => {
-  const first = { nativeId: 'A', config: {}, initialize: async () => {} };
-  const second = { nativeId: 'B', config: {}, initialize: async () => {} };
+test('A to B to A keeps the host and ignores superseded native acknowledgments', async () => {
+  const first = playerWith();
+  const second = playerWith();
+  const fullscreenHandler = {};
   const notifications = [];
-  for (const player of [first, second, first]) {
-    render({
-      player,
-      onPlayerViewReady: () => notifications.push(player.nativeId),
-    });
-    await flush();
-    acknowledge(player.nativeId);
-    acknowledge(player.nativeId);
-  }
-  assert.deepEqual(notifications, ['A', 'B', 'A']);
-  rendererModule.exports.render(null, 11, null, true, {});
+  const propsFor = (player) => ({
+    player,
+    fullscreenHandler,
+    onPlayerViewReady: () => notifications.push(player),
+  });
+  render(propsFor(first));
   await flush();
+  const tag = committedView.tag;
+  const obsoleteFirst = bindings.get(tag);
+  const bridge = obsoleteFirst.fullscreen;
+  render(propsFor(second));
+  await flush();
+  const obsoleteSecond = bindings.get(tag);
+  render(propsFor(first));
+  await flush();
+  const current = bindings.get(tag);
+  assert.equal(
+    committedView.tag,
+    tag,
+    'Player changes preserve the native host'
+  );
+  assert.equal(current.player, first.nativeId);
+  assert.equal(current.fullscreen, bridge);
+  assert.equal(typeof bridge, 'string');
+
+  acknowledge(obsoleteFirst);
+  acknowledge(obsoleteSecond);
+  await flush();
+  assert.deepEqual(
+    notifications,
+    [],
+    'only the current attachment can announce readiness'
+  );
+  acknowledge(current);
+  await flush();
+  assert.deepEqual(notifications, [first]);
+  for (const player of [second, first]) {
+    render(propsFor(player));
+    await flush();
+    assert.equal(committedView.tag, tag);
+    acknowledge();
+    await flush();
+    acknowledge();
+    await flush();
+  }
+  assert.deepEqual(notifications, [first, second, first]);
+});
+
+test('failed native attachment reports no readiness or unhandled rejection', async () => {
+  const error = new Error('SDK Player creation failed');
+  const player = playerWith();
+  player.getDuration = async () => {
+    throw error;
+  };
+  let notifications = 0;
+  render({ player, onPlayerViewReady: () => notifications++ });
+  await flush();
+  assert.ok(committedView, 'native host exists before its SDK attachment');
+  bindings.get(committedView.tag).reject(error);
+  await flush();
+  assert.equal(notifications, 0);
+  assert.equal(viewWarnings.length, 1);
+  assert.equal(viewWarnings[0][1], error);
+  await assert.rejects(player.getDuration(), error);
+  const subscription = await player.on('ready', () => {});
+  subscription.remove();
 });
