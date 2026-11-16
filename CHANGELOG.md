@@ -8,6 +8,8 @@
 
 - Android: Release pending media-session service bindings and ignore stale connection callbacks after Player destruction
 
+- Android: Use Expo 57's Gradle plugin. For apps without root-project SDK overrides, the library's compile SDK and target SDK defaults are now API 36, so install Android SDK Platform 36. The minimum SDK stays API 24, existing host overrides are honored, and the app keeps its own target SDK
+
 ## [1.31.0] - 2026-11-12
 
 ### Added
