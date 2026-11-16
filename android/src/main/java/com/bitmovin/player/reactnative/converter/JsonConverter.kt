@@ -119,6 +119,7 @@ import com.bitmovin.player.reactnative.extensions.withInt
 import com.bitmovin.player.reactnative.extensions.withMap
 import com.bitmovin.player.reactnative.extensions.withString
 import com.bitmovin.player.reactnative.extensions.withStringArray
+import com.bitmovin.player.reactnative.offline.OfflineDownloadRequest
 import com.bitmovin.player.reactnative.toNativeValue
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.jni.JavaScriptWeakObject
@@ -333,10 +334,11 @@ private fun String.toAdSourceType(): AdSourceType? = when (this) {
     else -> null
 }
 
-fun Map<String, Any?>.toSourceConfig(): SourceConfig? {
+fun Map<String, Any?>.toSourceConfig(appContext: AppContext): SourceConfig? {
     val url = getString("url") ?: return null
     val type = getString("type")?.toSourceType() ?: return null
     return SourceConfig(url, type).apply {
+        withMap("drmConfig") { drmConfig = it.toWidevineConfig(appContext) }
         withString("title") { title = it }
         withString("description") { description = it }
         withString("poster") { posterSource = it }
@@ -652,13 +654,31 @@ fun PlayerEvent.toJson(): Map<String, Any> {
     return baseMap.filterNotNullValues()
 }
 
-fun Map<String, Any?>.toWidevineConfig(): WidevineConfig? = getMap("widevine")?.run {
-    WidevineConfig(getString("licenseUrl")).apply {
-        withString("preferredSecurityLevel") { preferredSecurityLevel = it }
-        withBoolean("shouldKeepDrmSessionsAlive") { shouldKeepDrmSessionsAlive = it }
-        withMap("httpHeaders") { httpHeaders = it.mapValues { entry -> entry.value as String }.toMutableMap() }
+fun Map<String, Any?>.toWidevineConfig(appContext: AppContext): WidevineConfig? =
+    withMap("widevine") { config ->
+        WidevineConfig(config.getString("licenseUrl")).apply {
+            config.withString("preferredSecurityLevel") { preferredSecurityLevel = it }
+            config.withBoolean("shouldKeepDrmSessionsAlive") { shouldKeepDrmSessionsAlive = it }
+            config.withMap("httpHeaders") {
+                httpHeaders = it.mapValues { entry -> entry.value as String }.toMutableMap()
+            }
+            config.withCallback("prepareMessage") { callback ->
+                prepareMessageCallback = PrepareMessageCallback {
+                    callback.prepare(appContext, it)
+                }
+            }
+            config.withCallback("prepareLicense") { callback ->
+                prepareLicenseCallback = PrepareLicenseCallback {
+                    callback.prepare(appContext, it)
+                }
+            }
+        }
     }
-}
+
+private fun JavaScriptWeakObject.prepare(appContext: AppContext, data: ByteArray): ByteArray =
+    callBlocking(appContext, Base64.encodeToString(data, Base64.NO_WRAP), timeout = 5.seconds) {
+        Base64.decode(it.getString(), Base64.NO_WRAP)
+    } ?: ByteArray(0)
 
 fun String.toThumbnailTrack(): ThumbnailTrack = ThumbnailTrack(this)
 
@@ -844,6 +864,16 @@ fun OfflineOptionEntry.toJson(): Map<String, Any> = mapOf(
     "id" to id,
     "language" to language,
 ).filterNotNullValues()
+
+fun Map<String, Any?>.toOfflineDownloadRequest(): OfflineDownloadRequest {
+    // JS numbers arrive as Double; Android's offline rendition selection uses Int bitrates.
+    val minimumBitrate = (get("minimumBitrate") as? Number)?.toInt()
+    return OfflineDownloadRequest(
+        minimumBitrate,
+        (get("audioOptionIds") as? List<*>)?.filterIsInstance<String>(),
+        (get("textOptionIds") as? List<*>)?.filterIsInstance<String>(),
+    )
+}
 
 fun OfflineContentOptions.toJson(): Map<String, Any> = mapOf(
     "audioOptions" to audioOptions.map { it.toJson() },
@@ -1302,57 +1332,9 @@ private fun Alignment.toLayoutTextAlignJson(): String = when (this) {
     Alignment.ALIGN_CENTER -> "center"
 }
 
-private fun JavaScriptWeakObject.prepare(appContext: AppContext, data: ByteArray): ByteArray =
-    callBlocking(appContext, Base64.encodeToString(data, Base64.NO_WRAP), timeout = 5.seconds) {
-        Base64.decode(it.getString(), Base64.NO_WRAP)
-    } ?: ByteArray(0)
-
 fun Any?.toReplayMode(): ReplayMode = when (this) {
     null, "playlist" -> ReplayMode.Playlist
     "lastSource" -> ReplayMode.LastSource
     else -> throw IllegalArgumentException("Unknown replay mode")
 }
 
-fun Map<String, Any?>.toSourceConfig(appContext: AppContext): SourceConfig? {
-    val url = getString("url") ?: return null
-    val type = getString("type")?.toSourceType() ?: return null
-    return SourceConfig(url, type).apply {
-        withMap("drmConfig") { drmConfig = it.toWidevineConfig(appContext) }
-        withString("title") { title = it }
-        withString("description") { description = it }
-        withString("poster") { posterSource = it }
-        withBoolean("isPosterPersistent") { isPosterPersistent = it }
-        withArray("subtitleTracks") { subtitleTracks ->
-            subtitleTracks.indices.forEach { subtitleTrack ->
-                subtitleTracks.getMap(subtitleTrack)?.toSubtitleTrack()?.let {
-                    addSubtitleTrack(it)
-                }
-            }
-        }
-        withString("thumbnailTrack") { thumbnailTrack = it.toThumbnailTrack() }
-        withMap("metadata") { metadata = it.toMap() }
-        withMap("options") { options = it.toSourceOptions() }
-        // Note: cmcdConfig is not yet supported on Android.
-    }
-}
-
-fun Map<String, Any?>.toWidevineConfig(appContext: AppContext): WidevineConfig? =
-    withMap("widevine") { config ->
-        WidevineConfig(config.getString("licenseUrl")).apply {
-            config.withString("preferredSecurityLevel") { preferredSecurityLevel = it }
-            config.withBoolean("shouldKeepDrmSessionsAlive") { shouldKeepDrmSessionsAlive = it }
-            config.withMap("httpHeaders") {
-                httpHeaders = it.mapValues { entry -> entry.value as String }.toMutableMap()
-            }
-            config.withCallback("prepareMessage") { callback ->
-                prepareMessageCallback = PrepareMessageCallback {
-                    callback.prepare(appContext, it)
-                }
-            }
-            config.withCallback("prepareLicense") { callback ->
-                prepareLicenseCallback = PrepareLicenseCallback {
-                    callback.prepare(appContext, it)
-                }
-            }
-        }
-    }

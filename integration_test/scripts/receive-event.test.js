@@ -120,3 +120,32 @@ test('a late subscription is removed without triggering after the deadline', asy
   assert.equal(removed, 1);
   assert.equal(triggered, false);
 });
+
+test('a listener error preserves its identity and cleans up a pending trigger', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const failure = new Error('Native listener failed');
+  let rejectEvent;
+  let rejectTrigger;
+  let removed = 0;
+  let notifyStarted;
+  const started = new Promise((resolve) => (notifyStarted = resolve));
+  const trigger = new Promise((_, reject) => (rejectTrigger = reject));
+  const result = receiveEvent(
+    async (_listener, reject) => {
+      rejectEvent = reject;
+      return { remove: () => removed++ };
+    },
+    () => {
+      notifyStarted();
+      return trigger;
+    },
+    100
+  );
+  await started;
+  rejectEvent(failure);
+  await assert.rejects(result, (error) => error === failure);
+  assert.equal(removed, 1);
+  t.mock.timers.tick(100);
+  rejectTrigger(new Error('Late operation failure'));
+  await new Promise(setImmediate);
+});

@@ -14,6 +14,7 @@ import type { OfflineSourceOptions } from '../offline';
 import type { BufferApi } from '../bufferApi';
 import type { AnalyticsApi } from '../analytics/analyticsApi';
 import type { MediaControlsApi } from '../mediaControlsApi';
+import type { SharedOfflineContentManager } from '../offline/offlineModule';
 
 /** @internal */
 export type SharedPlayer = SharedObject<EventCallbacks<PlayerEventMap>> &
@@ -211,9 +212,9 @@ declare class PlayerModule extends NativeModule {
   ): ReturnType<Player['unmute']>;
   loadOfflineContent(
     player: SharedPlayer,
-    offlineId: string,
+    manager: SharedOfflineContentManager,
     options?: OfflineSourceOptions
-  ): Promise<boolean | void>;
+  ): Promise<boolean>;
 }
 const nativeModule = requireNativeModule<PlayerModule>('PlayerModule');
 /** @internal */

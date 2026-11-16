@@ -204,14 +204,12 @@ public class PlayerModule: Module {
                     RCTConvert.toJson(thumbnail: (try owner.player).thumbnail(forTime: time))
         }.runOnQueue(.main)
 
-        AsyncFunction("loadOfflineContent") { [weak self] (owner: SharedPlayer, bridgeId: String, options: [String: Any]?) -> Bool in // swiftlint:disable:this line_length
+        AsyncFunction("loadOfflineContent") { (owner: SharedPlayer, offline: SharedOfflineContentManager, options: [String: Any]?) -> Bool in // swiftlint:disable:this line_length
             #if os(iOS)
-            guard let module = self?.appContext?.moduleRegistry.get(OfflineModule.self),
-                  let manager = module.retrieve(bridgeId),
-                  let sourceConfig = manager.offlineContentManager.createOfflineSourceConfig(
-                      restrictedToAssetCache: options?["restrictedToAssetCache"] as? Bool ?? true
-                  ) else { return false }
-            (try owner.player).load(sourceConfig: sourceConfig)
+            guard let config = (try offline.offlineContentManager).createOfflineSourceConfig(
+                restrictedToAssetCache: options?["restrictedToAssetCache"] as? Bool ?? true
+            ) else { return false }
+            (try owner.player).load(sourceConfig: config)
             return true
             #else
             return false

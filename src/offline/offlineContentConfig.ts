@@ -1,4 +1,4 @@
-import type { NativeInstanceConfig } from '../nativeInstance';
+import type { NativeInstanceConfig } from '../nativeInstanceRegistry';
 import type { SourceConfig } from '../source';
 
 /**

@@ -209,6 +209,25 @@ reachable host and port as the JavaScript assets, including a custom Metro port,
 without hard-coding an emulator address. The native player fetches the media
 over HTTP; its playback and subtitle handling remain real.
 
+### Advertising inputs
+
+Advertising lifecycle cases use the fixed VAST and VMAP XML in
+[`advertising.js`](./assets/fixtures/advertising.js). IMA and iOS BAM use inline
+data URIs. Android BAM requires HTTP, so Metro serves its
+manifests at `/cavy-fixtures/advertising/vast.xml` and
+`/cavy-fixtures/advertising/vmap.xml` for `GET` and `HEAD`. The existing
+[`fixtureUrl`](./tests/helper/FixtureUrl.ts) resolves their device-reachable host
+and port. The VMAP embeds its VAST data; it needs no URL rewriting or additional
+manifest requests. All paths use the existing two-second Bitmovin media and a
+15-second midroll cue, so every case seeks to 13 seconds. Lifecycle assertions
+and timeouts are unchanged.
+
+The middleware records `[Cavy fixture]` method, fixed path, status and byte count
+in Metro output, which CI already captures in `metro.log`. It does not log
+request bodies or query strings. Error cases retain the SDK's missing-media URL
+(HTTP 403), and pause-ad cases retain their provider tag. This adds no server,
+port, CORS override or app networking-policy exception.
+
 ### Scope and limitations
 
 - This hosting code runs in Node on the maintainer's machine or CI runner. It is
@@ -270,6 +289,14 @@ This integration test app is built as an Expo application using:
 ## Test Coverage
 
 The integration tests are located in the [`tests`](./tests) directory. Each file in this directory corresponds to a feature or a set of related features being tested. Please refer to the contents of this directory for an up-to-date list of what is covered.
+
+The `shared-object-lifecycle` selector checks playback after remounting the native
+view on Android and iOS. From the root:
+
+```sh
+yarn integration-test test:android --tags shared-object-lifecycle
+yarn integration-test test:ios --tags shared-object-lifecycle
+```
 
 ## Platform Support
 
