@@ -1,4 +1,7 @@
 import type {
+  SourceAddedEvent,
+  SourceRemovedEvent,
+  PlaylistTransitionEvent,
   AdBreakFinishedEvent,
   AdBreakStartedEvent,
   AdClickedEvent,
@@ -53,9 +56,6 @@ import type {
   SourceLoadedEvent,
   SourceLoadEvent,
   SourceUnloadedEvent,
-  SourceAddedEvent,
-  SourceRemovedEvent,
-  PlaylistTransitionEvent,
   SourceWarningEvent,
   AudioAddedEvent,
   AudioChangedEvent,
@@ -79,9 +79,9 @@ import type {
 /**
  * Event props for `PlayerView`.
  *
- * The player and source events are delivered via {@link Player.on}. {@link Player.on} and
- * {@link Source.on} can also be used without a `PlayerView`. Fullscreen and picture-in-picture events come
- * from the native view.
+ * Player and Source events follow the supplied Player. View-only fullscreen and
+ * picture-in-picture events come from the mounted native view. React's event
+ * wrapper is removed before invoking these public callbacks.
  */
 export type PlayerViewEvents = {
   /**
@@ -200,12 +200,7 @@ export type PlayerViewEvents = {
    */
   onDownloadFinished?: (event: DownloadFinishedEvent) => void;
   /**
-   * The events of all player and source event props of `PlayerView`, e.g. `onReady` or `onTimeChanged`.
-   * Fullscreen and picture-in-picture events are not included.
-   *
-   * Intended for debugging and testing: setting it subscribes to every event, including
-   * high-frequency ones like `onTimeChanged`. Otherwise, prefer the specific event props or
-   * {@link Player.on}, so only the events you need cross the bridge.
+   * All events emitted by the player.
    */
   onEvent?: (event: Event) => void;
   /**
@@ -373,20 +368,17 @@ export type PlayerViewEvents = {
    */
   onSourceUnloaded?: (event: SourceUnloadedEvent) => void;
   /**
-   * Event emitted when a source was added to an active playback session.
-   *
+   * Emitted by the native playlist.
    * @experimental
    */
   onSourceAdded?: (event: SourceAddedEvent) => void;
   /**
-   * Event emitted when a source was removed from an active playback session.
-   *
+   * Emitted by the native playlist.
    * @experimental
    */
   onSourceRemoved?: (event: SourceRemovedEvent) => void;
   /**
-   * Event emitted when the player transitions between two sources in a playlist.
-   *
+   * Emitted by the native playlist.
    * @experimental
    */
   onPlaylistTransition?: (event: PlaylistTransitionEvent) => void;

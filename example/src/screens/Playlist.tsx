@@ -3,7 +3,6 @@ import { Button, Platform, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Event,
-  PlayerEventMap,
   PlayerView,
   ReplayMode,
   Source,
@@ -71,7 +70,10 @@ export default function Playlist() {
     const onEvent = (event: Event) => {
       prettyPrint(`EVENT [${event.name}]`, event);
     };
-    const listeners: [keyof PlayerEventMap, (event: Event) => void][] = [
+    const listeners: [
+      Parameters<typeof player.on>[0],
+      (event: Event) => void,
+    ][] = [
       ['playerActive', onPlaylistEvent],
       ['playlistTransition', onPlaylistEvent],
       ['sourceAdded', onPlaylistEvent],

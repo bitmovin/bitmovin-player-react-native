@@ -74,7 +74,6 @@
     "prettier": "^3.6.2",
     "react": "19.2.3",
     "react-native": "0.86.3",
-    "react-test-renderer": "19.2.3",
     "typedoc": "^0.28.20",
     "typescript": "~6.0.3"
   },

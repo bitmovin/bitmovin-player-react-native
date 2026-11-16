@@ -6,7 +6,6 @@ import type { NativePlayerViewConfig, NativePlayerViewRef } from './native';
 import { NativePlayerView } from './native';
 import { useProxy } from '../../hooks/useProxy';
 import { FullscreenHandlerBridge } from '../../ui/fullscreenHandlerBridge';
-import { usePlayerEventProps } from './usePlayerEventProps';
 import type { PlayerViewProps } from './properties';
 import type { PictureInPictureAction } from './pictureInPictureAction';
 
@@ -53,7 +52,6 @@ export function PlayerView({
 
   // Native events proxy helper.
   const proxy = useProxy();
-  usePlayerEventProps(player, props);
   // Style resulting from merging `baseStyle` and `props.style`.
   const nativeViewStyle = StyleSheet.flatten([styles.baseStyle, style]);
 
@@ -164,6 +162,177 @@ export function PlayerView({
     customMessageHandler,
     nativePlayerViewConfig,
   ]);
+
+  useEffect(() => {
+    // Expo removes all matching functions, so each effect owns distinct listeners.
+    // A late subscription cleanup must not remove the next effect's callbacks.
+    const subscriptions = [
+      props.onSourceAdded &&
+        player.on('sourceAdded', (event) => props.onSourceAdded?.(event)),
+      props.onSourceRemoved &&
+        player.on('sourceRemoved', (event) => props.onSourceRemoved?.(event)),
+      props.onPlaylistTransition &&
+        player.on('playlistTransition', (event) =>
+          props.onPlaylistTransition?.(event)
+        ),
+      props.onAdBreakFinished &&
+        player.on('adBreakFinished', (event) =>
+          props.onAdBreakFinished?.(event)
+        ),
+      props.onAdBreakStarted &&
+        player.on('adBreakStarted', (event) => props.onAdBreakStarted?.(event)),
+      props.onAdClicked &&
+        player.on('adClicked', (event) => props.onAdClicked?.(event)),
+      props.onAdError &&
+        player.on('adError', (event) => props.onAdError?.(event)),
+      props.onAdFinished &&
+        player.on('adFinished', (event) => props.onAdFinished?.(event)),
+      props.onAdManifestLoad &&
+        player.on('adManifestLoad', (event) => props.onAdManifestLoad?.(event)),
+      props.onAdManifestLoaded &&
+        player.on('adManifestLoaded', (event) =>
+          props.onAdManifestLoaded?.(event)
+        ),
+      props.onAdQuartile &&
+        player.on('adQuartile', (event) => props.onAdQuartile?.(event)),
+      props.onAdScheduled &&
+        player.on('adScheduled', (event) => props.onAdScheduled?.(event)),
+      props.onAdSkipped &&
+        player.on('adSkipped', (event) => props.onAdSkipped?.(event)),
+      props.onAdStarted &&
+        player.on('adStarted', (event) => props.onAdStarted?.(event)),
+      props.onCastAvailable &&
+        player.on('castAvailable', (event) => props.onCastAvailable?.(event)),
+      props.onCastPaused &&
+        player.on('castPaused', (event) => props.onCastPaused?.(event)),
+      props.onCastPlaybackFinished &&
+        player.on('castPlaybackFinished', (event) =>
+          props.onCastPlaybackFinished?.(event)
+        ),
+      props.onCastPlaying &&
+        player.on('castPlaying', (event) => props.onCastPlaying?.(event)),
+      props.onCastStarted &&
+        player.on('castStarted', (event) => props.onCastStarted?.(event)),
+      props.onCastStart &&
+        player.on('castStart', (event) => props.onCastStart?.(event)),
+      props.onCastStopped &&
+        player.on('castStopped', (event) => props.onCastStopped?.(event)),
+      props.onCastTimeUpdated &&
+        player.on('castTimeUpdated', (event) =>
+          props.onCastTimeUpdated?.(event)
+        ),
+      props.onCastWaitingForDevice &&
+        player.on('castWaitingForDevice', (event) =>
+          props.onCastWaitingForDevice?.(event)
+        ),
+      props.onCueEnter &&
+        player.on('cueEnter', (event) => props.onCueEnter?.(event)),
+      props.onCueExit &&
+        player.on('cueExit', (event) => props.onCueExit?.(event)),
+      props.onDestroy &&
+        player.on('destroy', (event) => props.onDestroy?.(event)),
+      props.onDownloadFinished &&
+        player.on('downloadFinished', (event) =>
+          props.onDownloadFinished?.(event)
+        ),
+      props.onVideoDownloadQualityChanged &&
+        player.on('videoDownloadQualityChanged', (event) =>
+          props.onVideoDownloadQualityChanged?.(event)
+        ),
+      props.onVideoPlaybackQualityChanged &&
+        player.on('videoPlaybackQualityChanged', (event) =>
+          props.onVideoPlaybackQualityChanged?.(event)
+        ),
+      props.onEvent && player.on('event', (event) => props.onEvent?.(event)),
+      props.onMetadata &&
+        player.on('metadata', (event) => props.onMetadata?.(event)),
+      props.onMetadataParsed &&
+        player.on('metadataParsed', (event) => props.onMetadataParsed?.(event)),
+      props.onMuted && player.on('muted', (event) => props.onMuted?.(event)),
+      props.onNonLinearAdStarted &&
+        player.on('nonLinearAdStarted', (event) =>
+          props.onNonLinearAdStarted?.(event)
+        ),
+      props.onNonLinearAdSkipped &&
+        player.on('nonLinearAdSkipped', (event) =>
+          props.onNonLinearAdSkipped?.(event)
+        ),
+      props.onNonLinearAdFinished &&
+        player.on('nonLinearAdFinished', (event) =>
+          props.onNonLinearAdFinished?.(event)
+        ),
+      props.onPaused && player.on('paused', (event) => props.onPaused?.(event)),
+      props.onPlay && player.on('play', (event) => props.onPlay?.(event)),
+      props.onPlaybackFinished &&
+        player.on('playbackFinished', (event) =>
+          props.onPlaybackFinished?.(event)
+        ),
+      props.onPlaybackSpeedChanged &&
+        player.on('playbackSpeedChanged', (event) =>
+          props.onPlaybackSpeedChanged?.(event)
+        ),
+      props.onPlayerActive &&
+        player.on('playerActive', (event) => props.onPlayerActive?.(event)),
+      props.onPlayerInactive &&
+        player.on('playerInactive', (event) => props.onPlayerInactive?.(event)),
+      props.onPlayerError &&
+        player.on('playerError', (event) => props.onPlayerError?.(event)),
+      props.onPlayerWarning &&
+        player.on('playerWarning', (event) => props.onPlayerWarning?.(event)),
+      props.onPlaying &&
+        player.on('playing', (event) => props.onPlaying?.(event)),
+      props.onReady && player.on('ready', (event) => props.onReady?.(event)),
+      props.onSeek && player.on('seek', (event) => props.onSeek?.(event)),
+      props.onSeeked && player.on('seeked', (event) => props.onSeeked?.(event)),
+      props.onTimeShift &&
+        player.on('timeShift', (event) => props.onTimeShift?.(event)),
+      props.onTimeShifted &&
+        player.on('timeShifted', (event) => props.onTimeShifted?.(event)),
+      props.onStallStarted &&
+        player.on('stallStarted', (event) => props.onStallStarted?.(event)),
+      props.onStallEnded &&
+        player.on('stallEnded', (event) => props.onStallEnded?.(event)),
+      props.onSourceError &&
+        player.on('sourceError', (event) => props.onSourceError?.(event)),
+      props.onSourceLoad &&
+        player.on('sourceLoad', (event) => props.onSourceLoad?.(event)),
+      props.onSourceLoaded &&
+        player.on('sourceLoaded', (event) => props.onSourceLoaded?.(event)),
+      props.onSourceUnloaded &&
+        player.on('sourceUnloaded', (event) => props.onSourceUnloaded?.(event)),
+      props.onSourceWarning &&
+        player.on('sourceWarning', (event) => props.onSourceWarning?.(event)),
+      props.onAudioAdded &&
+        player.on('audioAdded', (event) => props.onAudioAdded?.(event)),
+      props.onAudioChanged &&
+        player.on('audioChanged', (event) => props.onAudioChanged?.(event)),
+      props.onAudioRemoved &&
+        player.on('audioRemoved', (event) => props.onAudioRemoved?.(event)),
+      props.onSubtitleAdded &&
+        player.on('subtitleAdded', (event) => props.onSubtitleAdded?.(event)),
+      props.onSubtitleChanged &&
+        player.on('subtitleChanged', (event) =>
+          props.onSubtitleChanged?.(event)
+        ),
+      props.onSubtitleRemoved &&
+        player.on('subtitleRemoved', (event) =>
+          props.onSubtitleRemoved?.(event)
+        ),
+      props.onTimeChanged &&
+        player.on('timeChanged', (event) => props.onTimeChanged?.(event)),
+      props.onUnmuted &&
+        player.on('unmuted', (event) => props.onUnmuted?.(event)),
+      props.onFairplayLicenseAcquired &&
+        player.on('fairplayLicenseAcquired', (event) =>
+          props.onFairplayLicenseAcquired?.(event)
+        ),
+    ].map((pending) => pending?.catch(() => undefined));
+    return () => {
+      subscriptions.forEach((pending) => {
+        void pending?.then((subscription) => subscription?.remove());
+      });
+    };
+  }, [player, props]);
 
   useEffect(
     () => () => {

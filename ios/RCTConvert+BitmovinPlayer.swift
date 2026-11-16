@@ -1325,6 +1325,7 @@ extension RCTConvert {
         let absoluteTimeRange = absoluteTimeRange(dateRangeMetadata: dateRangeMetadata)
         var json: [String: Any] = [
             "metadataType": "DATERANGE",
+            "platform": "ios",
             "id": dateRangeMetadata.identifier,
             "absoluteTimeRange": absoluteTimeRange,
             "cueingOptions": dateRangeMetadata.cueingOptions
@@ -1388,7 +1389,8 @@ extension RCTConvert {
 
     static func toJson(avMetadataItem: AVMetadataItem, metadataType: MetadataType) -> [String: Any] {
         var json: [String: Any] = [
-            "metadataType": metadataTypeString(metadataType)
+            "metadataType": metadataTypeString(metadataType),
+            "platform": "ios"
         ]
 
         addTimeInfo(from: avMetadataItem, into: &json)

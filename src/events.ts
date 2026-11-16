@@ -149,8 +149,6 @@ export type PlaybackFinishedEvent = Event;
  *
  * This interface only type hints what should be the shape of a {@link Source} object inside an event's
  * payload during runtime so it has no direct relation with the `Source` class present in `src/source.ts`.
- *
- * Do not mistake it for a `NativeInstance` type.
  */
 export interface EventSource {
   /**
@@ -282,63 +280,12 @@ export interface SourceLoadedEvent extends Event {
  */
 export interface SourceUnloadedEvent extends Event {
   /**
-   * Source that was unloaded from player.
-   *
-   * Not set on Android for events received via {@link Player.on} or the `PlayerView` event props,
-   * as the native event does not carry the source. Set for events received via {@link Source.on}.
+   * Source that was unloaded from the player.
+   * Android includes it for {@link Source.on} subscriptions, while Player subscriptions
+   * and PlayerView events omit it because the SDK does not identify the unloaded Source.
+   * iOS includes it on all subscription paths.
    */
   source?: EventSource;
-}
-
-/**
- * Emitted when a {@link Source} was added to an active playback session, either while loading a
- * playlist via {@link Player.loadPlaylist} or via {@link PlaylistApi.add}.
- * When loading, it is emitted for every source of the playlist before {@link PlayerActiveEvent}.
- *
- * @experimental
- */
-export interface SourceAddedEvent extends Event {
-  /**
-   * The source that was added.
-   */
-  source: EventSource;
-  /**
-   * The position in the playlist the source was added to.
-   */
-  index: number;
-}
-
-/**
- * Emitted when a {@link Source} was removed from an active playback session, either via
- * {@link PlaylistApi.remove} / {@link PlaylistApi.removeAt} or while unloading the playback session.
- *
- * @experimental
- */
-export interface SourceRemovedEvent extends Event {
-  /**
-   * The source that was removed.
-   */
-  source: EventSource;
-  /**
-   * The position in the playlist the source was removed from.
-   */
-  index: number;
-}
-
-/**
- * Emitted when the player transitions between two sources in a playlist.
- *
- * @experimental
- */
-export interface PlaylistTransitionEvent extends Event {
-  /**
-   * The source that was active before the transition.
-   */
-  from: EventSource;
-  /**
-   * The source that is active after the transition.
-   */
-  to: EventSource;
 }
 
 /**
@@ -927,7 +874,7 @@ export interface SubtitleCueLayout {
 /**
  * Native cue region metadata, when provided by the platform.
  *
- * @platform iOS, tvOS
+ * @platform iOS/tvOS
  */
 export interface SubtitleCueRegion {
   /**
@@ -947,7 +894,7 @@ export interface SubtitleCueRegion {
  *
  * Separate from `layout`, which describes cue-box geometry in the shared JS shape.
  *
- * @platform iOS, tvOS
+ * @platform iOS/tvOS
  */
 export interface Cea608CuePosition {
   /**
@@ -1010,13 +957,13 @@ export interface CueEnterEvent extends Event {
    * Forwarded only when the native SDK provides it. Built-in iOS/tvOS WebVTT parsing does
    * not populate this field currently.
    *
-   * @platform iOS, tvOS
+   * @platform iOS/tvOS
    */
   region?: SubtitleCueRegion;
   /**
    * CEA-608 grid position for closed captions.
    *
-   * @platform iOS, tvOS
+   * @platform iOS/tvOS
    */
   cea608Position?: Cea608CuePosition;
 }
@@ -1059,13 +1006,13 @@ export interface CueExitEvent extends Event {
    * Forwarded only when the native SDK provides it. Built-in iOS/tvOS WebVTT parsing does
    * not currently populate this field.
    *
-   * @platform iOS, tvOS
+   * @platform iOS/tvOS
    */
   region?: SubtitleCueRegion;
   /**
    * CEA-608 grid position for closed captions.
    *
-   * @platform iOS, tvOS
+   * @platform iOS/tvOS
    */
   cea608Position?: Cea608CuePosition;
 }
@@ -1128,7 +1075,7 @@ export type MetadataEvent = MetadataParsedEvent;
 /**
  * Represents the FairPlay content key request associated with a license acquisition.
  *
- * @platform iOS, tvOS
+ * @platform iOS/tvOS
  */
 export interface FairplayContentKeyRequest {
   /**
@@ -1140,11 +1087,38 @@ export interface FairplayContentKeyRequest {
 /**
  * Emitted when a FairPlay license has been acquired successfully.
  *
- * @platform iOS, tvOS
+ * @platform iOS/tvOS
  */
 export interface FairplayLicenseAcquiredEvent extends Event {
   /**
    * The content key request associated with the acquired license.
    */
   contentKeyRequest: FairplayContentKeyRequest;
+}
+
+/**
+ * Emitted when a source is added to the native playlist.
+ * @experimental
+ */
+export interface SourceAddedEvent extends Event {
+  source: EventSource;
+  index: number;
+}
+
+/**
+ * Emitted when a source is removed from the native playlist.
+ * @experimental
+ */
+export interface SourceRemovedEvent extends Event {
+  source: EventSource;
+  index: number;
+}
+
+/**
+ * Emitted when playback transitions between sources.
+ * @experimental
+ */
+export interface PlaylistTransitionEvent extends Event {
+  from: EventSource;
+  to: EventSource;
 }

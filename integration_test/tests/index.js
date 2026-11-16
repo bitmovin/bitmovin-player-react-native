@@ -7,16 +7,20 @@ function testSuite(name, platforms, load) {
 
 const testRegistrations = [
   testSuite(
-    'source',
+    'native-creation',
     androidAndIos,
-    () => require('./sourceMetadataTest').default
+    () => require('./nativeCreationTest').default
   ),
   testSuite(
-    'shared-object-lifecycle',
+    'view-boundary',
     androidAndIos,
-    () => require('./sharedObjectLifecycleTest').default
+    () => require('./viewBoundaryTest').default
   ),
-  testSuite('buffer', androidAndIos, () => require('./bufferTest').default),
+  testSuite(
+    'media-session',
+    ['android'],
+    () => require('./mediaSessionTeardownTest').default
+  ),
   testSuite(
     'offline',
     androidAndIos,
@@ -33,27 +37,14 @@ const testRegistrations = [
     ['android'],
     () => require('./decoderConfigTest').default
   ),
-  testSuite(
-    'native-creation',
-    androidAndIos,
-    () => require('./nativeCreationTest').default
-  ),
-  testSuite(
-    'source-ownership',
-    androidAndIos,
-    () => require('./sourceOwnershipTest').default
-  ),
   testSuite('drm', ['android'], () => require('./drmCallbacksTest').default),
   testSuite(
-    'media-session',
-    ['android'],
-    () => require('./mediaSessionTeardownTest').default
-  ),
-  testSuite(
-    'view-boundary',
+    'source',
     androidAndIos,
-    () => require('./viewBoundaryTest').default
+    () => require('./sourceMetadataTest').default
   ),
+  testSuite('buffer', androidAndIos, () => require('./bufferTest').default),
+  testSuite('playlist', androidAndIos, () => require('./playlistTest').default),
   testSuite(
     'advertising',
     androidAndIos,
@@ -66,7 +57,6 @@ const testRegistrations = [
     () => require('./captionMetadataTest').default
   ),
   testSuite('error', androidAndIos, () => require('./errorTest').default),
-  testSuite('events', androidAndIos, () => require('./eventsTest').default),
   testSuite('loading', androidAndIos, () => require('./loadingTest').default),
   {
     ...testSuite(
@@ -87,8 +77,22 @@ const testRegistrations = [
     () => require('./metadataId3Test').default
   ),
   testSuite('network', androidAndIos, () => require('./networkTest').default),
+  testSuite(
+    'source-ownership',
+    androidAndIos,
+    () => require('./sourceOwnershipTest').default
+  ),
+  testSuite(
+    'object-events',
+    androidAndIos,
+    () => require('./objectEventsTest').default
+  ),
   testSuite('playback', androidAndIos, () => require('./playbackTest').default),
-  testSuite('playlist', androidAndIos, () => require('./playlistTest').default),
+  testSuite(
+    'shared-object-lifecycle',
+    androidAndIos,
+    () => require('./sharedObjectLifecycleTest').default
+  ),
   testSuite(
     'unloading',
     androidAndIos,

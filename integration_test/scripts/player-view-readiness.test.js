@@ -132,8 +132,11 @@ const playerViewContext = vm.createContext({
     if (name.endsWith('/useProxy')) return { useProxy: () => (x) => x };
     if (name === '../../player')
       return { getNativePlayer: (player) => player.native };
+    if (name.endsWith('/customMessageHandler'))
+      return { getNativeCustomMessage: (handler) => handler.native };
     if (name.endsWith('/fullscreenHandlerBridge'))
       return {
+        getNativeFullscreen: (bridge) => bridge.native,
         FullscreenHandlerBridge: class {
           native = {};
           setFullscreenHandler(handler) {
@@ -142,11 +145,12 @@ const playerViewContext = vm.createContext({
           async destroy() {
             this.destroyed = true;
             this.native.destroyed = true;
+            this.native.destroyCalls = (this.native.destroyCalls || 0) + 1;
           }
         },
       };
+    if (name.endsWith('/customMessageHandlerBridge')) return {};
     if (name.endsWith('/metadataPlatform')) return {};
-    if (name === './usePlayerEventProps') return { usePlayerEventProps() {} };
     throw new Error('Unexpected PlayerView dependency: ' + name);
   },
 });
@@ -201,9 +205,25 @@ test('readiness waits for native attachment and is announced once', async () => 
   let notifications = 0;
   const viewRef = { current: null };
   const player = playerWith();
+  const eventRegistrations = [];
+  let activeListeners = [];
+  player.on = async (event, listener) => {
+    eventRegistrations.push([event, listener]);
+    activeListeners.push([event, listener]);
+    return {
+      // Expo removes every registration of the same function for this event.
+      remove() {
+        activeListeners = activeListeners.filter(
+          ([name, fn]) => name !== event || fn !== listener
+        );
+      },
+    };
+  };
+  let readyEvents = 0;
   const props = {
     player,
     viewRef,
+    onReady: () => readyEvents++,
     onPlayerViewReady: () => {
       assert.ok(viewRef.current, 'the public ref is available in the callback');
       notifications++;
@@ -217,6 +237,14 @@ test('readiness waits for native attachment and is announced once', async () => 
     'layout/ref availability does not prove platform attachment'
   );
   await flush();
+  assert.ok(eventRegistrations.length > 0);
+  assert.ok(eventRegistrations.every(([event]) => event === 'ready'));
+  for (const [, listener] of activeListeners) listener({ name: 'onReady' });
+  assert.equal(
+    readyEvents,
+    1,
+    'old cleanup cannot remove the current listener'
+  );
   assert.ok(
     committedView,
     'the native host mounts without a JS initialization stage'
@@ -325,6 +353,81 @@ test('A to B to A keeps the host and ignores superseded native acknowledgments',
     await flush();
   }
   assert.deepEqual(notifications, [first, second, first]);
+});
+
+test('replacement view refs wait for the current native acknowledgment', async () => {
+  const first = playerWith();
+  const second = playerWith();
+  const firstRef = { current: null };
+  render({ player: first, viewRef: firstRef });
+  await flush();
+  const tag = committedView.tag;
+  const firstRequest = bindings.get(tag);
+  assert.equal(
+    firstRef.current,
+    null,
+    'a mounted host is not an acknowledgment'
+  );
+  acknowledge(firstRequest);
+  await flush();
+  const host = firstRef.current;
+  assert.ok(host);
+
+  const replacementRef = { current: null };
+  render({ player: second, viewRef: replacementRef });
+  await flush();
+  const secondRequest = bindings.get(tag);
+  assert.equal(committedView.tag, tag);
+  assert.equal(replacementRef.current, null);
+  acknowledge(firstRequest);
+  await flush();
+  assert.equal(
+    replacementRef.current,
+    null,
+    'the old Player cannot publish a new ref'
+  );
+  acknowledge(secondRequest);
+  await flush();
+  assert.equal(replacementRef.current, host);
+
+  const latestRef = { current: null };
+  render({ player: second, viewRef: latestRef });
+  await flush();
+  assert.equal(
+    latestRef.current,
+    host,
+    'an accepted host populates replacement refs'
+  );
+});
+
+test('fullscreen handling closes only once on unmount', async () => {
+  const fullscreenHandler = {};
+  render({ player: playerWith(), fullscreenHandler });
+  await flush();
+  const tag = committedView.tag;
+  const fullscreen = bindings.get(tag).fullscreen;
+  assert.ok(fullscreen);
+  acknowledge();
+  await flush();
+
+  render({ player: playerWith(), fullscreenHandler });
+  await flush();
+  assert.equal(committedView.tag, tag);
+  assert.equal(bindings.get(tag).fullscreen, fullscreen);
+  assert.equal(
+    fullscreen.destroyCalls || 0,
+    0,
+    'Player replacement keeps the view scope'
+  );
+  acknowledge();
+  await flush();
+
+  rendererModule.exports.render(null, 11, null, true, {});
+  await flush();
+  assert.equal(fullscreen.destroyCalls, 1);
+  rendererModule.exports.render(null, 11, null, true, {});
+  await flush();
+  assert.equal(fullscreen.destroyCalls, 1);
 });
 
 test('failed native attachment reports no readiness or unhandled rejection', async () => {
