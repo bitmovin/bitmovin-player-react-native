@@ -18,8 +18,12 @@ inputs:
     description: Setup Homebrew
     default: false
     required: false
-  ios:
-    description: Setup xcode and install dependencies (overrides `brew` input)
+  ruby:
+    description: Setup Ruby from .ruby-version
+    default: false
+    required: false
+  xcode:
+    description: Setup Xcode
     default: false
     required: false
   java:
@@ -38,6 +42,12 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Set up Ruby
+      if: ${{ inputs.ruby == 'true' }}
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: .ruby-version
+
     - name: Set up Java
       if: ${{ inputs.java == 'true' }}
       uses: actions/setup-java@v4
@@ -63,7 +73,7 @@ runs:
     # Cached native projects keep the absolute Node path from the run that generated them,
     # and pod install never rewrites an existing .xcode.env.local
     - name: Point cached iOS projects at the current Node binary
-      if: ${{ inputs.ios == 'true' && (inputs.node == 'true' || inputs.subprojects == 'true') }}
+      if: ${{ inputs.xcode == 'true' && (inputs.node == 'true' || inputs.subprojects == 'true') }}
       shell: bash
       run: |
         for project in example/ios integration_test/ios; do
@@ -119,18 +129,18 @@ runs:
         .github/scripts/setup-gradle-properties.sh
 
     - uses: maxim-lobanov/setup-xcode@v1
-      if: ${{ inputs.ios == 'true' }}
+      if: ${{ inputs.xcode == 'true' }}
       with:
         xcode-version: '26.6' # Includes the Swift 6.3.3 compiler.
 
     - name: Show Apple toolchain versions
-      if: ${{ inputs.ios == 'true' }}
+      if: ${{ inputs.xcode == 'true' }}
       shell: bash
       run: |
         xcodebuild -version
         xcrun swift --version
 
     - name: Install dependencies
-      if: ${{ inputs.ios == 'true' || inputs.brew == 'true' }}
+      if: ${{ inputs.brew == 'true' }}
       shell: bash
       run: brew bundle install
