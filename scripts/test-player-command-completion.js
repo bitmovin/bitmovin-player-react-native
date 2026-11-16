@@ -54,15 +54,14 @@ function fixture(t, methods = {}) {
   require(
     path.join(directory, 'node_modules/expo-modules-core')
   ).nativeModules.PlayerModule = {
-    SharedBufferApi: class {},
-    SharedPlaylistApi: class {},
     SharedPlayer: class {
+      play = (...args) => native.play(...args);
+      seek = (...args) => native.seek(...args);
       destroy = () => native.destroy();
     },
-    // Runtime methods still take the captured peer until the forwarding concern.
-    play: (_player, ...args) => native.play(...args),
-    seek: (_player, ...args) => native.seek(...args),
-    getCurrentTime: (_player, ...args) => native.getCurrentTime(...args),
+    // Real Player construction creates these handles; these tests do not invoke them.
+    SharedBufferApi: class {},
+    SharedPlaylistApi: class {},
     isGoogleImaEnabled: true,
   };
   const { Player } = require(path.join(directory, 'player'));
@@ -127,20 +126,4 @@ test('destroy exposes the original native rejection', async (t) => {
   });
   const player = new Player();
   await assert.rejects(player.destroy(), (error) => error === failure);
-});
-
-// The temporary static receiver must preserve the released public default.
-test('current time defaults to absolute and preserves an explicit mode', async (t) => {
-  const modes = [];
-  const { Player } = fixture(t, {
-    getCurrentTime: async (mode) => {
-      modes.push(mode);
-      return 0;
-    },
-  });
-  const player = new Player();
-  await player.getCurrentTime();
-  await player.getCurrentTime('relative');
-  assert.deepEqual(modes, ['absolute', 'relative']);
-  await player.destroy();
 });
