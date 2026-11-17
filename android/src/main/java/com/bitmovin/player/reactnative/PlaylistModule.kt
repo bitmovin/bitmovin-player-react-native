@@ -34,10 +34,13 @@ class PlaylistModule : Module() {
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("removeAt") { nativeId: NativeId, index: Int ->
-            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction null
-            val source = player.playlist.sources.getOrNull(index) ?: return@AsyncFunction null
+            val notRemoved = mapOf<String, Any?>("isRemoved" to false)
+            val player = PlayerRegistry.getPlayer(nativeId) ?: return@AsyncFunction notRemoved
+            val source = player.playlist.sources.getOrNull(index) ?: return@AsyncFunction notRemoved
             player.playlist.remove(index)
-            if (source in player.playlist.sources) null else SourceRegistry.getNativeId(source)
+            if (source in player.playlist.sources) return@AsyncFunction notRemoved
+            // A source not created through a JS `Source`, e.g. offline content, has no native id.
+            mapOf<String, Any?>("isRemoved" to true, "sourceNativeId" to SourceRegistry.getNativeId(source))
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("seek") { nativeId: NativeId, sourceNativeId: NativeId, time: Double ->

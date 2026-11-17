@@ -88,14 +88,21 @@ export class PlaylistApi {
    * if there is no active playback session or if the `source` is the active source.
    * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
    * In all these cases, a warning is logged, e.g. to Metro.
+   *
+   * @returns whether the `source` was removed.
    */
-  remove = async (source: Source): Promise<void> => {
-    if (await PlaylistModule.remove(this.nativeId, source.nativeId)) {
+  remove = async (source: Source): Promise<boolean> => {
+    const isRemoved = await PlaylistModule.remove(
+      this.nativeId,
+      source.nativeId
+    );
+    if (isRemoved) {
       this.knownSources.delete(source.nativeId);
       releaseSourceOwner(source, this.nativeId);
     } else {
       this.warnNotRemoved(`Source ${source.nativeId}`);
     }
+    return isRemoved;
   };
 
   /**
@@ -105,18 +112,27 @@ export class PlaylistApi {
    * there is no active playback session or if the source at `index` is the active source.
    * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
    * In all these cases, a warning is logged, e.g. to Metro.
+   *
+   * @returns whether a source was removed.
    */
-  removeAt = async (index: number): Promise<void> => {
-    const removedNativeId = await PlaylistModule.removeAt(this.nativeId, index);
-    if (removedNativeId) {
-      const removed = this.knownSources.get(removedNativeId);
-      this.knownSources.delete(removedNativeId);
-      if (removed) {
-        releaseSourceOwner(removed, this.nativeId);
-      }
-    } else {
+  removeAt = async (index: number): Promise<boolean> => {
+    const { isRemoved, sourceNativeId } = await PlaylistModule.removeAt(
+      this.nativeId,
+      index
+    );
+    if (!isRemoved) {
       this.warnNotRemoved(`The source at index ${index}`);
+      return false;
     }
+    // Sources not created through a `Source`, e.g. offline content, have no native id.
+    const removed = sourceNativeId
+      ? this.knownSources.get(sourceNativeId)
+      : undefined;
+    if (removed) {
+      this.knownSources.delete(removed.nativeId);
+      releaseSourceOwner(removed, this.nativeId);
+    }
+    return true;
   };
 
   /**

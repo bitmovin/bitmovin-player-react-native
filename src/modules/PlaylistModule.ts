@@ -24,9 +24,13 @@ declare class PlaylistModule extends NativeModule<PlaylistModuleEvents> {
   /**
    * Remove the source at `index` from the playback session.
    *
-   * @returns the native id of the removed source, or `null` if none was removed.
+   * @returns whether a source was removed, and the native id of the removed source. The native id is missing for
+   * a source that was not created through a JS `Source`, e.g. offline content.
    */
-  removeAt(nativeId: string, index: number): Promise<string | null>;
+  removeAt(
+    nativeId: string,
+    index: number
+  ): Promise<{ isRemoved: boolean; sourceNativeId?: string | null }>;
 
   /**
    * Seek to `time` in a source of the playback session.

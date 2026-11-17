@@ -47,12 +47,16 @@ public class PlaylistModule: Module {
             return !Self.contains(player.playlist.sources, source)
         }.runOnQueue(.main)
 
-        AsyncFunction("removeAt") { (nativeId: NativeId, index: Int) -> NativeId? in
+        AsyncFunction("removeAt") { (nativeId: NativeId, index: Int) -> [String: Any] in
             guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
-                  player.playlist.sources.indices.contains(index) else { return nil }
+                  player.playlist.sources.indices.contains(index) else { return ["isRemoved": false] }
             let source = player.playlist.sources[index]
             player.playlist.remove(sourceAt: index)
-            return Self.contains(player.playlist.sources, source) ? nil : SourceRegistry.nativeId(of: source)
+            guard !Self.contains(player.playlist.sources, source) else { return ["isRemoved": false] }
+            var result: [String: Any] = ["isRemoved": true]
+            // A source not created through a JS `Source`, e.g. offline content, has no native id.
+            result["sourceNativeId"] = SourceRegistry.nativeId(of: source)
+            return result
         }.runOnQueue(.main)
 
         AsyncFunction("seek") { (nativeId: NativeId, sourceNativeId: NativeId, time: Double) in
