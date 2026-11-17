@@ -87,7 +87,7 @@ export class PlaylistApi {
    * Has no effect if the `source` is not part of the playback session. Has no effect and emits a `PlayerWarning`
    * if there is no active playback session or if the `source` is the active source.
    * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
-   * In all these cases, a warning is logged, e.g. to Metro.
+   * A warning is also logged via `console.warn`.
    *
    * @returns whether the `source` was removed.
    */
@@ -100,7 +100,10 @@ export class PlaylistApi {
       this.knownSources.delete(source.nativeId);
       releaseSourceOwner(source, this.nativeId);
     } else {
-      this.warnNotRemoved(`Source ${source.nativeId}`);
+      this.warnNotRemoved(
+        `Source ${source.nativeId}`,
+        'it is not part of the playback session'
+      );
     }
     return isRemoved;
   };
@@ -111,7 +114,7 @@ export class PlaylistApi {
    * Has no effect if `index` is < 0 or >= the number of sources. Has no effect and emits a `PlayerWarning` if
    * there is no active playback session or if the source at `index` is the active source.
    * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
-   * In all these cases, a warning is logged, e.g. to Metro.
+   * A warning is also logged via `console.warn`.
    *
    * @returns whether a source was removed.
    */
@@ -121,7 +124,10 @@ export class PlaylistApi {
       index
     );
     if (!isRemoved) {
-      this.warnNotRemoved(`The source at index ${index}`);
+      this.warnNotRemoved(
+        `The source at index ${index}`,
+        'the index is out of range'
+      );
       return false;
     }
     // Sources not created through a `Source`, e.g. offline content, have no native id.
@@ -138,10 +144,10 @@ export class PlaylistApi {
   /**
    * Native only logs the reason, which does not reach Metro on iOS, and Android only emits a `PlayerWarning`.
    */
-  private warnNotRemoved = (subject: string) => {
+  private warnNotRemoved = (subject: string, reason: string) => {
     console.warn(
-      `[Player ${this.nativeId}] ${subject} was not removed: it is not part of the playback session, it is the ` +
-        'active source, or there is no active playback session.'
+      `[Player ${this.nativeId}] ${subject} was not removed: ${reason}, it is the active source, or ` +
+        'there is no active playback session.'
     );
   };
 

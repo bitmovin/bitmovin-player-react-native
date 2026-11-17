@@ -223,7 +223,8 @@ export class Player extends NativeInstance<PlayerConfig> {
    * Loads the given {@link Source} into the player.
    * The player destroys the source when it is destroyed, see {@link Player.destroy}.
    *
-   * Logs a warning if the load fails before it starts, e.g. because the source is attached to another player.
+   * Logs a warning if the load fails before it starts, e.g. because the source cannot be initialized or is
+   * attached to another player.
    */
   loadSource = (source: Source) => {
     this.knownSources.set(source.nativeId, source);
@@ -292,7 +293,8 @@ export class Player extends NativeInstance<PlayerConfig> {
    *
    * Throws if `sources` is empty or contains a source more than once, `options.replayMode` is unknown, a source
    * was destroyed, or (on iOS and tvOS) a source has an unsupported type. Logs a warning if the load fails before
-   * it starts for a reason only known natively, e.g. because a source is attached to another player.
+   * it starts for a reason only known natively, e.g. because a source cannot be initialized or is attached to
+   * another player.
    *
    * Known limitations:
    * - Sources that left the player through {@link Player.unload} or a later load stay allocated until the player

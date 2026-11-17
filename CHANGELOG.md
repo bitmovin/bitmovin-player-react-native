@@ -5,7 +5,7 @@
 ### Fixed
 
 - A source whose DRM initialization failed keeping the failed DRM config and its event subscriptions until the source was destroyed
-- `Player.loadSource()` and `Player.loadPlaylist()` causing an uncaught promise rejection when the load fails before it starts, e.g. for a source attached to another player. A warning is logged instead
+- `Player.loadSource()` and `Player.loadPlaylist()` causing an uncaught promise rejection when the load fails before it starts, e.g. because a source cannot be initialized or is attached to another player. A warning is logged instead
 
 ### Changed
 
