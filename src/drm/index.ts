@@ -67,7 +67,13 @@ export class Drm extends NativeInstance<DrmConfig> {
 
       // Create native configuration object using Expo module.
       if (this.config) {
-        await DrmModule.initializeWithConfig(this.nativeId, this.config);
+        try {
+          await DrmModule.initializeWithConfig(this.nativeId, this.config);
+        } catch (error) {
+          // Native keeps no config when it fails, so releasing the listeners lets a later call start over.
+          this.removeEventListeners();
+          throw error;
+        }
       }
       this.isInitialized = true;
     }
@@ -78,13 +84,20 @@ export class Drm extends NativeInstance<DrmConfig> {
    */
   destroy = async () => {
     if (!this.isDestroyed) {
-      await DrmModule.destroy(this.nativeId);
-      // Clean up event subscriptions
-      this.eventSubscriptions.forEach((subscription) => subscription.remove());
-      this.eventSubscriptions = [];
-      this.isDestroyed = true;
+      try {
+        await DrmModule.destroy(this.nativeId);
+      } finally {
+        // Also when the native destroy fails, so that the listeners do not outlive this instance.
+        this.removeEventListeners();
+        this.isDestroyed = true;
+      }
     }
   };
+
+  private removeEventListeners() {
+    this.eventSubscriptions.forEach((subscription) => subscription.remove());
+    this.eventSubscriptions = [];
+  }
 
   /**
    * Sets up event listeners for all DRM preparation callbacks

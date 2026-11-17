@@ -217,8 +217,7 @@ export class Source extends NativeInstance<SourceConfig> {
       try {
         await drm.initialize();
       } catch (error) {
-        // Release its subscriptions, so that a later initialization starts over.
-        void drm.destroy();
+        // The failed DRM released its listeners, so a later initialization starts over with a new one.
         this.drm = undefined;
         throw error;
       }
