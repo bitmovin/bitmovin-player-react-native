@@ -11,7 +11,6 @@
 
 - Update Bitmovin's native Android SDK version to [`3.175.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31750)
 - Update Bitmovin's native iOS SDK version to [`3.131.1`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31311)
-- `PlaylistApi.remove()` and `PlaylistApi.removeAt()` resolve with whether the source was removed
 - `PlaylistApi.remove()` and `PlaylistApi.removeAt()` log a warning when they have no effect, e.g. for the active source. On iOS, the reason was only logged to the Xcode console before
 
 ## [1.31.0] - 2026-11-12

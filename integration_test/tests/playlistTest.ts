@@ -390,10 +390,7 @@ export default (spec: TestScope) => {
 
         const removed = await callPlayerAndExpectEvent<SourceRemovedEvent>(
           async (player) => {
-            expect(
-              await player.playlist.remove(third),
-              'Removed by source'
-            ).toBe(true);
+            await player.playlist.remove(third);
           },
           EventType.SourceRemoved
         );
@@ -402,9 +399,7 @@ export default (spec: TestScope) => {
 
         await callPlayerAndExpectEvent<SourceRemovedEvent>(
           async (player) => {
-            expect(await player.playlist.removeAt(1), 'Removed by index').toBe(
-              true
-            );
+            await player.playlist.removeAt(1);
           },
           FilteredEvent<SourceRemovedEvent>(
             EventType.SourceRemoved,
@@ -581,14 +576,8 @@ export default (spec: TestScope) => {
 
         await callPlayer(async (player) => {
           const warnings = await captureWarnings(async () => {
-            expect(
-              await player.playlist.remove(first),
-              'Active source removed by source'
-            ).toBe(false);
-            expect(
-              await player.playlist.removeAt(0),
-              'Active source removed by index'
-            ).toBe(false);
+            await player.playlist.remove(first);
+            await player.playlist.removeAt(0);
           });
           expect(
             warnings.filter((warning) => warning.includes('was not removed')),

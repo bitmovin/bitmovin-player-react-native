@@ -88,10 +88,8 @@ export class PlaylistApi {
    * if there is no active playback session or if the `source` is the active source.
    * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
    * A warning is also logged via `console.warn`.
-   *
-   * @returns whether the `source` was removed.
    */
-  remove = async (source: Source): Promise<boolean> => {
+  remove = async (source: Source): Promise<void> => {
     const isRemoved = await PlaylistModule.remove(
       this.nativeId,
       source.nativeId
@@ -105,7 +103,6 @@ export class PlaylistApi {
         'it is not part of the playback session'
       );
     }
-    return isRemoved;
   };
 
   /**
@@ -115,10 +112,8 @@ export class PlaylistApi {
    * there is no active playback session or if the source at `index` is the active source.
    * On iOS and tvOS, no `PlayerWarning` is emitted; the native SDK logs a warning instead.
    * A warning is also logged via `console.warn`.
-   *
-   * @returns whether a source was removed.
    */
-  removeAt = async (index: number): Promise<boolean> => {
+  removeAt = async (index: number): Promise<void> => {
     const { isRemoved, sourceNativeId } = await PlaylistModule.removeAt(
       this.nativeId,
       index
@@ -128,7 +123,7 @@ export class PlaylistApi {
         `The source at index ${index}`,
         'the index is out of range'
       );
-      return false;
+      return;
     }
     // Sources not created through a `Source`, e.g. offline content, have no native id.
     const removed = sourceNativeId
@@ -138,7 +133,6 @@ export class PlaylistApi {
       this.knownSources.delete(removed.nativeId);
       releaseSourceOwner(removed, this.nativeId);
     }
-    return true;
   };
 
   /**

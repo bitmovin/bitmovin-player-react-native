@@ -149,8 +149,9 @@ export default function Playlist() {
     if (!last) {
       return;
     }
+    await player.playlist.remove(last);
     // The active source cannot be removed.
-    if (await player.playlist.remove(last)) {
+    if (!(await player.playlist.getSources()).includes(last)) {
       last.destroy();
     }
   }, [player, sources]);
