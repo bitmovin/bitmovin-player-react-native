@@ -11,9 +11,9 @@ public class PlaylistModule: Module {
             return player.playlist.sources.compactMap { SourceRegistry.nativeId(of: $0) }
         }.runOnQueue(.main)
 
-        AsyncFunction("add") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId, index: Int?) in
+        AsyncFunction("add") { (nativeId: NativeId, sourceNativeId: NativeId, index: Int?) in
             guard let player = PlayerRegistry.getPlayer(nativeId: nativeId) else { return }
-            guard let source = self?.retrieveSource(sourceNativeId) else {
+            guard let source = SourceRegistry.source(nativeId: sourceNativeId) else {
                 throw Exception(
                     name: "SOURCE_NOT_INITIALIZED",
                     description: "Source \(sourceNativeId) is not initialized"
@@ -36,9 +36,9 @@ public class PlaylistModule: Module {
             }
         }.runOnQueue(.main)
 
-        AsyncFunction("remove") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId) -> Bool in
+        AsyncFunction("remove") { (nativeId: NativeId, sourceNativeId: NativeId) -> Bool in
             guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
-                  let source = self?.retrieveSource(sourceNativeId) else { return false }
+                  let source = SourceRegistry.source(nativeId: sourceNativeId) else { return false }
             // The SDK can only remove sources by index.
             let index = player.playlist.sources.firstIndex { ($0 as AnyObject) === (source as AnyObject) }
             guard let index else { return false }
@@ -47,26 +47,26 @@ public class PlaylistModule: Module {
             return !Self.contains(player.playlist.sources, source)
         }.runOnQueue(.main)
 
-        AsyncFunction("removeAt") { (nativeId: NativeId, index: Int) -> NativeId? in
+        AsyncFunction("removeAt") { (nativeId: NativeId, index: Int) -> [String: Any] in
             guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
-                  player.playlist.sources.indices.contains(index) else { return nil }
+                  player.playlist.sources.indices.contains(index) else { return ["isRemoved": false] }
             let source = player.playlist.sources[index]
             player.playlist.remove(sourceAt: index)
-            return Self.contains(player.playlist.sources, source) ? nil : SourceRegistry.nativeId(of: source)
+            guard !Self.contains(player.playlist.sources, source) else { return ["isRemoved": false] }
+            var result: [String: Any] = ["isRemoved": true]
+            // A source not created through a JS `Source`, e.g. offline content, has no native id.
+            result["sourceNativeId"] = SourceRegistry.nativeId(of: source)
+            return result
         }.runOnQueue(.main)
 
-        AsyncFunction("seek") { [weak self] (nativeId: NativeId, sourceNativeId: NativeId, time: Double) in
+        AsyncFunction("seek") { (nativeId: NativeId, sourceNativeId: NativeId, time: Double) in
             guard let player = PlayerRegistry.getPlayer(nativeId: nativeId),
-                  let source = self?.retrieveSource(sourceNativeId) else { return }
+                  let source = SourceRegistry.source(nativeId: sourceNativeId) else { return }
             player.playlist.seek(source: source, time: time)
         }.runOnQueue(.main)
     }
 
     private static func contains(_ sources: [Source], _ source: Source) -> Bool {
         sources.contains { ($0 as AnyObject) === (source as AnyObject) }
-    }
-
-    private func retrieveSource(_ nativeId: NativeId) -> Source? {
-        appContext?.moduleRegistry.get(SourceModule.self)?.retrieve(nativeId)
     }
 }

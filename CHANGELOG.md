@@ -2,10 +2,16 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- A source whose DRM initialization failed keeping the failed DRM config and its event subscriptions until the source was destroyed
+- `Player.loadSource()` and `Player.loadPlaylist()` causing an uncaught promise rejection when the load fails before it starts, e.g. because a source cannot be initialized or is attached to another player. A warning is logged instead
+
 ### Changed
 
 - Update Bitmovin's native Android SDK version to [`3.175.0+jason`](https://developer.bitmovin.com/playback/docs/release-notes-android#31750)
 - Update Bitmovin's native iOS SDK version to [`3.131.1`](https://developer.bitmovin.com/playback/docs/release-notes-ios#31311)
+- `PlaylistApi.remove()` and `PlaylistApi.removeAt()` log a warning when they have no effect, e.g. for the active source. On iOS, the reason was only logged to the Xcode console before
 
 ## [1.31.0] - 2026-11-12
 
